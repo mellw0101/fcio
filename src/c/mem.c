@@ -20,3 +20,9 @@ void *xrealloc(void *ptr, Ulong newsize) {
   ALWAYS_ASSERT(ptr);
   return ptr;
 }
+
+void *xcalloc(Ulong elems, Ulong elemsize) {
+  void *ptr = calloc(elems, elemsize);
+  ALWAYS_ASSERT(ptr);
+  return ptr;
+}

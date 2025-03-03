@@ -48,7 +48,8 @@ int directory_get_recurse(const char *const restrict path, directory_t *const ou
 
 
 void *xmalloc(Ulong howmush) __THROW _RETURNS_NONNULL;
-void *xrealloc(void *ptr, Ulong newsize) __THROW _RETURNS_NONNULL;
+void *xrealloc(void *ptr, Ulong newsize) __THROW _RETURNS_NONNULL _NONNULL(1);
+void *xcalloc(Ulong elems, Ulong elemsize) __THROW _RETURNS_NONNULL;
 
 
 /* ---------------------------------------------------------- str.c ---------------------------------------------------------- */
@@ -77,6 +78,22 @@ void cvec_setfree(CVec *const v, FreeFuncPtr free);
 void cvec_push(CVec *const v, void *const item);
 void cvec_trim(CVec *const v);
 void *cvec_get(CVec *const v, int index);
+
+
+/* ---------------------------------------------------------- hashmap.c ---------------------------------------------------------- */
+
+
+HashMap *hashmap_create(void);
+void hashmap_free(HashMap *const map);
+void hashmap_set_free_value_callback(HashMap *const map, FreeFuncPtr callback);
+void hashmap_insert(HashMap *map, const char *key, void *value);
+void *hashmap_get(HashMap *map, const char *key);
+void hashmap_remove(HashMap *map, const char *key);
+int hashmap_size(HashMap *const map);
+int hashmap_cap(HashMap *const map);
+void hashmap_forall(HashMap *const map, void (*action)(const char *const restrict key, void *value));
+void hashmap_clear(HashMap *const map);
+void hashmap_thread_test(void);
 
 
 _END_C_LINKAGE

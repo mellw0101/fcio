@@ -36,6 +36,9 @@
 # define DO_WHILE(...)  do {__VA_ARGS__} while (0)
 #endif
 
+#define ASSIGN_IF_VALID(ptr, value)  DO_WHILE(((ptr) ? (*(ptr) = (value)) : ((int)0));)
+#define CALL_IF_VALID(funcptr, ...)  DO_WHILE((funcptr) ? (funcptr)(__VA_ARGS__) : ((void)0);)
+
 /* ----------------------------- Boolian's ----------------------------- */
 
 #undef FALSE
@@ -55,6 +58,34 @@
 #define Uint    unsigned int
 #define Ushort  unsigned short int
 #define Uchar   unsigned char
+
+/* ----------------------------- Constant's ----------------------------- */
+
+#define _PTRSIZE  (sizeof(void *))
+
+/* ----------------------------- Profiling ----------------------------- */
+
+#define US_TO_MS(us)  ((us) / 1000.0f)
+
+#define TIMER_START(name)  \
+  struct timespec name;    \
+  DO_WHILE(clock_gettime(CLOCK_MONOTONIC, &name);)
+
+#define TIMER_END(start, time_ms_name) \
+  float time_ms_name; \
+  DO_WHILE(\
+    struct timespec __timer_end;\
+    clock_gettime(CLOCK_MONOTONIC, &__timer_end);\
+    time_ms_name = \
+      (((__timer_end.tv_sec - (start).tv_sec) * 1000000.0f) +\
+      ((__timer_end.tv_nsec - (start).tv_nsec) / 1000.0f)); \
+    time_ms_name = US_TO_MS(time_ms_name); \
+  )
+
+#define TIMER_PRINT(ms) \
+  DO_WHILE(\
+    printf("%s: Time: %.5f ms\n", __func__, (double)ms); \
+  )
 
 /* ----------------------------- Assert ----------------------------- */
 
@@ -94,6 +125,11 @@
 
 /* ----------------------------- Threads ----------------------------- */
 
+/* Thread shorthand. */
+#ifndef thread_t
+# define thread_t  pthread_t
+#endif
+
 /* Mutex shorthand. */
 #ifndef mutex_t
 # define mutex_t  pthread_mutex_t
@@ -128,7 +164,7 @@
     DO_WHILE(                                                   \
       if ((cap) == (size)) {                                    \
         (cap) *= 2;                                             \
-        (array) = xrealloc((array), (sizeof(void *) * (cap)));  \
+        (array) = xrealloc((array), (_PTRSIZE * (cap)));  \
       }                                                         \
     )
 #endif
@@ -137,7 +173,7 @@
 # define TRIM_PTR_ARRAY(array, cap, size) \
     DO_WHILE(\
       (cap) = ((size) + 1);\
-      (array) = xrealloc((array), (sizeof(void *) * (cap))); \
+      (array) = xrealloc((array), (_PTRSIZE * (cap))); \
     )
 #endif
 
@@ -170,4 +206,9 @@ typedef struct {
 
 /* ----------------------------- cvec.c ----------------------------- */
 
-typedef struct CVec CVec;
+typedef struct CVec  CVec;
+
+/* ----------------------------- hashmap.c ----------------------------- */
+
+typedef struct HashNode  HashNode;
+typedef struct HashMap   HashMap;
