@@ -45,3 +45,18 @@ char *fmtstr(const char *const restrict format, ...) {
   va_end(ap);
   return ret;
 }
+
+/* Create a allocated string from veriatic arguments, and assign the length to `*outlen`. */
+char *valstr(const char *const restrict format, va_list ap, int *const outlen) {
+  ASSERT(format);
+  char *ret;
+  int len;
+  va_list copy;
+  va_copy(copy, ap);
+  ALWAYS_ASSERT((len = vsnprintf(NULL, 0, format, copy)) != -1);
+  va_end(copy);
+  ret = xmalloc(len + 1);
+  ALWAYS_ASSERT(vsnprintf(ret, (len + 1), format, ap) != -1);
+  ASSIGN_IF_VALID(outlen, len);
+  return ret;
+}

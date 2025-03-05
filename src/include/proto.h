@@ -22,6 +22,10 @@ extern _NO_RETURN _PRINTFLIKE(1, 2) void (*die_callback)(const char *format, ...
 
 void fcio_set_die_callback(void (*callback)(const char *format, ...));
 
+void stdoutwrite(const char *const restrict data, Ulong len) _NONNULL(1);
+void writef(const char *const restrict format, ...) _NONNULL(1);
+void vwritef(const char *const restrict format, va_list ap) _NONNULL(1);
+
 
 /* ---------------------------------------------------------- files.c ---------------------------------------------------------- */
 
@@ -58,6 +62,7 @@ void *xcalloc(Ulong elems, Ulong elemsize) __THROW _RETURNS_NONNULL;
 char *measured_copy(const char *const restrict string, Ulong len) __THROW _RETURNS_NONNULL _NONNULL(1);
 char *copy_of(const char *const restrict string) __THROW _RETURNS_NONNULL _NONNULL(1);
 char *fmtstr(const char *const restrict format, ...) __THROW _RETURNS_NONNULL _NONNULL(1);
+char *valstr(const char *const restrict format, va_list ap, int *const outlen) __THROW _RETURNS_NONNULL _NONNULL(1);
 
 
 /* ---------------------------------------------------------- path.c ---------------------------------------------------------- */
@@ -95,5 +100,11 @@ void hashmap_forall(HashMap *const map, void (*action)(const char *const restric
 void hashmap_clear(HashMap *const map);
 void hashmap_thread_test(void);
 
+
+/* ---------------------------------------------------------- fd.c ---------------------------------------------------------- */
+
+
+void fdlock(int fd, short type);
+void fdunlock(int fd);
 
 _END_C_LINKAGE

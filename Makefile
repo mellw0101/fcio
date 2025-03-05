@@ -39,5 +39,11 @@ $(OBJDIR):
 clean:
 	rm -rf $(BUILD_DIR)
 
+# Install the library globaly
+install:
+	mkdir -p /usr/include/fcio
+	cp $(INCDIR)/*.h /usr/include/fcio
+	cp $(BUILD_DIR)/libfcio.a /usr/lib/libfcio.a
+
 # Phony targets.
-.PHONY: clean
+.PHONY: clean install

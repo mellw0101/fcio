@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 
 /* fcio */
-#include "../../config.h"
+#include "config.h"
 
 
 /* ---------------------------------------------------------- Defines ---------------------------------------------------------- */
@@ -90,7 +90,6 @@
 /* ----------------------------- Assert ----------------------------- */
 
 #define ENABLE_ASSERT
-
 
 #define FCIO_ASSERT_VOID_CAST                ((void)0)
 #define FCIO_ASSERT_DIE_CAST(expr)           die_callback("%s: LINE:[%d]: FILE:[%s]: Assertion failed: [%s]\n", __func__, __LINE__, __FILE__, #expr)
@@ -156,6 +155,9 @@
 #ifndef mutex_action
 # define mutex_action(mutex, action)  DO_WHILE(mutex_lock(mutex); DO_WHILE(action); mutex_unlock(mutex);)
 #endif
+#ifndef mutex_init_static
+# define mutex_init_static  PTHREAD_MUTEX_INITIALIZER
+#endif
 
 /* ----------------------------- Ptr array's ----------------------------- */
 
@@ -177,6 +179,36 @@
     )
 #endif
 
+/* ----------------------------- Fd ----------------------------- */
+
+#ifndef fdlock_action
+# define fdlock_action(fd, type, action) DO_WHILE(fdlock(fd, type); DO_WHILE(action); fdunlock(fd);)
+#endif
+
+
+/* ----------------------------- ASCII ----------------------------- */
+
+#ifndef ASCII_ISDIGIT
+# define ASCII_ISDIGIT(c)  ((c) >= '0' && (c) <= '9')
+#endif
+#ifndef ASCII_TOUPPER
+# define ASCII_TOUPPER(c)  (((c) < 'a' || (c) > 'z') ? (c) : ((c) - 'A'))
+#endif
+#ifndef ASCII_TOLOWER
+# define ASCII_TOLOWER(c)  (((c) < 'A' || (c) > 'Z') ? (c) : ((c) + 'a'))
+#endif
+#ifndef ASCII_ISUPPER
+# define ASCII_ISUPPER(c)  ((Uint)(c) >= 'A' && (Uint)(c) <= 'Z')
+#endif
+#ifndef ASCII_ISLOWER
+# define ASCII_ISLOWER(c)  ((Uint)(c) >= 'a' && (Uint)(c) <= 'z')
+#endif
+#ifndef ASCII_ISALPHA
+# define ASCII_ISALPHA(c)  (ASCII_ISUPPER(c) || ASCII_ISLOWER(c))
+#endif
+#ifndef ASCII_ISALNUM
+# define ASCII_ISALNUM(c)  (ASCII_ISALPHA(c) || ASCII_ISDIGIT(c))
+#endif
 
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
 

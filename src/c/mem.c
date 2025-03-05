@@ -21,8 +21,9 @@ void *xrealloc(void *ptr, Ulong newsize) {
   return ptr;
 }
 
-void *xcalloc(Ulong elems, Ulong elemsize) {
-  void *ptr = calloc(elems, elemsize);
+/* Return's a ptr with the total size `n * size`. */
+void *xcalloc(Ulong n, Ulong size) {
+  void *ptr = calloc(n, size);
   ALWAYS_ASSERT(ptr);
   return ptr;
 }
