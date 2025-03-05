@@ -28,5 +28,3 @@ void fdunlock(int fd) {
   /* Perform the unlocking. */
   ALWAYS_ASSERT(fcntl(fd, F_SETLK, &lock) != -1);
 }
-
-

@@ -16,6 +16,11 @@
 # endif
 #endif
 
+/* Define restrict keywork when used in c++ code. */
+#ifdef __cplusplus
+# define restrict  __restrict  
+#endif
+
 #if (!_GNUC_VER && __GNUC__ && __GNUC_MINOR__)
 # define _GNUC_VER(maj, min)  ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
 #else

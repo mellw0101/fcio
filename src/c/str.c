@@ -60,3 +60,40 @@ char *valstr(const char *const restrict format, va_list ap, int *const outlen) {
   ASSIGN_IF_VALID(outlen, len);
   return ret;
 }
+
+/* Split a string by demiliter. */
+char **split_string(const char *const restrict string, const char delim) {
+  ASSERT(string);
+  ASSERT(delim);
+  /* Initilaze both start and end to string. */
+  const char *start = string;
+  const char *end   = string;
+  /* Set up the return array. */
+  Ulong  cap = 10;
+  Ulong  len = 0;
+  char **result = xmalloc(_PTRSIZE * cap);
+  /* Iterate until the end of the string. */
+  while (*end) {
+    /* Advance end until we se the delimiter. */
+    while (*end && *end != delim) {
+      ++end;
+    }
+    ENSURE_PTR_ARRAY_SIZE(result, cap, len);
+    result[len++] = measured_copy(start, (end - start));
+    /* Break if we reached the end of the string. */
+    if (!*end) {
+      break;
+    }
+    /* Advance end past all delim, for instance if delim
+     * is ' ' then double space is just advanced past. */
+    while (*end && *end == delim) {
+      ++end;
+    }
+    /* Set start to the first char that is not delim. */
+    start = end;
+  }
+  /* Trim the array before returning it, saving memory where we can. */
+  TRIM_PTR_ARRAY(result, cap, len);
+  result[len] = NULL;
+  return result;
+}
