@@ -23,7 +23,7 @@ extern _NO_RETURN _PRINTFLIKE(1, 2) void (*die_callback)(const char *format, ...
 void fcio_set_die_callback(void (*callback)(const char *format, ...));
 
 void stdoutwrite(const char *const restrict data, Ulong len) _NONNULL(1);
-void writef(const char *const restrict format, ...) _NONNULL(1);
+void writef(const char *const restrict format, ...) _NONNULL(1) _PRINTFLIKE(1, 2);
 void vwritef(const char *const restrict format, va_list ap) _NONNULL(1);
 
 
@@ -107,5 +107,20 @@ void hashmap_thread_test(void);
 
 void fdlock(int fd, short type);
 void fdunlock(int fd);
+
+
+/* ---------------------------------------------------------- term.c ---------------------------------------------------------- */
+
+
+void clrtoeos(void);
+void clrtobos(void);
+void clrscreen(void);
+void movecurs(int row, int col);
+void mvcurshome(void);
+void savecurs(void);
+void restcurs(void);
+void mvcursupbeg(int nlines);
+void mvcursdnbeg(int nlines);
+
 
 _END_C_LINKAGE

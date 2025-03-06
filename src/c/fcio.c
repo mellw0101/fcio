@@ -66,3 +66,4 @@ void vwritef(const char *const restrict format, va_list ap) {
   /* Free the allocated string. */
   free(string);
 }
+
