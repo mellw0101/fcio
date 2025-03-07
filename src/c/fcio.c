@@ -7,7 +7,6 @@
 #include "../include/proto.h"
 
 
-
 /* ----------------------------- Variable decl's ----------------------------- */
 
 static mutex_t stdout_mutex = mutex_init_static;

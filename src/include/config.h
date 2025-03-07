@@ -1,4 +1,11 @@
+/** @file config.h
+
+  @author  Melwin Svensson.
+  @date    3-3-2025.
+
+ */
 #pragma once
+
 
 #ifdef __cplusplus
 # ifndef _BEGIN_C_LINKAGE
@@ -43,34 +50,34 @@
 #   define _HAS_ATTRIBUTE(attr)  __has_attribute(__##attr##__)
 # else
 #   define _HAS_ATTRIBUTE(attr)      _ATTR_##attr
-#   define _ATTR_alloc_size          _GL_GNUC_PREREQ(4, 3)
-#   define _ATTR_always_inline       _GL_GNUC_PREREQ(3, 2)
-#   define _ATTR_artificial          _GL_GNUC_PREREQ(4, 3)
-#   define _ATTR_cold                _GL_GNUC_PREREQ(4, 3)
-#   define _ATTR_const               _GL_GNUC_PREREQ(2, 95)
-#   define _ATTR_deprecated          _GL_GNUC_PREREQ(3, 1)
+#   define _ATTR_alloc_size          _GNUC_VER(4, 3)
+#   define _ATTR_always_inline       _GNUC_VER(3, 2)
+#   define _ATTR_artificial          _GNUC_VER(4, 3)
+#   define _ATTR_cold                _GNUC_VER(4, 3)
+#   define _ATTR_const               _GNUC_VER(2, 95)
+#   define _ATTR_deprecated          _GNUC_VER(3, 1)
 #   define _ATTR_diagnose_if         0
-#   define _ATTR_error               _GL_GNUC_PREREQ(4, 3)
-#   define _ATTR_externally_visible  _GL_GNUC_PREREQ(4, 1)
-#   define _ATTR_fallthrough         _GL_GNUC_PREREQ(7, 0)
-#   define _ATTR_format              _GL_GNUC_PREREQ(2, 7)
-#   define _ATTR_leaf                _GL_GNUC_PREREQ(4, 6)
-#   define _ATTR_malloc              _GL_GNUC_PREREQ(3, 0)
+#   define _ATTR_error               _GNUC_VER(4, 3)
+#   define _ATTR_externally_visible  _GNUC_VER(4, 1)
+#   define _ATTR_fallthrough         _GNUC_VER(7, 0)
+#   define _ATTR_format              _GNUC_VER(2, 7)
+#   define _ATTR_leaf                _GNUC_VER(4, 6)
+#   define _ATTR_malloc              _GNUC_VER(3, 0)
 #   ifdef _ICC
 #     define _ATTR_may_alias  0
 #   else
-#     define _ATTR_may_alias  _GL_GNUC_PREREQ(3, 3)
+#     define _ATTR_may_alias  _GNUC_VER(3, 3)
 #   endif
-#   define _ATTR_noinline            _GL_GNUC_PREREQ(3, 1)
-#   define _ATTR_nonnull             _GL_GNUC_PREREQ(3, 3)
-#   define _ATTR_nonstring           _GL_GNUC_PREREQ(8, 0)
-#   define _ATTR_nothrow             _GL_GNUC_PREREQ(3, 3)
-#   define _ATTR_packed              _GL_GNUC_PREREQ(2, 7)
-#   define _ATTR_pure                _GL_GNUC_PREREQ(2, 96)
-#   define _ATTR_returns_nonnull     _GL_GNUC_PREREQ(4, 9)
-#   define _ATTR_sentinel            _GL_GNUC_PREREQ(4, 0)
-#   define _ATTR_unused              _GL_GNUC_PREREQ(2, 7)
-#   define _ATTR_warn_unused_result  _GL_GNUC_PREREQ(3, 4)
+#   define _ATTR_noinline            _GNUC_VER(3, 1)
+#   define _ATTR_nonnull             _GNUC_VER(3, 3)
+#   define _ATTR_nonstring           _GNUC_VER(8, 0)
+#   define _ATTR_nothrow             _GNUC_VER(3, 3)
+#   define _ATTR_packed              _GNUC_VER(2, 7)
+#   define _ATTR_pure                _GNUC_VER(2, 96)
+#   define _ATTR_returns_nonnull     _GNUC_VER(4, 9)
+#   define _ATTR_sentinel            _GNUC_VER(4, 0)
+#   define _ATTR_unused              _GNUC_VER(2, 7)
+#   define _ATTR_warn_unused_result  _GNUC_VER(3, 4)
 # endif
 #endif
 
@@ -141,5 +148,14 @@
 #   define _RETURNS_NONNULL  __attribute__((__returns_nonnull__))
 # else
 #   define _RETURNS_NONNULL
+# endif
+#endif
+
+/* Define a macro for `warn_unused_result`. */
+#ifndef _NODISCARD
+# if _HAS_ATTRIBUTE(warn_unused_result)
+#   define _NODISCARD  __attribute__((__warn_unused_result__))
+# else
+#   define _NODISCARD
 # endif
 #endif
