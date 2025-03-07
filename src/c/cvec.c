@@ -7,6 +7,16 @@
 #include "../include/proto.h"
 
 
+/* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
+
+
+#ifdef CVEC_INITIAL_CAP
+# undef CVEC_INITIAL_CAP
+#endif
+#ifdef CVEC_MUTEX_ACTION
+# undef CVEC_MUTEX_ACTION
+#endif
+
 /* Cap value for new 'CVec' structures. */
 #define CVEC_INITIAL_CAP  (10)
 
@@ -22,6 +32,9 @@
   )
 
 
+/* ---------------------------------------------------------- Struct's ---------------------------------------------------------- */
+
+
 struct CVec {
   int len;           /* Current number of elements in the vector. */
   int cap;           /* Allocated size in number of elements of vector. */
@@ -29,6 +42,9 @@ struct CVec {
   FreeFuncPtr free;  /* Ptr to funtion used for deallocation this way we can enforse thread-safety. */
   mutex_t mutex;     /* Mutex for fully threaded operations. */
 };
+
+
+/* ---------------------------------------------------------- Function's ---------------------------------------------------------- */
 
 
 /* Create a new blank allocated CVec structure. */
@@ -75,6 +91,8 @@ void cvec_push(CVec *const v, void *const item) {
 
 /* Trim the internal data ptr of v, to save memory. */
 void cvec_trim(CVec *const v) {
+  /* Note that we never need to leave space for a `NULL-TERMINATOR`, as
+   * this is an opaque structure and we always know the number of elements. */
   CVEC_MUTEX_ACTION(
     TRIM_PTR_ARRAY(v->data, v->cap, v->len);
   );
@@ -90,3 +108,20 @@ void *cvec_get(CVec *const v, int index) {
   return ret;
 }
 
+/* Get the current number of elements in the vector. */
+int cvec_len(CVec *const v) {
+  int ret;
+  CVEC_MUTEX_ACTION(
+    ret = v->len;
+  );
+  return ret;
+}
+
+/* The the currently allocated size of the vector. */
+int cvec_cap(CVec *const v) {
+  int ret;
+  CVEC_MUTEX_ACTION(
+    ret = v->cap;
+  );
+  return ret;
+}

@@ -113,3 +113,34 @@ long strtonum(const char *const restrict string) {
   ALWAYS_ASSERT_MSG(!*endptr, "Passed string included somthing other then numbers");
   return ret;
 }
+
+/* ----------------------------- xstrcat ----------------------------- */
+
+/* Append `src` to the end of `dst`. */
+char *xnstrncat(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen) {
+  ASSERT(dst);
+  ASSERT(src);
+  /* Reallocate dst to fit all of the text plus a NULL-TERMINATOR. */
+  dst = xrealloc(dst, (dstlen + srclen + 1));
+  /* Append src to dst. */
+  memcpy((dst + dstlen), src, srclen);
+  /* Null terminate the string. */
+  dst[dstlen + srclen] = '\0';
+  /* Then return dst. */
+  return dst;
+}
+
+/* Append `src` to the end of `dst`. */
+char *xnstrcat(char *restrict dst, Ulong dstlen, const char *const restrict src) {
+  return xnstrncat(dst, dstlen, src, strlen(src));
+}
+
+/* Append `src` to the end of `dst`. */
+char *xstrncat(char *restrict dst, const char *const restrict src, Ulong srclen) {
+  return xnstrncat(dst, strlen(dst), src, srclen);
+}
+
+/* Append `src` to the end of `dst`. */
+char *xstrcat(char *restrict dst, const char *const restrict src) {
+  return xnstrncat(dst, strlen(dst), src, strlen(src));
+}

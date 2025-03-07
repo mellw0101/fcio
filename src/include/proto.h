@@ -67,6 +67,13 @@ char *valstr(const char *const restrict format, va_list ap, int *const outlen) _
 char **split_string(const char *const restrict string, const char delim);
 long strtonum(const char *const restrict string);
 
+/* ----------------------------- xstrcat ----------------------------- */
+
+char *xnstrncat(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen);
+char *xnstrcat(char *restrict dst, Ulong dstlen, const char *const restrict src);
+char *xstrncat(char *restrict dst, const char *const restrict src, Ulong srclen);
+char *xstrcat(char *restrict dst, const char *const restrict src);
+
 
 /* ---------------------------------------------------------- path.c ---------------------------------------------------------- */
 
@@ -86,6 +93,8 @@ void cvec_setfree(CVec *const v, FreeFuncPtr free);
 void cvec_push(CVec *const v, void *const item);
 void cvec_trim(CVec *const v);
 void *cvec_get(CVec *const v, int index);
+int cvec_len(CVec *const v);
+int cvec_cap(CVec *const v);
 
 
 /* ---------------------------------------------------------- hashmap.c ---------------------------------------------------------- */

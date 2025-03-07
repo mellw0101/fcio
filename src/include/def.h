@@ -42,19 +42,22 @@
 #ifdef DO_WHILE
 # undef DO_WHILE
 #endif
-#ifdef ASSIGN_IF_VALID
-# undef ASSIGN_IF_VALID
-#endif
 #ifdef CALL_IS_VALID
 # undef CALL_IF_VALID
 #endif
 
 /* Perform actions protected from accidental missuse. */
-#define DO_WHILE(...)  do {__VA_ARGS__} while (0)
-
-/* Shorthand to assign the value to a ptr.  Useful when assigning ptr passed as parameters to functions that might be `NULL`. */
-#define ASSIGN_IF_VALID(ptr, value)  DO_WHILE(((ptr) ? (*(ptr) = (value)) : ((int)0));)
+#define DO_WHILE(...)                do {__VA_ARGS__} while (0)
 #define CALL_IF_VALID(funcptr, ...)  DO_WHILE((funcptr) ? (funcptr)(__VA_ARGS__) : ((void)0);)
+
+/* ----------------------------- String helper's ----------------------------- */
+
+#ifdef S__LEN
+# undef S__LEN
+#endif
+
+/* Shorthand for when something calls for a string and the length of that string.  Note that this should only be used with literal strings. */
+#define S__LEN(x)  (x), (sizeof((x)) - 1)
 
 /* ----------------------------- Boolian's ----------------------------- */
 
@@ -289,6 +292,12 @@
 #ifdef TRIM_PTR_ARRAY
 # undef TRIM_PTR_ARRAY
 #endif
+#ifdef ASSIGN_IF_VALID
+# undef ASSIGN_IF_VALID
+#endif
+#ifdef ARRAY_SIZE
+# undef ARRAY_SIZE
+#endif
 
 /* Useful when adding something to a ptr array and checking the size each time. */
 #define ENSURE_PTR_ARRAY_SIZE(array, cap, size)         \
@@ -305,6 +314,12 @@
     (cap) = ((size) + 1);                             \
     (array) = xrealloc((array), (_PTRSIZE * (cap)));  \
   )
+
+/* Shorthand to assign the value to a ptr.  Useful when assigning ptr passed as parameters to functions that might be `NULL`. */
+#define ASSIGN_IF_VALID(ptr, value)  DO_WHILE(((ptr) ? (*(ptr) = (value)) : ((int)0));)
+
+/* Get the size of a stack based array. */
+#define ARRAY_SIZE(array)  (sizeof((array)) / sizeof((array)[0]))
 
 /* ----------------------------- Fd ----------------------------- */
 
