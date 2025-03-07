@@ -48,14 +48,38 @@ void restcurs(void) {
   writef("\0338");
 }
 
-/* Move the cursor to the begining of a previous line `nlines` up. */
-void mvcursupbeg(int nlines) {
-  ALWAYS_ASSERT(nlines > 0);
-  writef("\033[%dF", nlines);
+/* Move the cursor to the begining of a previous line `nrows` up. */
+void mvcursupbeg(int nrows) {
+  ALWAYS_ASSERT(nrows > 0);
+  writef("\033[%dF", nrows);
 }
 
-/* Move the cursor to the begining of a next line `nlines` down. */
-void mvcursdnbeg(int nlines) {
-  ALWAYS_ASSERT(nlines > 0);
-  writef("\033[%dE", nlines);
+/* Move the cursor to the begining of a next line `nrows` down. */
+void mvcursdownbeg(int nrows) {
+  ALWAYS_ASSERT(nrows > 0);
+  writef("\033[%dE", nrows);
+}
+
+/* Move cursor `nrows` up.  Note that this does not change the cursor column position. */
+void mvcursup(int nrows) {
+  ALWAYS_ASSERT(nrows > 0);
+  writef("\033[%dA", nrows);
+}
+
+/* Move cursor `nrows` down.  Note that this does not change the cursor column position. */
+void mvcursdown(int nrows) {
+  ALWAYS_ASSERT(nrows > 0);
+  writef("\033[%dB", nrows);
+}
+
+/* Move cursor `ncols` right. */
+void mvcursright(int ncols) {
+  ALWAYS_ASSERT(ncols > 0);
+  writef("\033[%dC", ncols);
+}
+
+/* Move cursor `ncols` left. */
+void mvcursleft(int ncols) {
+  ALWAYS_ASSERT(ncols > 0);
+  writef("\033[%dD", ncols);
 }

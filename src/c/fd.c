@@ -28,3 +28,41 @@ void fdunlock(int fd) {
   /* Perform the unlocking. */
   ALWAYS_ASSERT(fcntl(fd, F_SETLK, &lock) != -1);
 }
+
+/* Disable canonical mode and echo for `fd`. */
+void disable_canonecho(int fd, struct termios *const oldt) {
+  ALWAYS_ASSERT(fd >= 0);
+  ASSERT(oldt);
+  struct termios newt;
+  /* Save the current state of the terminal. */
+  ALWAYS_ASSERT(tcgetattr(fd, oldt) != -1);
+  newt = *oldt;
+  /* Disable canonical mode and echo. */
+  newt.c_lflag &= ~(ICANON | ECHO);
+  ALWAYS_ASSERT(tcsetattr(fd, TCSANOW, &newt) != -1);
+}
+
+/* Restore `fd` to `t`. */
+void restore_termios(int fd, struct termios *const t) {
+  ALWAYS_ASSERT(fd >= 0);
+  ASSERT(t);
+  /* Restore termios settings. */
+  ALWAYS_ASSERT(tcsetattr(fd, TCSANOW, t) != -1);
+}
+
+/* Set `flags` of `fd` and assign the original state to `*oldf`. */
+void setfdflags(int fd, int *oldf, int flags) {
+  ALWAYS_ASSERT(fd >= 0);
+  ASSERT(oldf);
+  /* Set fd to nonblocking mode. */
+  ALWAYS_ASSERT((*oldf = fcntl(fd, F_GETFL, 0)) != -1);
+  ALWAYS_ASSERT(fcntl(fd, F_SETFL, (*oldf | flags)) != -1);
+}
+
+/* Restore `fd` to state `*f`. */
+void restfdflags(int fd, int *f) {
+  ALWAYS_ASSERT(fd >= 0);
+  ASSERT(f);
+  ALWAYS_ASSERT(fcntl(fd, F_SETFL, *f) != -1);
+}
+

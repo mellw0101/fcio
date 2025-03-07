@@ -17,7 +17,7 @@ _BEGIN_C_LINKAGE
 
 
 /* The function that will be called to terminate the executable when a fatal error happens,
- * use `fcio_set_die_callback()` to set this.  Note that by default this prints the error to stdout and calls `exit(1)`. */
+ * use `fcio_set_die_callback()` to set this.  Note that by default this prints the error to stderr and calls `exit(1)`. */
 extern _NO_RETURN _PRINTFLIKE(1, 2) void (*die_callback)(const char *format, ...);
 
 void fcio_set_die_callback(void (*callback)(const char *format, ...));
@@ -25,6 +25,7 @@ void fcio_set_die_callback(void (*callback)(const char *format, ...));
 void stdoutwrite(const char *const restrict data, Ulong len) _NONNULL(1);
 void writef(const char *const restrict format, ...) _NONNULL(1) _PRINTFLIKE(1, 2);
 void vwritef(const char *const restrict format, va_list ap) _NONNULL(1);
+bool ynanswer(const char *const restrict format, ...);
 
 
 /* ---------------------------------------------------------- files.c ---------------------------------------------------------- */
@@ -64,6 +65,7 @@ char *copy_of(const char *const restrict string) __THROW _RETURNS_NONNULL _NONNU
 char *fmtstr(const char *const restrict format, ...) __THROW _RETURNS_NONNULL _NONNULL(1) _PRINTFLIKE(1, 2);
 char *valstr(const char *const restrict format, va_list ap, int *const outlen) __THROW _RETURNS_NONNULL _NONNULL(1);
 char **split_string(const char *const restrict string, const char delim);
+long strtonum(const char *const restrict string);
 
 
 /* ---------------------------------------------------------- path.c ---------------------------------------------------------- */
@@ -107,6 +109,10 @@ void hashmap_thread_test(void);
 
 void fdlock(int fd, short type);
 void fdunlock(int fd);
+void disable_canonecho(int fd, struct termios *const oldt);
+void restore_termios(int fd, struct termios *const t);
+void setfdflags(int fd, int *oldf, int flags);
+void restfdflags(int fd, int *f);
 
 
 /* ---------------------------------------------------------- term.c ---------------------------------------------------------- */
@@ -120,7 +126,17 @@ void mvcurshome(void);
 void savecurs(void);
 void restcurs(void);
 void mvcursupbeg(int nlines);
-void mvcursdnbeg(int nlines);
+void mvcursdownbeg(int nlines);
+void mvcursup(int nlines);
+void mvcursdown(int nlines);
+void mvcursright(int ncols);
+void mvcursleft(int ncols);
+
+
+/* ---------------------------------------------------------- chars.c ---------------------------------------------------------- */
+
+
+bool isconeof(const char c, const char *const restrict string);
 
 
 _END_C_LINKAGE

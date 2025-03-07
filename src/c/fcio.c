@@ -14,6 +14,7 @@ static mutex_t stdout_mutex = mutex_init_static;
 
 /* ----------------------------- Die callback ----------------------------- */
 
+/* The default die callback when the user has not set one. */
 _NO_RETURN static void fcio_default_die_callback(const char *format, ...)  {
   va_list ap;
   va_start(ap, format);
@@ -22,7 +23,6 @@ _NO_RETURN static void fcio_default_die_callback(const char *format, ...)  {
   exit(1);
 }
 void (*die_callback)(const char *format, ...) = fcio_default_die_callback;
-
 
 /* Set the function that will be called when a fatal error happens. */
 void fcio_set_die_callback(void (*callback)(const char *format, ...) _NO_RETURN) {
@@ -67,3 +67,46 @@ void vwritef(const char *const restrict format, va_list ap) {
   free(string);
 }
 
+/* Return's `TRUE` when user answer's `Y/y` and `FALSE` when user answer's `N/n`.  Note that this function only accepts Y/y and N/n answers and returns directly on input. */
+bool ynanswer(const char *const restrict format, ...) {
+  ASSERT(format);
+  struct termios oldt, newt;
+  int oldf;
+  char c;
+  bool ret;
+  va_list ap;
+  /* Write the format string to stdout. */
+  va_start(ap, format);
+  vwritef(format, ap);
+  va_end(ap);
+  /* Get the current termios. */
+  ALWAYS_ASSERT(tcgetattr(STDIN_FILENO, &oldt) != -1);
+  newt = oldt;
+  /* Disable canonical mode and echo. */
+  newt.c_lflag &= ~(ICANON | ECHO);
+  ALWAYS_ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &newt) != -1);
+  /* Set stdin to non blocking mode. */
+  ALWAYS_ASSERT((oldf = fcntl(STDIN_FILENO, F_GETFL, 0)) != -1);
+  ALWAYS_ASSERT(fcntl(STDIN_FILENO, F_SETFL, (oldf | O_NONBLOCK)) != -1);
+  /* Only accept a 'Yy/Nn' char. */
+  while (TRUE) {
+    if (read(STDIN_FILENO, &c, 1) > 0) {
+      /* If user ansers yes set return to TRUE. */
+      if (isconeof(c, "Yy")) {
+        ret = TRUE;
+        break;
+      }
+      /* Otherwise, if user answers no then set return to FALSE. */
+      else if (isconeof(c, "Nn")) {
+        ret = FALSE;
+        break;
+      }
+    }
+  }
+  /* Print the choice the user made. */
+  writef("%c\n", c);
+  /* Restore terminal state. */
+  ALWAYS_ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &oldt) != -1);
+  ALWAYS_ASSERT(fcntl(STDIN_FILENO, F_SETFL, oldf) != -1);
+  return ret;
+}

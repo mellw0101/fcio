@@ -97,3 +97,19 @@ char **split_string(const char *const restrict string, const char delim) {
   result[len] = NULL;
   return result;
 }
+
+/* Get a integer representation of `string`. */
+long strtonum(const char *const restrict string) {
+  ASSERT(string);
+  ASSERT(*string);
+  long ret;
+  char *endptr;
+  /* Set errno to zero, so we can check it later. */
+  errno = 0;
+  ret = strtol(string, &endptr, 10);
+  /* Check for range errors. */
+  ALWAYS_ASSERT_MSG((errno != ERANGE), "Return'ed value is out of range");
+  /* Check that the string was read correctly. */
+  ALWAYS_ASSERT_MSG(!*endptr, "Passed string included somthing other then numbers");
+  return ret;
+}
