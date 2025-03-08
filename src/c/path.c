@@ -11,12 +11,10 @@
 const char *tail(const char *const restrict path) {
   ASSERT(path);
   const char *slash = strrchr(path, '/');
-  if (slash) {
-    return (slash + 1);
-  }
-  else {
+  if (!slash) {
     return path;
   }
+  return (slash + 1);
 }
 
 /* Return the extention of `path`, if any.  Otherwise, return NULL. */

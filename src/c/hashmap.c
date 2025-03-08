@@ -7,8 +7,15 @@
 #include "../include/proto.h"
 
 
+/* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
+
+
 #define INITIAL_CAP  16
 #define LOAD_FACTOR  0.7f
+
+
+/* ---------------------------------------------------------- Struct's ---------------------------------------------------------- */
+
 
 struct HashNode {
   char *key;
@@ -26,6 +33,10 @@ struct HashMap {
 
   mutex_t globmutex;  /* This is locked when we resize the hashmap, so that we ensure singular thread resizeing. */
 };
+
+
+/* ---------------------------------------------------------- Function's ---------------------------------------------------------- */
+
 
 /* `INTERNAL`  Create a `djb2` hash from `str`. */
 static Ulong hash_djb2(const char *str) {
@@ -285,7 +296,9 @@ void hashmap_clear(HashMap *const map) {
   );
 }
 
-/* ----------------------------- Tests ----------------------------- */
+
+/* ---------------------------------------------------------- Test's ---------------------------------------------------------- */
+
 
 /* The concurency test will be ran by doing 1000 requsts from 100 threads concurently. */
 #define OPS_PER_THREAD  1000

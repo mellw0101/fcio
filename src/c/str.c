@@ -22,30 +22,6 @@ char *copy_of(const char *const restrict string) {
   return measured_copy(string, strlen(string));
 }
 
-/* Return's a allocated formated string.  Note that this function cannot return an invalid ptr. */
-char *fmtstr(const char *const restrict format, ...) {
-  ASSERT(format);
-  /* The ptr we will allocate and return. */
-  char *ret;
-  /* The length of the fully formated string. */
-  int len;
-  /* Veriatic arguments list we will use to format the string. */
-  va_list ap;
-  /* Veriatic arguments list we will use to fetch the length of the fully formatted string. */
-  va_list dummy;
-  /* Get the length we need to allocate. */
-  va_start(dummy, format);
-  ALWAYS_ASSERT((len = vsnprintf(NULL, 0, format, dummy)) != -1);
-  va_end(dummy);
-  /* Allocate the return ptr to the correct len. */
-  ret = xmalloc(len + 1);
-  /* Format the string into ret. */
-  va_start(ap, format);
-  ALWAYS_ASSERT(vsnprintf(ret, (len + 1), format, ap) != -1);
-  va_end(ap);
-  return ret;
-}
-
 /* Create a allocated string from veriatic arguments, and assign the length to `*outlen`. */
 char *valstr(const char *const restrict format, va_list ap, int *const outlen) {
   ASSERT(format);
@@ -114,6 +90,147 @@ long strtonum(const char *const restrict string) {
   return ret;
 }
 
+/* Parse a number from a string. */
+bool parse_num(const char *const restrict string, long *const result) {
+  long value;
+  char *excess;
+  /* Clear errno so we can check it after. */
+  errno = 0; 
+  value = strtol(string, &excess, 10);
+  if (errno == ERANGE || !*string || *excess) {
+    return FALSE;
+  }
+  *result = value;
+  return TRUE;
+}
+
+/* ----------------------------- chararray ----------------------------- */
+
+/* Free the memory of the given array, which should contain len elements. */
+void chararray_free(char **const restrict array, Ulong len) {
+  /* Make this function a 'no-op' function. */
+  if (!array) {
+    return;
+  }
+  /* Free every entry in the array. */
+  while (len > 0) {
+    free(array[--len]);
+  }
+  free(array);
+}
+
+/* Free a `NULL-TERMINATED` char array. */
+void chararray_freenullterm(char **const restrict array) {
+  ASSERT(array);
+  char **a = array;
+  /* Make this function a `NO-OP` function. */
+  if (!a) {
+    return;
+  }
+  /* Iterate until we reach the `NULL-TERMINATOR`. */
+  while (*a) {
+    free(*a);
+    ++a;
+  }
+  /* Then free the array ptr itself. */
+  free(array);
+}
+
+/* Append an array onto 'array'.  Free 'append' but not any elements in it after call. */
+void chararray_append(char **restrict *const array, Ulong *const len, char **const restrict append, Ulong append_len) {
+  ASSERT(array);
+  ASSERT(append);
+  /* Calculate the new total length for the array. */
+  Ulong new_len = ((*len) + append_len);
+  /* Reallocate the array ptr so that it can hold the new total length plus a `NULL-TERMINATOR`. */
+  *array = xrealloc(*array, (_PTRSIZE * (new_len + 1)));
+  /* Append all entries. */
+  memcpy(((*array) + (*len)), append, (_PTRSIZE * append_len));
+  /* Set the len ptr to the new total length. */
+  *len = new_len;
+  /* `NULL-TERMINATE` the array. */
+  (*array)[*len] = NULL;
+}
+
+/* Remove one entry from `array` at `idx`. */
+void chararray_erase(char **const array, Ulong *len, Ulong idx) {
+  ASSERT(array);
+  ASSERT(len);
+  ALWAYS_ASSERT(idx < *len);
+  /* Free the string at index. */
+  free(*(array + idx));
+  /* When the erased entry was not the last, move the remaining entries in the array. */
+  if (idx != (*len - 1)) {
+    memmove((array + idx), (array + (idx + 1)), (_PTRSIZE * (*len - (idx + 1))));
+  }
+  /* Remove one from length so it accuretly reflects the new length of the array. */
+  *len -= 1;
+}
+
+/* ----------------------------- fmtstr ----------------------------- */
+
+/* Return's a allocated formated string.  Note that this function cannot return an invalid ptr. */
+char *fmtstr(const char *const restrict format, ...) {
+  ASSERT(format);
+  /* The ptr we will allocate and return. */
+  char *ret;
+  /* Veriatic arguments list we will use to format the string. */
+  va_list ap;
+  /* Now form the return string. */
+  va_start(ap, format);
+  ret = valstr(format, ap, NULL);
+  va_end(ap);
+  return ret;
+}
+
+/* Return's a allocated formated string.  Note that this function cannot return an invalid ptr. */
+char *fmtstr_len(int *const fmtlen, const char *const restrict format, ...) {
+  /* Assert 'fmtlen' because if the length is not needed 'fmtstr()' should be used. */
+  ASSERT(fmtlen);
+  ASSERT(format);
+  /* The ptr we will allocate and return. */
+  char *ret;
+  /* Veriatic arguments list we will use to format the string. */
+  va_list ap;
+  /* Format the string into ret. */
+  va_start(ap, format);
+  ret = valstr(format, ap, fmtlen);
+  va_end(ap);
+  return ret;
+}
+
+/* ----------------------------- fmtstrcat ----------------------------- */
+
+/* Append a format'ed string to `dst`. */
+char *fmtstrncat(char *restrict dst, Ulong dstlen, const char *const restrict format, ...) {
+  ASSERT(dst);
+  ASSERT(format);
+  int srclen;
+  char *src;
+  va_list ap;
+  va_start(ap, format);
+  src = valstr(format, ap, &srclen);
+  va_end(ap);
+  dst = xnstrncat(dst, dstlen, src, srclen);
+  free(src);
+  return dst;
+}
+
+/* Append a format'ed string to `dst`. */
+char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) {
+  ASSERT(dst);
+  ASSERT(format);
+  int srclen;
+  char *src;
+  va_list ap;
+  va_start(ap, format);
+  src = valstr(format, ap, &srclen);
+  va_end(ap);
+  dst = xstrncat(dst, src, srclen);
+  free(src);
+  return dst;
+}
+
 /* ----------------------------- xstrcat ----------------------------- */
 
 /* Append `src` to the end of `dst`. */
@@ -143,4 +260,35 @@ char *xstrncat(char *restrict dst, const char *const restrict src, Ulong srclen)
 /* Append `src` to the end of `dst`. */
 char *xstrcat(char *restrict dst, const char *const restrict src) {
   return xnstrncat(dst, strlen(dst), src, strlen(src));
+}
+
+/* ----------------------------- xstrinj ----------------------------- */
+
+/* Inject `src` into `dst` at index `idx`. */
+char *xnstrninj(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen, Ulong idx) {
+  ASSERT(dst);
+  ASSERT(src);
+  /* Always assert that idx is valid. */
+  ALWAYS_ASSERT(idx < dstlen);
+  /* Reallocate dst to fit src and a NULL-TERMINATOR. */
+  dst = xrealloc(dst, (dstlen + srclen + 1));
+  /* First move the data at idx by srclen, then copy src into dst at idx. */
+  memmove((dst + idx + srclen), (dst + idx), (dstlen - idx));
+  memcpy((dst + idx), src, srclen);
+  return dst;
+}
+
+/* Inject `src` into `dst` at index `idx`. */
+char *xnstrinj(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong idx) {
+  return xnstrninj(dst, dstlen, src, strlen(src), idx);
+}
+
+/* Inject `src` into `dst` at index `idx`. */
+char *xstrninj(char *restrict dst, const char *const restrict src, Ulong srclen, Ulong idx) {
+  return xnstrninj(dst, strlen(dst), src, srclen, idx);
+}
+
+/* Inject `src` into `dst` at index `idx`. */
+char *xstrinj(char *restrict dst, const char *const restrict src, Ulong idx) {
+  return xnstrninj(dst, strlen(dst), src, strlen(src), idx);
 }

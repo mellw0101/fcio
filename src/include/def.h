@@ -24,7 +24,6 @@
 #include <string.h>
 #include <termios.h>
 
-
 /* ----------------------------- linux ----------------------------- */
 
 #include <sys/stat.h>
@@ -52,12 +51,20 @@
 
 /* ----------------------------- String helper's ----------------------------- */
 
+#ifdef STRLEN
+# undef STRLEN
+#endif
 #ifdef S__LEN
 # undef S__LEN
 #endif
 
+#define STRLEN(x)  (sizeof((x)) - 1)
+
 /* Shorthand for when something calls for a string and the length of that string.  Note that this should only be used with literal strings. */
-#define S__LEN(x)  (x), (sizeof((x)) - 1)
+#define S__LEN(x)  (x), STRLEN(x)
+
+/* Shorthand to create a allocated copy of a literal string instead of using copy_of, as by definition we will know the length for that literal. */
+#define COPY_OF(x)  measured_copy(S__LEN(x))
 
 /* ----------------------------- Boolian's ----------------------------- */
 
@@ -96,9 +103,6 @@
 #endif
 #ifdef UlongMAX
 # undef UlongMAX
-#endif
-#ifdef PTR_SIZE
-# undef PTR_SIZE
 #endif
 
 /* When `__WORDSIZE` is not defined, define it. */
@@ -362,6 +366,16 @@
 #define ASCII_ISLOWER(c)  ((Uint)(c) >= 'a' && (Uint)(c) <= 'z')
 #define ASCII_ISALPHA(c)  (ASCII_ISUPPER(c) || ASCII_ISLOWER(c))
 #define ASCII_ISALNUM(c)  (ASCII_ISALPHA(c) || ASCII_ISDIGIT(c))
+
+/* ----------------------------- 'dirs.c' Define's ----------------------------- */
+
+#define DIRECTORY_ITER(dir, entryname, action)                                        \
+  DO_WHILE(                                                                           \
+    for (Ulong __directory_iter=0; __directory_iter<(dir).len; ++__directory_iter) {  \
+      directory_entry_t *entryname = (dir).entries[__directory_iter];                 \
+      DO_WHILE(action);                                                               \
+    }                                                                                 \
+  )
 
 
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
