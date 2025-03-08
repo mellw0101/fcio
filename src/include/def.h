@@ -369,12 +369,12 @@
 
 /* ----------------------------- 'dirs.c' Define's ----------------------------- */
 
-#define DIRECTORY_ITER(dir, entryname, action)                                        \
-  DO_WHILE(                                                                           \
-    for (Ulong __directory_iter=0; __directory_iter<(dir).len; ++__directory_iter) {  \
-      directory_entry_t *entryname = (dir).entries[__directory_iter];                 \
-      DO_WHILE(action);                                                               \
-    }                                                                                 \
+#define DIRECTORY_ITER(dir, name, action)                           \
+  DO_WHILE(                                                         \
+    for (Ulong __dir_iter=0; __dir_iter<(dir).len; ++__dir_iter) {  \
+      directory_entry_t *name = (dir).entries[__dir_iter];          \
+      DO_WHILE(action);                                             \
+    }                                                               \
   )
 
 
