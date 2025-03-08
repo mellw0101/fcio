@@ -7,20 +7,22 @@
 #pragma once
 
 
+#ifdef _BEGIN_C_LINKAGE
+# undef _BEGIN_C_LINKAGE
+#endif
+#ifdef _END_C_LINKAGE
+# undef _END_C_LINKAGE
+#endif
+#ifdef restrict
+# undef restrict
+#endif
+
 #ifdef __cplusplus
-# ifndef _BEGIN_C_LINKAGE
-#   define _BEGIN_C_LINKAGE  extern "C" {
-# endif
-# ifndef _END_C_LINKAGE
-#   define _END_C_LINKAGE  }
-# endif
+# define _BEGIN_C_LINKAGE  extern "C" {
+# define _END_C_LINKAGE    }
 #else
-# ifndef _BEGIN_C_LINKAGE
-#   define _BEGIN_C_LINKAGE
-# endif
-# ifndef _END_C_LINKAGE
-#   define _END_C_LINKAGE
-# endif
+# define _BEGIN_C_LINKAGE
+# define _END_C_LINKAGE
 #endif
 
 /* Define restrict keywork when used in c++ code. */
@@ -28,17 +30,11 @@
 # define restrict  __restrict  
 #endif
 
+/* True if the compiler says it groks GNU C version MAJOR.MINOR.  */
 #if (!_GNUC_VER && __GNUC__ && __GNUC_MINOR__)
 # define _GNUC_VER(maj, min)  ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
 #else
 # define _GNUC_VER(maj, min)  0
-#endif
-
-/* True if the compiler says it groks GNU C version MAJOR.MINOR.  */
-#if defined __GNUC__ && defined __GNUC_MINOR__
-# define _GL_GNUC_PREREQ(major, minor)  ((major) < __GNUC__ + ((minor) <= __GNUC_MINOR__))
-#else
-# define _GL_GNUC_PREREQ(major, minor)  0
 #endif
 
 /* Define _HAS_ATTRIBUTE only once, because on FreeBSD, with gcc < 5, if
