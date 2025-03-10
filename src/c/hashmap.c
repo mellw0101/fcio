@@ -36,14 +36,20 @@ struct HashNode {
 };
 
 struct HashMap {
-  HashNode **buckets;  /* This is where the data is stored, in `buckets` where each bucket has a linked list, when there are collisions. */
-  int        cap;      /* The currently allocated size of `buckets`, as a whole. */
-  int        size;     /* Current number of buckets with data in them. */
+  /* This is where the data is stored, in `buckets` where each bucket has a linked list, when there are collisions. */
+  HashNode **buckets;
   
+  /* The currently allocated size of `buckets`, as a whole. */
+  int cap;
+  
+  /* Current number of buckets with data in them. */
+  int size;
+
   /* A callback used to free the value of a `HashNode`, so that deallocation can happen when needed. */
   FreeFuncPtr free_value;
 
-  mutex_t globmutex;  /* This is locked when we resize the hashmap, so that we ensure singular thread resizeing. */
+  /* This is locked when we resize the hashmap, so that we ensure singular thread resizeing. */
+  mutex_t globmutex;
 };
 
 
@@ -294,8 +300,24 @@ void hashmap_clear(HashMap *const map) {
 
 
 /* The concurency test will be ran by doing 1000 requsts from 100 threads concurently. */
-#define OPS_PER_THREAD  1000
-#define NUM_THREADS     100
+#define OPS_PER_THREAD  4000
+#define NUM_THREADS     20
+
+_UNUSED static const char *strarray[] = {
+  "billy-bob",
+  "wanker",
+  "int",
+  "void",
+  "return",
+  "static",
+  "const",
+  "char",
+  "unsigned",
+  "long",
+  "bool",
+  "TRUE",
+  "FALSE"
+};
 
 /* The task for a single thread when running hashmap thread test. */
 static void* hashmap_thread_test_task(void* arg) {
@@ -303,34 +325,33 @@ static void* hashmap_thread_test_task(void* arg) {
   HashMap* map = arg;
   ASSERT(map);
   ASSERT(map->cap);
-  char *key, *value;
+  const char *key, *value;
   int op, i, insert_count=0, get_count=0, remove_count=0;
-  for(i=0; i<OPS_PER_THREAD; ++i) {
-    /* Generate random operation: 0=put, 1=get, 2=remove. */
-    op = (rand() % 3);
-    key   = fmtstr("key_%d_%d",   (int)pthread_self(), i);
-    value = fmtstr("value_%d_%d", (int)pthread_self(), i);
-    switch(op) {
-      case 0: {
-        ++insert_count;
-        hashmap_insert(map, key, value);
-        break;
-      }
-      case 1: {
-        ++get_count;
-        hashmap_get(map, key);
-        break;
-      }
-      case 2: {
-        ++remove_count;
-        hashmap_remove(map, key);
-        break;
+  timer_action(elapsed_ms,
+    for(i=0; i<OPS_PER_THREAD; ++i) {
+      /* Generate random operation: 0=put, 1=get, 2=remove. */
+      op    = (rand() % 3);
+      key   = strarray[rand() % ARRAY_SIZE(strarray)];
+      value = strarray[rand() % ARRAY_SIZE(strarray)];
+      switch(op) {
+        case 0: {
+          ++insert_count;
+          hashmap_insert(map, key, (void *)value);
+          break;
+        }
+        case 1: {
+          ++get_count;
+          hashmap_get(map, key);
+          break;
+        }
+        case 2: {
+          ++remove_count;
+          hashmap_remove(map, key);
+          break;
+        }
       }
     }
-    free(key);
-    free(value);
-  }
-  TIMER_END(start, elapsed_ms);
+  );
   writef(
     "Thread %lu finished hashmap concurrent test.  Total time %.5f ms: Result: (I:%d G:%d R:%d)\n",
     pthread_self(), (double)elapsed_ms, insert_count, get_count, remove_count

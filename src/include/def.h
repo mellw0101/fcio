@@ -23,6 +23,8 @@
 #include <errno.h>
 #include <string.h>
 #include <termios.h>
+#include <wchar.h>
+#include <wctype.h>
 
 /* ----------------------------- linux ----------------------------- */
 
@@ -196,11 +198,11 @@
   )
 
 /* Measure the time it takes to perform `action`, and create a named float that will hold the result. */
-#define timer_action(result_ms_name, action)           \
+#define timer_action(result_ms_name, ...)           \
   float result_ms_name;                                \
   DO_WHILE(                                            \
     TIMER_START(__timer);                              \
-    DO_WHILE(action);                                  \
+    DO_WHILE(__VA_ARGS__);                                  \
     TIMER_END_EXTERN_RESULT(__timer, result_ms_name);  \
   )
 
@@ -323,12 +325,12 @@
 #define thread_detach  pthread_detach
 
 /* Mutex helper shorthand's. */
-#define mutex_init                   pthread_mutex_init
-#define mutex_destroy                pthread_mutex_destroy
-#define mutex_lock                   pthread_mutex_lock
-#define mutex_unlock                 pthread_mutex_unlock
-#define mutex_action(mutex, action)  DO_WHILE(mutex_lock(mutex); DO_WHILE(action); mutex_unlock(mutex);)
-#define mutex_init_static            PTHREAD_MUTEX_INITIALIZER
+#define mutex_init                pthread_mutex_init
+#define mutex_destroy             pthread_mutex_destroy
+#define mutex_lock                pthread_mutex_lock
+#define mutex_unlock              pthread_mutex_unlock
+#define mutex_action(mutex, ...)  DO_WHILE(mutex_lock(mutex); DO_WHILE(__VA_ARGS__); mutex_unlock(mutex);)
+#define mutex_init_static         PTHREAD_MUTEX_INITIALIZER
 
 /* Condition helper shorthand's. */
 #define cond_init     pthread_cond_init
@@ -380,7 +382,7 @@
 #endif
 
 /* Perform `action` while under the protection of a file-descriptor lock. */
-#define fdlock_action(fd, type, action)  DO_WHILE(fdlock(fd, type); DO_WHILE(action); fdunlock(fd);)
+#define fdlock_action(fd, type, ...)  DO_WHILE(fdlock(fd, type); DO_WHILE(__VA_ARGS__); fdunlock(fd);)
 
 
 /* ----------------------------- ASCII ----------------------------- */
