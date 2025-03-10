@@ -272,6 +272,12 @@
 #ifdef cond_t
 # undef cond_t
 #endif
+#ifdef thread_create
+# undef thread_create
+#endif
+#ifdef thread_detach
+# undef thread_detach
+#endif
 #ifdef mutex_init
 # undef mutex_init
 #endif
@@ -290,6 +296,18 @@
 #ifdef mutex_init_static
 # undef mutex_init_static
 #endif
+#ifdef cond_init
+# undef cond_init
+#endif
+#ifdef cond_signal
+# undef cond_signal
+#endif
+#ifdef cond_destroy
+# undef cond_destroy
+#endif
+#ifdef cond_wait
+# undef cond_wait
+#endif
 
 /* Thread shorthand. */
 #define thread_t  pthread_t
@@ -300,13 +318,23 @@
 /* Condition shorthand. */
 #define cond_t  pthread_cond_t
 
-/* Mutex helper shorthands. */
+/* Thread helper shorthand's. */
+#define thread_create  pthread_create
+#define thread_detach  pthread_detach
+
+/* Mutex helper shorthand's. */
 #define mutex_init                   pthread_mutex_init
 #define mutex_destroy                pthread_mutex_destroy
 #define mutex_lock                   pthread_mutex_lock
 #define mutex_unlock                 pthread_mutex_unlock
 #define mutex_action(mutex, action)  DO_WHILE(mutex_lock(mutex); DO_WHILE(action); mutex_unlock(mutex);)
 #define mutex_init_static            PTHREAD_MUTEX_INITIALIZER
+
+/* Condition helper shorthand's. */
+#define cond_init     pthread_cond_init
+#define cond_signal   pthread_cond_signal
+#define cond_destroy  pthread_cond_destroy
+#define cond_wait     pthread_cond_wait
 
 /* ----------------------------- Ptr array's ----------------------------- */
 
@@ -433,3 +461,7 @@ typedef struct CVec  CVec;
 
 typedef struct HashNode  HashNode;
 typedef struct HashMap   HashMap;
+
+/* ----------------------------- future.c ----------------------------- */
+
+typedef struct Future  Future;

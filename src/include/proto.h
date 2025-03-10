@@ -179,4 +179,20 @@ void mvcursleft(int ncols);
 bool isconeof(const char c, const char *const restrict string);
 
 
+/* ---------------------------------------------------------- future.c ---------------------------------------------------------- */
+
+
+void future_free(Future *future);
+void *future_get(Future *future);
+bool future_try_get(Future *future, void **result);
+Future *future_submit(void *(*task)(void *), void *arg);
+
+
+
+/* ---------------------------------------------------------- rand.c ---------------------------------------------------------- */
+
+
+char *randstr(Ulong length);
+
+
 _END_C_LINKAGE
