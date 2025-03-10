@@ -13,14 +13,26 @@
 #define INITIAL_CAP  16
 #define LOAD_FACTOR  0.7f
 
+/* Perfom a hashmap `action` under mutex protection.  Note that this also asserts that the map ptr is valid and that the map is in a valid state. */
+#define HASHMAP_MUTEX_ACTION(action)  \
+  DO_WHILE(                           \
+    ASSERT(map);                      \
+    mutex_action(&map->globmutex,     \
+      ASSERT(map->cap);               \
+      ASSERT(map->buckets);           \
+      DO_WHILE(action);               \
+    );                                \
+  )
+
 
 /* ---------------------------------------------------------- Struct's ---------------------------------------------------------- */
 
 
 struct HashNode {
-  char *key;
-  void *value;
-  HashNode *next;
+  Ulong hash;      /* Cached hash value, used when resizing so we can avoid recalculating every time. */
+  char *key;       /* The key of this hashmap node. */
+  void *value;     /* Ptr to the value this node holds. */
+  HashNode *next;  /* Ptr to the next node, used when there are conflicts. */
 };
 
 struct HashMap {
@@ -50,11 +62,11 @@ static Ulong hash_djb2(const char *str) {
 }
 
 /* `INTERNAL`  Get the current `cap` or `size` of `map`, or both, NULL can be passed to one, but not both at the same time. */
-static void hashmap_get_data(HashMap *map, int *cap, int *size) {
-  ASSERT(map);
+static void hashmap_get_data(HashMap *const map, int *const cap, int *const size) {
   /* Ensure at least one of the params are valid. */
   ASSERT(cap || size);
-  mutex_action(&map->globmutex,
+  /* Perform the retrival under mutex protection. */
+  HASHMAP_MUTEX_ACTION(
     ASSIGN_IF_VALID(cap, map->cap);
     ASSIGN_IF_VALID(size, map->size);
   );
@@ -86,12 +98,9 @@ HashMap *hashmap_create(void) {
 
 /* Free a hashmap structure. */
 void hashmap_free(HashMap *const map) {
-  ASSERT(map);
   HashNode *node, *next;
   /* Ensure thread safe operation, even tough this should not ever be needed. */
-  mutex_action(&map->globmutex,
-    ASSERT(map->cap);
-    ASSERT(map->buckets);
+  HASHMAP_MUTEX_ACTION(
     for (int i=0; i<map->cap; ++i) {
       node = map->buckets[i];
       while (node) {
@@ -108,24 +117,19 @@ void hashmap_free(HashMap *const map) {
 
 /* Set the function that should be used to free HashNode's value.  Signature should ba `void foo(void *)`. */
 void hashmap_set_free_value_callback(HashMap *const map, FreeFuncPtr callback) {
-  ASSERT(map);
-  /* Assign 'callback' to the 'free_value' function ptr of map in a thread-safe manner. */
-  mutex_action(&map->globmutex,
-    /* Ensure the map is in a valid state. */
-    ASSERT(map->cap);
-    ASSERT(map->buckets);
+  HASHMAP_MUTEX_ACTION(
     map->free_value = callback;
   );
 }
 
 /* `INTERNAL`  Resize `map`, this is called when `map->cap` goes above the set `LOAD_FACTOR`. */
-static void hashmap_resize(HashMap *map) {
+static void hashmap_resize(HashMap *const map) {
   /* Ensure the ptr to the map is valid. */
   ASSERT(map);
   /* And that the map is in a valid state. */
   ASSERT(map->cap);
   ASSERT(map->buckets);
-  int   newcap;
+  int newcap;
   Ulong index;
   HashNode **newbuckets, *node, *next;
   newcap = (map->cap * 2);
@@ -134,7 +138,7 @@ static void hashmap_resize(HashMap *map) {
     node = map->buckets[i];
     while (node) {
       next              = node->next;
-      index             = (hash_djb2(node->key) % newcap);
+      index             = (node->hash % newcap);
       node->next        = newbuckets[index];
       newbuckets[index] = node;
       node              = next;
@@ -147,21 +151,18 @@ static void hashmap_resize(HashMap *map) {
 
 /* Insert a entry into `map` with `key` and `value`. */
 void hashmap_insert(HashMap *map, const char *key, void *value) {
-  ASSERT(map);
   ASSERT(key);
   ASSERT(value);
-  Ulong     index;
+  Ulong index, hash;
   HashNode *node;
   /* Ensure thread-safe insertion. */
-  mutex_action(&map->globmutex,
-    /* Ensure the map is in a valid state. */
-    ASSERT(map->cap);
-    ASSERT(map->buckets);
+  HASHMAP_MUTEX_ACTION(
     /* Check if the map needs resizing. */
     if (((float)(map->size + 1) / map->cap) > LOAD_FACTOR) {
       hashmap_resize(map);
     }
-    index = (hash_djb2(key) % map->cap);
+    hash  = hash_djb2(key);
+    index = (hash % map->cap);
     node  = map->buckets[index];
     while (node) {
       if (strcmp(node->key, key) == 0) {
@@ -171,24 +172,24 @@ void hashmap_insert(HashMap *map, const char *key, void *value) {
       }
       node = node->next;
     }
-    node                = xmalloc(sizeof(HashNode));
-    node->key           = copy_of(key);
-    node->value         = value;
-    node->next          = map->buckets[index];
+    node        = xmalloc(sizeof(HashNode));
+    node->hash  = hash;
+    node->key   = copy_of(key);
+    node->value = value;
+    /* Insert the newly created node as the first in this bucket. */
+    node->next = map->buckets[index];
     map->buckets[index] = node;
     ++map->size;
   );
 }
 
 /* Retrieve the `value` of a entry using the key of that entry, if any.  Otherwise, returns `NULL`. */
-void *hashmap_get(HashMap *map, const char *key) {
-  ASSERT(map);
+void *hashmap_get(HashMap *const map, const char *key) {
   ASSERT(key);
-  Ulong     index;
+  Ulong index;
   HashNode *node;
   /* Ensure thread-safe retrieval of the value accosiated with key. */
-  mutex_lock(&map->globmutex);
-  {
+  HASHMAP_MUTEX_ACTION(
     index = (hash_djb2(key) % map->cap);
     node = map->buckets[index];
     while (node) {
@@ -198,20 +199,18 @@ void *hashmap_get(HashMap *map, const char *key) {
       }
       node = node->next;
     }
-  }
-  mutex_unlock(&map->globmutex);
+  );
   return NULL;
 }
 
 /* Remove one entry from the hash map. */
 void hashmap_remove(HashMap *map, const char *key) {
-  ASSERT(map);
   ASSERT(key);
-  Ulong     index;
+  Ulong index;
   HashNode *node;
   HashNode *prev = NULL;
   /* Ensure thread-safe removal. */
-  mutex_action(&map->globmutex,
+  HASHMAP_MUTEX_ACTION(
     index = (hash_djb2(key) % map->cap);
     node = map->buckets[index];
     while (node) {
@@ -254,13 +253,10 @@ int hashmap_cap(HashMap *const map) {
 /* Perform some action on all entries in the map.  Its importent to not run other hashmap
  * functions inside `action`, as this is thread-safe, and will cause a deadlock. */
 void hashmap_forall(HashMap *const map, void (*action)(const char *const restrict key, void *value)) {
-  ASSERT(map);
   ASSERT(action);
   HashNode *node;
   /* Ensure thread-safe operation. */
-  mutex_action(&map->globmutex,
-    ASSERT(map->cap);
-    ASSERT(map->buckets);
+  HASHMAP_MUTEX_ACTION(
     for (int i=0; i<map->cap; ++i) {
       node = map->buckets[i];
       while (node) {
@@ -273,11 +269,8 @@ void hashmap_forall(HashMap *const map, void (*action)(const char *const restric
 
 /* Clear and return `map` to original state when created. */
 void hashmap_clear(HashMap *const map) {
-  ASSERT(map);
   HashNode *node, *next;
-  mutex_action(&map->globmutex,
-    ASSERT(map->cap);
-    ASSERT(map->buckets);
+  HASHMAP_MUTEX_ACTION(
     /* First free all entries. */
     for (int i=0; i<map->cap; ++i) {
       node = map->buckets[i];
@@ -338,7 +331,7 @@ static void* hashmap_thread_test_task(void* arg) {
     free(value);
   }
   TIMER_END(start, elapsed_ms);
-  printf(
+  writef(
     "Thread %lu finished hashmap concurrent test.  Total time %.5f ms: Result: (I:%d G:%d R:%d)\n",
     pthread_self(), (double)elapsed_ms, insert_count, get_count, remove_count
   );
@@ -347,21 +340,22 @@ static void* hashmap_thread_test_task(void* arg) {
 
 /* Perform the concurency test. */
 void hashmap_thread_test(void) {
-  int i;
-  HashMap *map = hashmap_create();
-  thread_t threads[NUM_THREADS];
-  printf("Running hashmap concurrent test.\n");
-  /* Create threads. */
-  for (i=0; i<NUM_THREADS; ++i) {
-    ALWAYS_ASSERT(pthread_create(&threads[i], NULL, hashmap_thread_test_task, map) == 0);
-  }
-  /* Wait for all threads to complete. */
-  for (i=0; i<NUM_THREADS; ++i) {
-    pthread_join(threads[i], NULL);
-  }
-  hashmap_free(map);
-  // TIMER_END(start, elapsed_ms);
-  // printf("Finished hashmap concurrent test.  Total time %.5f ms\n", (double)elapsed_ms);
+  timer_action(elapsed_ms,
+    int i;
+    HashMap *map = hashmap_create();
+    thread_t threads[NUM_THREADS];
+    writef("Running hashmap concurrent test.\n");
+    /* Create threads. */
+    for (i=0; i<NUM_THREADS; ++i) {
+      ALWAYS_ASSERT(pthread_create(&threads[i], NULL, hashmap_thread_test_task, map) == 0);
+    }
+    /* Wait for all threads to complete. */
+    for (i=0; i<NUM_THREADS; ++i) {
+      pthread_join(threads[i], NULL);
+    }
+    hashmap_free(map);
+  );
+  writef("Finished hashmap concurrent test.  Total time %.5f ms\n", (double)elapsed_ms);
 }
 
 #undef OPS_PER_THREAD

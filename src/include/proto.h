@@ -63,15 +63,19 @@ void *xcalloc(Ulong elems, Ulong elemsize) __THROW _NODISCARD _RETURNS_NONNULL;
 char *measured_copy(const char *const restrict string, Ulong len) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 char *copy_of(const char *const restrict string) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 char *valstr(const char *const restrict format, va_list ap, int *const outlen) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
-char **split_string(const char *const restrict string, const char delim) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 long strtonum(const char *const restrict string) __THROW _NODISCARD _NONNULL(1);
 bool parse_num(const char *const restrict string, long *const result) __THROW _NODISCARD _NONNULL(1, 2);
+
+/* ----------------------------- split_string ----------------------------- */
+
+char **split_string_len(const char *const restrict string, const char delim, Ulong *const argc) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
+char **split_string(const char *const restrict string, const char delim) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 
 /* ----------------------------- chararray ----------------------------- */
 
 void chararray_free(char **const restrict array, Ulong len) __THROW _NONNULL(1);
 void chararray_freenullterm(char **const restrict array) __THROW _NONNULL(1);
-void chararray_append(char **restrict *const array, Ulong *const len, char **const restrict append, Ulong append_len) __THROW _NONNULL(1, 2, 3);
+void chararray_append(char ***array, Ulong *const len, char **append, Ulong append_len) __THROW _NONNULL(1, 2, 3);
 void chararray_erase(char **const array, Ulong *len, Ulong idx) __THROW _NONNULL(1, 2);
 
 /* ----------------------------- fmtstr ----------------------------- */
@@ -128,7 +132,7 @@ HashMap *hashmap_create(void);
 void hashmap_free(HashMap *const map);
 void hashmap_set_free_value_callback(HashMap *const map, FreeFuncPtr callback);
 void hashmap_insert(HashMap *map, const char *key, void *value);
-void *hashmap_get(HashMap *map, const char *key);
+void *hashmap_get(HashMap *const map, const char *key);
 void hashmap_remove(HashMap *map, const char *key);
 int hashmap_size(HashMap *const map);
 int hashmap_cap(HashMap *const map);

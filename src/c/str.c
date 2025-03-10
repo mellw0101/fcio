@@ -33,12 +33,45 @@ char *valstr(const char *const restrict format, va_list ap, int *const outlen) {
   va_end(copy);
   ret = xmalloc(len + 1);
   ALWAYS_ASSERT(vsnprintf(ret, (len + 1), format, ap) != -1);
+  /* If the user wants the total length of the formated string, then assign it to `*outlen`. */
   ASSIGN_IF_VALID(outlen, len);
   return ret;
 }
 
+/* Get a integer representation of `string`. */
+long strtonum(const char *const restrict string) {
+  ASSERT(string);
+  ASSERT(*string);
+  long ret;
+  char *endptr;
+  /* Set errno to zero, so we can check it later. */
+  errno = 0;
+  ret = strtol(string, &endptr, 10);
+  /* Check for range errors. */
+  ALWAYS_ASSERT_MSG((errno != ERANGE), "Return'ed value is out of range");
+  /* Check that the string was read correctly. */
+  ALWAYS_ASSERT_MSG(!*endptr, "Passed string included somthing other then numbers");
+  return ret;
+}
+
+/* Parse a number from a string. */
+bool parse_num(const char *const restrict string, long *const result) {
+  long value;
+  char *excess;
+  /* Clear errno so we can check it after. */
+  errno = 0; 
+  value = strtol(string, &excess, 10);
+  if (errno == ERANGE || !*string || *excess) {
+    return FALSE;
+  }
+  *result = value;
+  return TRUE;
+}
+
+/* ----------------------------- split_string ----------------------------- */
+
 /* Split a string by demiliter. */
-char **split_string(const char *const restrict string, const char delim) {
+char **split_string_len(const char *const restrict string, const char delim, Ulong *const argc) {
   ASSERT(string);
   ASSERT(delim);
   /* Initilaze both start and end to string. */
@@ -71,37 +104,14 @@ char **split_string(const char *const restrict string, const char delim) {
   /* Trim the array before returning it, saving memory where we can. */
   TRIM_PTR_ARRAY(result, cap, len);
   result[len] = NULL;
+  /* If the user wants it, assign the lenth of the array to `*argc`. */
+  ASSIGN_IF_VALID(argc, len);
   return result;
 }
 
-/* Get a integer representation of `string`. */
-long strtonum(const char *const restrict string) {
-  ASSERT(string);
-  ASSERT(*string);
-  long ret;
-  char *endptr;
-  /* Set errno to zero, so we can check it later. */
-  errno = 0;
-  ret = strtol(string, &endptr, 10);
-  /* Check for range errors. */
-  ALWAYS_ASSERT_MSG((errno != ERANGE), "Return'ed value is out of range");
-  /* Check that the string was read correctly. */
-  ALWAYS_ASSERT_MSG(!*endptr, "Passed string included somthing other then numbers");
-  return ret;
-}
-
-/* Parse a number from a string. */
-bool parse_num(const char *const restrict string, long *const result) {
-  long value;
-  char *excess;
-  /* Clear errno so we can check it after. */
-  errno = 0; 
-  value = strtol(string, &excess, 10);
-  if (errno == ERANGE || !*string || *excess) {
-    return FALSE;
-  }
-  *result = value;
-  return TRUE;
+/* Split a string by demiliter. */
+char **split_string(const char *const restrict string, const char delim) {
+  return split_string_len(string, delim, NULL);
 }
 
 /* ----------------------------- chararray ----------------------------- */
@@ -137,7 +147,7 @@ void chararray_freenullterm(char **const restrict array) {
 }
 
 /* Append an array onto 'array'.  Free 'append' but not any elements in it after call. */
-void chararray_append(char **restrict *const array, Ulong *const len, char **const restrict append, Ulong append_len) {
+void chararray_append(char ***array, Ulong *const len, char **append, Ulong append_len) {
   ASSERT(array);
   ASSERT(append);
   /* Calculate the new total length for the array. */
@@ -161,10 +171,11 @@ void chararray_erase(char **const array, Ulong *len, Ulong idx) {
   free(*(array + idx));
   /* When the erased entry was not the last, move the remaining entries in the array. */
   if (idx != (*len - 1)) {
-    memmove((array + idx), (array + (idx + 1)), (_PTRSIZE * (*len - (idx + 1))));
+    memmove((array + idx), (array + (idx + 1)), (_PTRSIZE * ((*len) - idx)));
   }
   /* Remove one from length so it accuretly reflects the new length of the array. */
   *len -= 1;
+  *(array + (*len)) = NULL;
 }
 
 /* ----------------------------- fmtstr ----------------------------- */

@@ -161,27 +161,47 @@
 #ifdef TIMER_PRINT
 # undef TIMER_PRINT
 #endif
+#ifdef timer_action
+# undef timer_action
+#endif
 
+/* Convert micro-seconds to mili-seconds. */
 #define US_TO_MS(us)  ((us) / 1000.0f)
 
-#define TIMER_START(name)                           \
-  struct timespec name;                             \
-  DO_WHILE(clock_gettime(CLOCK_MONOTONIC, &name);)  
+/* Start a timer with the chosen name. */
+#define TIMER_START(timer_name)                           \
+  struct timespec timer_name;                             \
+  DO_WHILE(clock_gettime(CLOCK_MONOTONIC, &timer_name);)  
 
-#define TIMER_END(start, time_ms_name)                         \
-  float time_ms_name;                                          \
-  DO_WHILE(                                                    \
-    struct timespec __timer_end;                               \
-    clock_gettime(CLOCK_MONOTONIC, &__timer_end);              \
-    time_ms_name =                                             \
-      (((__timer_end.tv_sec - (start).tv_sec) * 1000000.0f) +  \
-      ((__timer_end.tv_nsec - (start).tv_nsec) / 1000.0f));    \
-    time_ms_name = US_TO_MS(time_ms_name);                     \
+/* End a timer and assign the result to a float declared outside the scope of this macro. */
+#define TIMER_END_EXTERN_RESULT(start_timer, result_ms_name)         \
+  DO_WHILE(                                                          \
+    struct timespec __timer_end;                                     \
+    clock_gettime(CLOCK_MONOTONIC, &__timer_end);                    \
+    (result_ms_name) =                                               \
+      (((__timer_end.tv_sec - (start_timer).tv_sec) * 1000000.0f) +  \
+      ((__timer_end.tv_nsec - (start_timer).tv_nsec) / 1000.0f));    \
+      (result_ms_name) = US_TO_MS(result_ms_name);                   \
   )
 
+/* Same as `TIMER_END_EXTERN_RESULT()`, except this declares a float to hols the resulting time in `milli-seconds`. */
+#define TIMER_END(start, time_ms_name)           \
+  float time_ms_name;                            \
+  TIMER_END_EXTERN_RESULT(start, time_ms_name);
+
+/* Shorthand to print the function and time of the timer in `milli-seconds`. */
 #define TIMER_PRINT(ms)                                   \
   DO_WHILE(                                               \
     printf("%s: Time: %.5f ms\n", __func__, (double)ms);  \
+  )
+
+/* Measure the time it takes to perform `action`, and create a named float that will hold the result. */
+#define timer_action(result_ms_name, action)           \
+  float result_ms_name;                                \
+  DO_WHILE(                                            \
+    TIMER_START(__timer);                              \
+    DO_WHILE(action);                                  \
+    TIMER_END_EXTERN_RESULT(__timer, result_ms_name);  \
   )
 
 /* ----------------------------- Assert ----------------------------- */
@@ -369,12 +389,12 @@
 
 /* ----------------------------- 'dirs.c' Define's ----------------------------- */
 
-#define DIRECTORY_ITER(dir, name, action)                           \
-  DO_WHILE(                                                         \
-    for (Ulong __dir_iter=0; __dir_iter<(dir).len; ++__dir_iter) {  \
-      directory_entry_t *name = (dir).entries[__dir_iter];          \
-      DO_WHILE(action);                                             \
-    }                                                               \
+#define DIRECTORY_ITER(dir, itername, entryname, action)       \
+  DO_WHILE(                                                    \
+    for (Ulong itername=0; itername<(dir).len; ++itername) {   \
+      directory_entry_t *entryname = (dir).entries[itername];  \
+      DO_WHILE(action);                                        \
+    }                                                          \
   )
 
 

@@ -45,5 +45,11 @@ install:
 	cp $(INCDIR)/*.h /usr/include/fcio
 	cp $(BUILD_DIR)/libfcio.a /usr/lib/libfcio.a
 
+tests:
+	$(MAKE) -C test tests
+
+clean-tests:
+	$(MAKE) -C test clean
+
 # Phony targets.
-.PHONY: clean install
+.PHONY: clean install tests clean-tests
