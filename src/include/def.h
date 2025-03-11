@@ -442,11 +442,11 @@
 
 /* ----------------------------- 'dirs.c' Define's ----------------------------- */
 
-#define DIRECTORY_ITER(dir, itername, entryname, action)       \
+#define DIRECTORY_ITER(dir, itername, entryname, ...)          \
   DO_WHILE(                                                    \
     for (Ulong itername=0; itername<(dir).len; ++itername) {   \
       directory_entry_t *entryname = (dir).entries[itername];  \
-      DO_WHILE(action);                                        \
+      DO_WHILE(__VA_ARGS__);                                   \
     }                                                          \
   )
 
