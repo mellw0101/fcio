@@ -58,6 +58,13 @@ CVec *cvec_create(void) {
   return v;
 }
 
+/* Create a new blank allocated `CVec` structure and set the free function ptr directly. */
+CVec *cvec_create_setfree(FreeFuncPtr free) {
+  CVec *v = cvec_create();
+  cvec_setfree(v, free);
+  return v;
+}
+
 /* Free a CVec structure. */
 void cvec_free(CVec *const v) {
   CVEC_MUTEX_ACTION(

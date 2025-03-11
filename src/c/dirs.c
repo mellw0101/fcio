@@ -183,3 +183,26 @@ int directory_get_recurse(const char *const restrict path, directory_t *const ou
   }
   return 0;
 }
+
+/* ---------------------------------------------------------- Test's ---------------------------------------------------------- */
+
+void test_directory_t(const char *const dirpath) {
+  ASSERT(dirpath);
+  if (!dir_exists(dirpath)) {
+    return;
+  }
+  directory_t dir;
+  directory_entry_t *entry;
+  directory_data_init(&dir);
+  /* Start timer. */
+  TIMER_START(timer);
+  ASSERT(directory_get_recurse(dirpath, &dir) != -1);
+  /* Stop timer. */
+  TIMER_END(timer, ms);
+  for (Ulong i = 0; i < dir.len; ++i) {
+    entry = dir.entries[i];
+    printf("%s\n", entry->path);
+  }
+  directory_data_free(&dir);
+  printf("%s: Time: %.5f ms\n", __func__, (double)ms);
+}

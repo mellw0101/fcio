@@ -48,6 +48,10 @@ void directory_data_free(directory_t *const dir);
 int directory_get(const char *const restrict path, directory_t *const output);
 int directory_get_recurse(const char *const restrict path, directory_t *const output);
 
+/* ----------------------------- Test's ----------------------------- */
+
+void test_directory_t(const char *const dirpath);
+
 
 /* ---------------------------------------------------------- mem.c ---------------------------------------------------------- */
 
@@ -116,6 +120,7 @@ void statalloc(const char *const restrict path, struct stat **ptr) __THROW _NONN
 
 
 CVec *cvec_create(void);
+CVec *cvec_create_setfree(FreeFuncPtr free);
 void cvec_free(CVec *const v);
 void cvec_setfree(CVec *const v, FreeFuncPtr free);
 void cvec_push(CVec *const v, void *const item);
@@ -193,6 +198,13 @@ Future *future_submit(void *(*task)(void *), void *arg);
 
 
 char *randstr(Ulong length);
+
+
+/* ---------------------------------------------------------- math.c ---------------------------------------------------------- */
+
+
+float fclamp(float x, float min, float max) __THROW _CONST _NODISCARD;
+long  lclamp(long x, long min, long max) __THROW _CONST _NODISCARD;
 
 
 _END_C_LINKAGE

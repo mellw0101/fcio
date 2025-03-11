@@ -149,6 +149,29 @@
 /* Size of a ptr in bytes. */
 #define _PTRSIZE  (sizeof(void *))
 
+/* ----------------------------- Math ----------------------------- */
+
+#ifdef round_short
+# undef round_short
+#endif
+
+#define round_short(x)  ((x) >= 0 ? (short)((x) + 0.5) : (short)((x) - 0.5))
+
+/* ----------------------------- xterm ----------------------------- */
+
+#ifdef xterm_byte_scale
+# undef xterm_byte_scale
+#endif
+#ifdef xterm_color_index
+# undef xterm_color_index
+#endif
+
+/* Return`s a rounded xterm-256 scale value from a 8-bit rgb value.  */
+#define xterm_byte_scale(bit)  round_short(((double)bit / 255) * 5)
+
+/* Return the xterm-256 index for a given 8bit rgb value. */
+#define xterm_color_index(r, g, b)  short(16 + (36 * xterm_byte_scale(r)) + (6 * xterm_byte_scale(g)) + xterm_byte_scale(b))
+
 /* ----------------------------- Profiling ----------------------------- */
 
 #ifdef US_TO_MS
