@@ -21,14 +21,14 @@
 #define CVEC_INITIAL_CAP  (10)
 
 /* Perform some action under protection of the vector mutex. */
-#define CVEC_MUTEX_ACTION(action)  \
-  DO_WHILE(                        \
-    ASSERT(v);                     \
-    mutex_action(&v->mutex,        \
-      ASSERT(v->cap);              \
-      ASSERT(v->data);             \
-      DO_WHILE(action);            \
-    );                             \
+#define CVEC_MUTEX_ACTION(...)  \
+  DO_WHILE(                     \
+    ASSERT(v);                  \
+    mutex_action(&v->mutex,     \
+      ASSERT(v->cap);           \
+      ASSERT(v->data);          \
+      DO_WHILE(__VA_ARGS__);    \
+    );                          \
   )
 
 
@@ -72,7 +72,7 @@ void cvec_free(CVec *const v) {
     if (v->free) {
       /* Free all elements using the chosen free function. */
       for (int i=0; i<v->len; ++i) {
-      v->free(v->data[i]);
+        v->free(v->data[i]);
       }
     }
     free(v->data);
@@ -91,7 +91,7 @@ void cvec_setfree(CVec *const v, FreeFuncPtr free) {
 /* Add 'item' to the back of v. */
 void cvec_push(CVec *const v, void *const item) {
   CVEC_MUTEX_ACTION(
-  ENSURE_PTR_ARRAY_SIZE(v->data, v->cap, v->len);
+    ENSURE_PTR_ARRAY_SIZE(v->data, v->cap, v->len);
     v->data[v->len++] = item;
   );
 }

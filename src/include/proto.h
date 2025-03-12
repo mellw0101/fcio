@@ -67,8 +67,8 @@ void *xcalloc(Ulong elems, Ulong elemsize) __THROW _NODISCARD _RETURNS_NONNULL;
 char *measured_copy(const char *const restrict string, Ulong len) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 char *copy_of(const char *const restrict string) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 char *valstr(const char *const restrict format, va_list ap, int *const outlen) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
-long strtonum(const char *const restrict string) __THROW _NODISCARD _NONNULL(1);
-bool parse_num(const char *const restrict string, long *const result) __THROW _NODISCARD _NONNULL(1, 2);
+long  strtonum(const char *const restrict string) __THROW _NODISCARD _NONNULL(1);
+bool  parse_num(const char *const restrict string, long *const result) __THROW _NODISCARD _NONNULL(1, 2);
 
 /* ----------------------------- split_string ----------------------------- */
 
@@ -112,8 +112,8 @@ char *xstrinj(char *restrict dst, const char *const restrict src, Ulong idx) __T
 
 const char *tail(const char *const restrict path) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 const char *ext(const char *const restrict path) __THROW _NODISCARD _NONNULL(1);
-char *concatpath(const char *const restrict s1, const char *const restrict s2) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
-void statalloc(const char *const restrict path, struct stat **ptr) __THROW _NONNULL(1, 2);
+char       *concatpath(const char *const restrict s1, const char *const restrict s2) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
+void        statalloc(const char *const restrict path, struct stat **ptr) __THROW _NONNULL(1, 2);
 
 
 /* ---------------------------------------------------------- cvec.c ---------------------------------------------------------- */
@@ -121,28 +121,28 @@ void statalloc(const char *const restrict path, struct stat **ptr) __THROW _NONN
 
 CVec *cvec_create(void);
 CVec *cvec_create_setfree(FreeFuncPtr free);
-void cvec_free(CVec *const v);
-void cvec_setfree(CVec *const v, FreeFuncPtr free);
-void cvec_push(CVec *const v, void *const item);
-void cvec_trim(CVec *const v);
+void  cvec_free(CVec *const v);
+void  cvec_setfree(CVec *const v, FreeFuncPtr free);
+void  cvec_push(CVec *const v, void *const item);
+void  cvec_trim(CVec *const v);
 void *cvec_get(CVec *const v, int index);
-int cvec_len(CVec *const v);
-int cvec_cap(CVec *const v);
+int   cvec_len(CVec *const v);
+int   cvec_cap(CVec *const v);
 
 
 /* ---------------------------------------------------------- hashmap.c ---------------------------------------------------------- */
 
 
-HashMap *hashmap_create(void);
-void hashmap_free(HashMap *const map);
-void hashmap_set_free_value_callback(HashMap *const map, FreeFuncPtr callback);
-void hashmap_insert(HashMap *map, const char *key, void *value);
-void *hashmap_get(HashMap *const map, const char *key);
-void hashmap_remove(HashMap *map, const char *key);
-int hashmap_size(HashMap *const map);
-int hashmap_cap(HashMap *const map);
-void hashmap_forall(HashMap *const map, void (*action)(const char *const restrict key, void *value));
-void hashmap_clear(HashMap *const map);
+HashMap *hashmap_create(void) __THROW _RETURNS_NONNULL;
+void     hashmap_free(HashMap *const map) __THROW _NONNULL(1);
+void     hashmap_set_free_value_callback(HashMap *const map, FreeFuncPtr callback) __THROW _NONNULL(1);
+void     hashmap_insert(HashMap *const map, const char *const restrict key, void *value) __THROW _NONNULL(1, 2, 3);
+void    *hashmap_get(HashMap *const map, const char *key);
+void     hashmap_remove(HashMap *const map, const char *key);
+int      hashmap_size(HashMap *const map);
+int      hashmap_cap(HashMap *const map);
+void     hashmap_forall(HashMap *const map, void (*action)(const char *const restrict key, void *value));
+void     hashmap_clear(HashMap *const map);
 
 /* ----------------------------- Tests ----------------------------- */
 

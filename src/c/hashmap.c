@@ -14,14 +14,14 @@
 #define LOAD_FACTOR  0.7f
 
 /* Perfom a hashmap `action` under mutex protection.  Note that this also asserts that the map ptr is valid and that the map is in a valid state. */
-#define HASHMAP_MUTEX_ACTION(action)  \
-  DO_WHILE(                           \
-    ASSERT(map);                      \
-    mutex_action(&map->globmutex,     \
-      ASSERT(map->cap);               \
-      ASSERT(map->buckets);           \
-      DO_WHILE(action);               \
-    );                                \
+#define HASHMAP_MUTEX_ACTION(...)  \
+  DO_WHILE(                        \
+    ASSERT(map);                   \
+    mutex_action(&map->globmutex,  \
+      ASSERT(map->cap);            \
+      ASSERT(map->buckets);        \
+      DO_WHILE(__VA_ARGS__);       \
+    );                             \
   )
 
 
@@ -156,7 +156,7 @@ static void hashmap_resize(HashMap *const map) {
 }
 
 /* Insert a entry into `map` with `key` and `value`. */
-void hashmap_insert(HashMap *map, const char *key, void *value) {
+void hashmap_insert(HashMap *const map, const char *const restrict key, void *value) {
   ASSERT(key);
   ASSERT(value);
   Ulong index, hash;
@@ -210,7 +210,7 @@ void *hashmap_get(HashMap *const map, const char *key) {
 }
 
 /* Remove one entry from the hash map. */
-void hashmap_remove(HashMap *map, const char *key) {
+void hashmap_remove(HashMap *const map, const char *key) {
   ASSERT(key);
   Ulong index;
   HashNode *node;
@@ -321,7 +321,6 @@ _UNUSED static const char *strarray[] = {
 
 /* The task for a single thread when running hashmap thread test. */
 static void* hashmap_thread_test_task(void* arg) {
-  TIMER_START(start);
   HashMap* map = arg;
   ASSERT(map);
   ASSERT(map->cap);
