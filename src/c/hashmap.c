@@ -10,6 +10,7 @@
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
 
 
+/* This MUST be a power of 2. */
 #define INITIAL_CAP  16
 #define LOAD_FACTOR  0.7f
 
@@ -22,6 +23,14 @@
       ASSERT(map->buckets);        \
       DO_WHILE(__VA_ARGS__);       \
     );                             \
+  )
+
+#define HASHMAP_ITER(__map, __itername, __nodename, ...)              \
+  DO_WHILE(                                                           \
+    for (int __itername=0; __itername<(__map)->cap; ++__itername)  {  \
+      HashNode *__nodename = (__map)->buckets[__itername];            \
+      DO_WHILE(__VA_ARGS__);                                          \
+    }                                                                 \
   )
 
 
@@ -67,6 +76,18 @@ static Ulong hash_djb2(const char *str) {
   return hash;
 }
 
+/* `INTERNAL`  Create a `djb2` hash from string and assign the length of the string to `*len`. */
+_UNUSED static Ulong hash_djb2_len(const char *const restrict str, Ulong *len) {
+  ASSERT(str);
+  Ulong hash=5381, i=0;
+  int c;
+  while ((c = str[i++])) {
+    hash = (((hash << 5) + hash) + c);
+  }
+  ASSIGN_IF_VALID(len, i);
+  return len;
+}
+
 /* `INTERNAL`  Get the current `cap` or `size` of `map`, or both, NULL can be passed to one, but not both at the same time. */
 static void hashmap_get_data(HashMap *const map, int *const cap, int *const size) {
   /* Ensure at least one of the params are valid. */
@@ -104,17 +125,16 @@ HashMap *hashmap_create(void) {
 
 /* Free a hashmap structure. */
 void hashmap_free(HashMap *const map) {
-  HashNode *node, *next;
+  HashNode *next;
   /* Ensure thread safe operation, even tough this should not ever be needed. */
   HASHMAP_MUTEX_ACTION(
-    for (int i=0; i<map->cap; ++i) {
-      node = map->buckets[i];
+    HASHMAP_ITER(map, i, node,
       while (node) {
         next = node->next;
         hashmap_free_node(map, node);
         node = next;
       }
-    }
+    );
   );
   mutex_destroy(&map->globmutex);
   free(map->buckets);
@@ -137,55 +157,69 @@ static void hashmap_resize(HashMap *const map) {
   ASSERT(map->buckets);
   int newcap;
   Ulong index;
-  HashNode **newbuckets, *node, *next;
+  HashNode **newbuckets, *next;
   newcap = (map->cap * 2);
   newbuckets = xcalloc(newcap, sizeof(HashNode *));
-  for (int i=0; i<map->cap; ++i) {
-    node = map->buckets[i];
+  /* Recalculate all entries. */
+  HASHMAP_ITER(map, i, node,
     while (node) {
       next              = node->next;
-      index             = (node->hash % newcap);
+      index             = (node->hash & (newcap - 1));
       node->next        = newbuckets[index];
       newbuckets[index] = node;
       node              = next;
-    }
-  }
+    }  
+  );
   free(map->buckets);
   map->buckets = newbuckets;
   map->cap     = newcap;
+}
+
+/* `INTERNAL`  Insert a entry into the map without locking the mutex.  Used internaly when mutex is already locked. */
+static void hashmap_insert_unlocked(HashMap *const map, const char *const restrict key, void *value) {
+  ASSERT(map);
+  ASSERT(key);
+  ASSERT(value);
+  /* The calculated hash of `key`. */
+  Ulong hash;
+  /* Index in the buckets of map, based on the current cap of the map. */
+  Ulong index;
+  /* Ptr to a intenal node strucure. */
+  HashNode *node;
+  /* Resize the map if we excede the load factor. */
+  if (((float)(map->size + 1) / map->cap) > LOAD_FACTOR) {
+    hashmap_resize(map);
+  }
+  hash  = hash_djb2(key);
+  index = (hash & (map->cap - 1));
+  node  = map->buckets[index];
+  while (node) {
+    if (strcmp(node->key, key) == 0) {
+      /* If there is a free function set, then use it to free the value before overwriting it. */
+      CALL_IF_VALID(map->free_value, node->value);
+      node->value = value;
+      return;
+    }
+    node = node->next;
+  }
+  /* When there is no match already in the map, add it. */
+  node        = xmalloc(sizeof(*node));
+  node->hash  = hash;
+  node->key   = copy_of(key);
+  node->value = value;
+  /* Insert the newly made node at the start of the bucket. */
+  node->next = map->buckets[index];
+  map->buckets[index] = node;
+  ++map->size;
 }
 
 /* Insert a entry into `map` with `key` and `value`. */
 void hashmap_insert(HashMap *const map, const char *const restrict key, void *value) {
   ASSERT(key);
   ASSERT(value);
-  Ulong index, hash;
-  HashNode *node;
   /* Ensure thread-safe insertion. */
   HASHMAP_MUTEX_ACTION(
-    /* Check if the map needs resizing. */
-    if (((float)(map->size + 1) / map->cap) > LOAD_FACTOR) {
-      hashmap_resize(map);
-    }
-    hash  = hash_djb2(key);
-    index = (hash % map->cap);
-    node  = map->buckets[index];
-    while (node) {
-      if (strcmp(node->key, key) == 0) {
-        node->value = value;
-        mutex_unlock(&map->globmutex);
-        return;
-      }
-      node = node->next;
-    }
-    node        = xmalloc(sizeof(HashNode));
-    node->hash  = hash;
-    node->key   = copy_of(key);
-    node->value = value;
-    /* Insert the newly created node as the first in this bucket. */
-    node->next = map->buckets[index];
-    map->buckets[index] = node;
-    ++map->size;
+    hashmap_insert_unlocked(map, key, value);
   );
 }
 
@@ -196,7 +230,7 @@ void *hashmap_get(HashMap *const map, const char *key) {
   HashNode *node;
   /* Ensure thread-safe retrieval of the value accosiated with key. */
   HASHMAP_MUTEX_ACTION(
-    index = (hash_djb2(key) % map->cap);
+    index = (hash_djb2(key) & (map->cap - 1));
     node = map->buckets[index];
     while (node) {
       if (strcmp(node->key, key) == 0) {
@@ -217,7 +251,7 @@ void hashmap_remove(HashMap *const map, const char *key) {
   HashNode *prev = NULL;
   /* Ensure thread-safe removal. */
   HASHMAP_MUTEX_ACTION(
-    index = (hash_djb2(key) % map->cap);
+    index = (hash_djb2(key) & (map->cap - 1));
     node = map->buckets[index];
     while (node) {
       /* Found the entry. */
@@ -260,32 +294,29 @@ int hashmap_cap(HashMap *const map) {
  * functions inside `action`, as this is thread-safe, and will cause a deadlock. */
 void hashmap_forall(HashMap *const map, void (*action)(const char *const restrict key, void *value)) {
   ASSERT(action);
-  HashNode *node;
   /* Ensure thread-safe operation. */
   HASHMAP_MUTEX_ACTION(
-    for (int i=0; i<map->cap; ++i) {
-      node = map->buckets[i];
+    HASHMAP_ITER(map, i, node,
       while (node) {
         action(node->key, node->value);
         node = node->next;
       }
-    }
+    );
   );
 }
 
 /* Clear and return `map` to original state when created. */
 void hashmap_clear(HashMap *const map) {
-  HashNode *node, *next;
+  HashNode *next;
   HASHMAP_MUTEX_ACTION(
-    /* First free all entries. */
-    for (int i=0; i<map->cap; ++i) {
-      node = map->buckets[i];
-      while (node) {
+    /* Free all entries. */
+    HASHMAP_ITER(map, i, node,
+      while(node) {
         next = node->next;
         hashmap_free_node(map, node);
         node = next;
       }
-    }
+    );
     /* Free the buckets. */
     free(map->buckets);
     /* Reallocate the buckets. */
@@ -293,6 +324,27 @@ void hashmap_clear(HashMap *const map) {
     map->cap  = INITIAL_CAP;
     map->buckets = xcalloc(map->cap, _PTRSIZE);
   );
+}
+
+/* Move all entries in `src` to `dst`.  Meaning dst now own the value ptr's, this is why we will
+ * also set the free value function in `src` to `NULL`.  Meaning that `src` should be discarded. */
+void hashmap_append(HashMap *const dst, HashMap *const src) {
+  ASSERT(dst);
+  ASSERT(src);
+  mutex_action(&dst->globmutex, mutex_action(&src->globmutex, 
+    /* Ensure both maps are in a valid state. */
+    ASSERT(dst->cap);
+    ASSERT(dst->buckets);
+    ASSERT(src->cap);
+    ASSERT(src->buckets);
+    HASHMAP_ITER(src, i, node,
+      while (node) {
+        hashmap_insert_unlocked(dst, node->key, node->value);
+        node = node->next;
+      }
+    );
+    src->free_value = NULL;
+  ););
 }
 
 

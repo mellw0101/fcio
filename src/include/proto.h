@@ -31,7 +31,8 @@ bool ynanswer(const char *const restrict format, ...);
 /* ---------------------------------------------------------- files.c ---------------------------------------------------------- */
 
 
-bool file_exists(const char *const restrict path) _NONNULL(1);
+bool file_exists(const char *const restrict path) __THROW _NODISCARD _NONNULL(1);
+bool non_exec_file_exists(const char *const restrict path) __THROW _NODISCARD _NONNULL(1);
 
 
 /* ---------------------------------------------------------- dirs.c ---------------------------------------------------------- */
@@ -143,6 +144,7 @@ int      hashmap_size(HashMap *const map);
 int      hashmap_cap(HashMap *const map);
 void     hashmap_forall(HashMap *const map, void (*action)(const char *const restrict key, void *value));
 void     hashmap_clear(HashMap *const map);
+void     hashmap_append(HashMap *const dst, HashMap *const src);
 
 /* ----------------------------- Tests ----------------------------- */
 

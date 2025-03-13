@@ -46,10 +46,20 @@
 #ifdef CALL_IS_VALID
 # undef CALL_IF_VALID
 #endif
+#ifdef __TYPE
+# undef __TYPE
+#endif
 
 /* Perform actions protected from accidental missuse. */
 #define DO_WHILE(...)                do {__VA_ARGS__} while (0)
 #define CALL_IF_VALID(funcptr, ...)  DO_WHILE((funcptr) ? (funcptr)(__VA_ARGS__) : ((void)0);)
+
+/* Deduce the type `x` is.  Works in both `c` and `c++`. */
+#ifdef __cplusplus
+# define __TYPE(x)  decltype((x))
+#else
+# define __TYPE(x)  __typeof__((x))
+#endif                   
 
 /* ----------------------------- String helper's ----------------------------- */
 
@@ -88,6 +98,9 @@
 
 /* ----------------------------- Int's ----------------------------- */
 
+#ifdef Schar
+# undef Schar
+#endif
 #ifdef Uchar
 # undef Uchar
 #endif
@@ -116,6 +129,7 @@
 # endif
 #endif
 
+#define Schar   signed char
 #define Uchar   unsigned char
 #define Ushort  unsigned short int
 #define Uint    unsigned int
@@ -137,15 +151,15 @@
 
 /* ----------------------------- Constant's ----------------------------- */
 
-#ifdef PTR_SIZE
-# undef PTR_SIZE
+#ifdef _PTR_BITSIZE
+# undef _PTR_BITSIZE
 #endif
 #ifdef _PTRSIZE
 # undef _PTRSIZE
 #endif
 
 /* Size of a ptr in bits. */
-#define PTR_SIZE  __WORDSIZE
+#define _PTR_BITSIZE  __WORDSIZE
 /* Size of a ptr in bytes. */
 #define _PTRSIZE  (sizeof(void *))
 
@@ -154,8 +168,26 @@
 #ifdef round_short
 # undef round_short
 #endif
+#ifdef CLAMP_MAX
+# undef CLAMP_MAX
+#endif
+#ifdef CLAMP_MIN
+# undef CLAMP_MIN
+#endif
+#ifdef CLAMP
+# undef CLAMP
+#endif
 
 #define round_short(x)  ((x) >= 0 ? (short)((x) + 0.5) : (short)((x) - 0.5))
+
+/* Ensure `x` cannot be more then `max`. */
+#define CLAMP_MAX(x, max)  (((x) > (max)) ? ((x) = (max)) : ((int)0))
+
+/* Ensure `x` cannot be less then `min`. */
+#define CLAMP_MIN(x, min)  (((x) < (min)) ? ((x) = (min)) : ((int)0))
+
+/* Ensure `x` cannot be less then `min` nor more then `max`. */
+#define CLAMP(x, min, max)  (((x) > (max)) ? ((x) = (max)) : ((x) < (min)) ? ((x) = (min)) : ((int)0))
 
 /* ----------------------------- xterm ----------------------------- */
 
@@ -407,7 +439,6 @@
 /* Perform `action` while under the protection of a file-descriptor lock. */
 #define fdlock_action(fd, type, ...)  DO_WHILE(fdlock(fd, type); DO_WHILE(__VA_ARGS__); fdunlock(fd);)
 
-
 /* ----------------------------- ASCII ----------------------------- */
 
 #ifdef ASCII_ISDIGIT
@@ -431,6 +462,12 @@
 #ifdef ASCII_ISALNUM
 # undef ASCII_ISALNUM
 #endif
+#ifdef ASCII_ISWHITE
+# undef ASCII_ISWHITE
+#endif
+#ifdef ASCII_CTRL
+# undef ASCII_CTRL
+#endif
 
 #define ASCII_ISDIGIT(c)  ((c) >= '0' && (c) <= '9')
 #define ASCII_TOUPPER(c)  (((c) < 'a' || (c) > 'z') ? (c) : ((c) - 'A'))
@@ -439,8 +476,14 @@
 #define ASCII_ISLOWER(c)  ((Uint)(c) >= 'a' && (Uint)(c) <= 'z')
 #define ASCII_ISALPHA(c)  (ASCII_ISUPPER(c) || ASCII_ISLOWER(c))
 #define ASCII_ISALNUM(c)  (ASCII_ISALPHA(c) || ASCII_ISDIGIT(c))
+#define ASCII_ISWHITE(c)  ((c) == ' ' || (c) == '\t')
+#define ASCII_CTRL(c)     ((c)&037)
 
 /* ----------------------------- 'dirs.c' Define's ----------------------------- */
+
+#ifdef DIRECTORY_ITER
+# undef DIRECTORY_ITER
+#endif
 
 #define DIRECTORY_ITER(dir, itername, entryname, ...)          \
   DO_WHILE(                                                    \
