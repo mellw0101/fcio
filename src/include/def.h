@@ -56,7 +56,7 @@
 
 /* Deduce the type `x` is.  Works in both `c` and `c++`. */
 #ifdef __cplusplus
-# define __TYPE(x)  decltype((x))
+# define __TYPE(x)  decltype(x)
 #else
 # define __TYPE(x)  __typeof__((x))
 #endif                   
