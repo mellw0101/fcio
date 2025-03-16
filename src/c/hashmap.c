@@ -331,7 +331,7 @@ void hashmap_clear(HashMap *const map) {
 void hashmap_append(HashMap *const dst, HashMap *const src) {
   ASSERT(dst);
   ASSERT(src);
-  mutex_action(&dst->globmutex, mutex_action(&src->globmutex, 
+  mutex_action(&dst->globmutex, mutex_action(&src->globmutex,
     /* Ensure both maps are in a valid state. */
     ASSERT(dst->cap);
     ASSERT(dst->buckets);
