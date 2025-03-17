@@ -16,6 +16,9 @@
 #ifdef restrict
 # undef restrict
 #endif
+#ifdef _THREAD
+# undef _THREAD
+#endif
 #ifdef _GNUC_VER
 # undef _GNUC_VER
 #endif
@@ -64,6 +67,14 @@
 /* Define restrict keywork when used in c++ code. */
 #ifdef __cplusplus
 # define restrict  __restrict  
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+# define _THREAD  __thread
+#elif defined(_MSC_VER)
+# define _THREAD  __declspec(thread)
+#else
+# define _THREAD
 #endif
 
 /* True if the compiler says it groks GNU C version MAJOR.MINOR.  */

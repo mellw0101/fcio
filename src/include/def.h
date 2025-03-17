@@ -365,6 +365,12 @@
 #ifdef cond_wait
 # undef cond_wait
 #endif
+#ifdef rwlock_init
+# undef rwlock_init
+#endif
+#ifdef rwlock_destroy
+# undef rwlock_destroy
+#endif
 
 /* Thread shorthand. */
 #define thread_t  pthread_t
@@ -392,6 +398,10 @@
 #define cond_signal   pthread_cond_signal
 #define cond_destroy  pthread_cond_destroy
 #define cond_wait     pthread_cond_wait
+
+/* Read-Write lock helper shorthand's. */
+#define rwlock_init     pthread_rwlock_init
+#define rwlock_destroy  pthread_rwlock_destroy
 
 /* ----------------------------- Ptr array's ----------------------------- */
 
