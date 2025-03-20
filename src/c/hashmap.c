@@ -66,7 +66,7 @@ struct HashMap {
 
 
 /* `INTERNAL`  Create a `djb2` hash from `str`. */
-static Ulong hash_djb2(const char *str) {
+static inline Ulong hash_djb2(const char *str) {
   ASSERT(str);
   Ulong hash = 5381;
   int c;
@@ -89,7 +89,7 @@ _UNUSED static Ulong hash_djb2_len(const char *const restrict str, Ulong *len) {
 }
 
 /* `INTERNAL`  Get the current `cap` or `size` of `map`, or both, NULL can be passed to one, but not both at the same time. */
-static void hashmap_get_data(HashMap *const map, int *const cap, int *const size) {
+static inline void hashmap_get_data(HashMap *const map, int *const cap, int *const size) {
   /* Ensure at least one of the params are valid. */
   ASSERT(cap || size);
   /* Perform the retrival under mutex protection. */
@@ -139,6 +139,13 @@ void hashmap_free(HashMap *const map) {
   mutex_destroy(&map->globmutex);
   free(map->buckets);
   free(map);
+}
+
+/* Create a new allocated `HashMap` structure that uses `freefunc` to free the values of nodes when the map is freed. */
+HashMap *hashmap_create_wfreefunc(FreeFuncPtr freefunc) {
+  HashMap *map = hashmap_create();
+  hashmap_set_free_value_callback(map, freefunc);
+  return map;
 }
 
 /* Set the function that should be used to free HashNode's value.  Signature should ba `void foo(void *)`. */
@@ -223,24 +230,48 @@ void hashmap_insert(HashMap *const map, const char *const restrict key, void *va
   );
 }
 
+/* `INTERNAL`  Get the node tied to `key`, if it exists. */
+static HashNode *hashmap_get_node_unlocked(HashMap *const map, const char *key) {
+  ASSERT(map);
+  ASSERT(map->cap);
+  ASSERT(map->buckets);
+  ASSERT(key);
+  Ulong index = (hash_djb2(key) & (map->cap - 1));
+  HashNode *node = map->buckets[index];
+  while (node) {
+    if (strcmp(node->key, key) == 0) {
+      return node;
+    }
+    node = node->next;
+  }
+  return NULL;
+}
+
+/* `INTERNAL`  Get the user value tied to `key`, if it exists.  Note that this performs all operation without mutex protection. */
+static void *hashmap_get_unlocked(HashMap *const map, const char *key) {
+  ASSERT(map);
+  ASSERT(map->cap);
+  ASSERT(map->buckets);
+  ASSERT(key);
+  Ulong index=(hash_djb2(key) & (map->cap - 1));
+  HashNode *node = map->buckets[index];
+  while (node) {
+    if (strcmp(node->key, key) == 0) {
+      return node->value;
+    }
+    node = node->next;
+  }
+  return NULL;
+}
+
 /* Retrieve the `value` of a entry using the key of that entry, if any.  Otherwise, returns `NULL`. */
 void *hashmap_get(HashMap *const map, const char *key) {
   ASSERT(key);
-  Ulong index;
-  HashNode *node;
-  /* Ensure thread-safe retrieval of the value accosiated with key. */
+  void *ret;
   HASHMAP_MUTEX_ACTION(
-    index = (hash_djb2(key) & (map->cap - 1));
-    node = map->buckets[index];
-    while (node) {
-      if (strcmp(node->key, key) == 0) {
-        mutex_unlock(&map->globmutex);
-        return node->value;
-      }
-      node = node->next;
-    }
+    ret = hashmap_get_unlocked(map, key);
   );
-  return NULL;
+  return ret;
 }
 
 /* Remove one entry from the hash map. */
@@ -340,6 +371,33 @@ void hashmap_append(HashMap *const dst, HashMap *const src) {
     HASHMAP_ITER(src, i, node,
       while (node) {
         hashmap_insert_unlocked(dst, node->key, node->value);
+        node = node->next;
+      }
+    );
+    src->free_value = NULL;
+  ););
+}
+
+/* Same as `hashmap_append()` but performs `existing_action()` if a node's key already exists in the dst map. */
+void hashmap_append_waction(HashMap *const dst, HashMap *const src, void (*existing_action)(void *dstnodevalue, void *srcnodevalue)) {
+  ASSERT(dst);
+  ASSERT(src);
+  HashNode *dstnode;
+  mutex_action(&dst->globmutex, mutex_action(&src->globmutex,
+    /* Ensure both maps are in a valid state. */
+    ASSERT(dst->cap);
+    ASSERT(dst->buckets);
+    ASSERT(src->cap);
+    ASSERT(src->buckets);
+    HASHMAP_ITER(src, i, node,
+      while (node) {
+        dstnode = hashmap_get_node_unlocked(dst, node->key);
+        if (!dstnode) {
+          hashmap_insert_unlocked(dst, node->key, node->value);
+        }
+        else {
+          existing_action(dstnode->value, node->value);
+        }
         node = node->next;
       }
     );

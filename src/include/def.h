@@ -25,6 +25,8 @@
 #include <termios.h>
 #include <wchar.h>
 #include <wctype.h>
+#include <langinfo.h>
+#include <locale.h>
 
 /* ----------------------------- linux ----------------------------- */
 
@@ -148,6 +150,14 @@
 # define UlongMIN  (0ULL)
 # define UlongMAX  (18446744073709551615ULL)
 #endif
+
+/* ----------------------------- Char define's ----------------------------- */
+
+#ifdef wchar
+# undef wchar
+#endif
+
+#define wchar  wchar_t
 
 /* ----------------------------- Constant's ----------------------------- */
 
@@ -335,6 +345,9 @@
 #ifdef thread_detach
 # undef thread_detach
 #endif
+#ifdef thread_join
+# undef thread_join
+#endif
 #ifdef mutex_init
 # undef mutex_init
 #endif
@@ -384,6 +397,7 @@
 /* Thread helper shorthand's. */
 #define thread_create  pthread_create
 #define thread_detach  pthread_detach
+#define thread_join    pthread_join
 
 /* Mutex helper shorthand's. */
 #define mutex_init                pthread_mutex_init

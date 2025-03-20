@@ -136,6 +136,7 @@ int   cvec_cap(CVec *const v);
 
 HashMap *hashmap_create(void) __THROW _RETURNS_NONNULL;
 void     hashmap_free(HashMap *const map) __THROW _NONNULL(1);
+HashMap *hashmap_create_wfreefunc(FreeFuncPtr freefunc) __THROW _NONNULL(1);
 void     hashmap_set_free_value_callback(HashMap *const map, FreeFuncPtr callback) __THROW _NONNULL(1);
 void     hashmap_insert(HashMap *const map, const char *const restrict key, void *value) __THROW _NONNULL(1, 2, 3);
 void    *hashmap_get(HashMap *const map, const char *key);
@@ -145,6 +146,7 @@ int      hashmap_cap(HashMap *const map);
 void     hashmap_forall(HashMap *const map, void (*action)(const char *const restrict key, void *value));
 void     hashmap_clear(HashMap *const map);
 void     hashmap_append(HashMap *const dst, HashMap *const src);
+void     hashmap_append_waction(HashMap *const dst, HashMap *const src, void (*existing_action)(void *dstnodevalue, void *srcnodevalue));
 
 /* ----------------------------- Tests ----------------------------- */
 
@@ -183,6 +185,8 @@ void mvcursleft(int ncols);
 /* ---------------------------------------------------------- chars.c ---------------------------------------------------------- */
 
 
+void initcheck_utf8(void);
+int charlen(const char *const restrict ptr) __THROW _NODISCARD _CONST _NONNULL(1);
 bool isconeof(const char c, const char *const restrict string);
 
 
