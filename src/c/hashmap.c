@@ -76,18 +76,6 @@ static inline Ulong hash_djb2(const char *str) {
   return hash;
 }
 
-/* `INTERNAL`  Create a `djb2` hash from string and assign the length of the string to `*len`. */
-_UNUSED static Ulong hash_djb2_len(const char *const restrict str, Ulong *len) {
-  ASSERT(str);
-  Ulong hash=5381, i=0;
-  int c;
-  while ((c = str[i++])) {
-    hash = (((hash << 5) + hash) + c);
-  }
-  ASSIGN_IF_VALID(len, i);
-  return len;
-}
-
 /* `INTERNAL`  Get the current `cap` or `size` of `map`, or both, NULL can be passed to one, but not both at the same time. */
 static inline void hashmap_get_data(HashMap *const map, int *const cap, int *const size) {
   /* Ensure at least one of the params are valid. */
