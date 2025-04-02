@@ -90,8 +90,8 @@ char *fmtstr_len(int *const fmtlen, const char *const restrict format, ...) __TH
 
 /* ----------------------------- fmtstrcat ----------------------------- */
 
-char *fmtstrncat(char *restrict dst, Ulong dstlen, const char *const restrict format, ...);
-char *fmtstrcat(char *restrict dst, const char *const restrict format, ...);
+char *fmtstrncat(char *restrict dst, Ulong dstlen, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
+char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 
 /* ----------------------------- xstrcat ----------------------------- */
 
@@ -134,12 +134,12 @@ int   cvec_cap(CVec *const v);
 /* ---------------------------------------------------------- hashmap.c ---------------------------------------------------------- */
 
 
-HashMap *hashmap_create(void) __THROW _RETURNS_NONNULL;
+HashMap *hashmap_create(void) __THROW _NODISCARD _RETURNS_NONNULL;
 void     hashmap_free(HashMap *const map) __THROW _NONNULL(1);
-HashMap *hashmap_create_wfreefunc(FreeFuncPtr freefunc) __THROW _NONNULL(1);
+HashMap *hashmap_create_wfreefunc(FreeFuncPtr freefunc) __THROW _NODISCARD _NONNULL(1);
 void     hashmap_set_free_value_callback(HashMap *const map, FreeFuncPtr callback) __THROW _NONNULL(1);
 void     hashmap_insert(HashMap *const map, const char *const restrict key, void *value) __THROW _NONNULL(1, 2, 3);
-void    *hashmap_get(HashMap *const map, const char *key);
+void    *hashmap_get(HashMap *const map, const char *key) __THROW _NONNULL(1, 2);
 void     hashmap_remove(HashMap *const map, const char *key);
 int      hashmap_size(HashMap *const map);
 int      hashmap_cap(HashMap *const map);
@@ -187,7 +187,7 @@ void mvcursleft(int ncols);
 
 void initcheck_utf8(void);
 int charlen(const char *const restrict ptr) __THROW _NODISCARD _CONST _NONNULL(1);
-bool isconeof(const char c, const char *const restrict string);
+bool isconeof(const char c, const char *const restrict string) __THROW _NODISCARD _CONST _NONNULL(2);
 
 
 /* ---------------------------------------------------------- future.c ---------------------------------------------------------- */
@@ -211,6 +211,7 @@ char *randstr(Ulong length);
 
 float fclamp(float x, float min, float max) __THROW _CONST _NODISCARD;
 long  lclamp(long x, long min, long max) __THROW _CONST _NODISCARD;
+float absf(float x) __THROW _CONST _NODISCARD;
 
 
 _END_C_LINKAGE
