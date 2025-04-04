@@ -554,6 +554,9 @@ typedef struct CVec  CVec;
 typedef struct HashNode  HashNode;
 typedef struct HashMap   HashMap;
 
+typedef struct HashNodeNum  HashNodeNum;
+typedef struct HashMapNum   HashMapNum;
+
 /* ----------------------------- future.c ----------------------------- */
 
 typedef struct Future  Future;

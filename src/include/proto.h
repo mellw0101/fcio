@@ -134,6 +134,8 @@ int   cvec_cap(CVec *const v);
 /* ---------------------------------------------------------- hashmap.c ---------------------------------------------------------- */
 
 
+/* ----------------------------- HashMap ----------------------------- */
+
 HashMap *hashmap_create(void) __THROW _NODISCARD _RETURNS_NONNULL;
 void     hashmap_free(HashMap *const map) __THROW _NONNULL(1);
 HashMap *hashmap_create_wfreefunc(FreeFuncPtr freefunc) __THROW _NODISCARD _NONNULL(1);
@@ -147,6 +149,22 @@ void     hashmap_forall(HashMap *const map, void (*action)(const char *const res
 void     hashmap_clear(HashMap *const map);
 void     hashmap_append(HashMap *const dst, HashMap *const src);
 void     hashmap_append_waction(HashMap *const dst, HashMap *const src, void (*existing_action)(void *dstnodevalue, void *srcnodevalue));
+
+/* ----------------------------- HashMapNum ----------------------------- */
+
+HashMapNum *hashmapnum_create(void) __THROW _NODISCARD _RETURNS_NONNULL;
+void        hashmapnum_free(HashMapNum *const map) __THROW _NONNULL(1);
+HashMapNum *hashmapnum_create_wfreefunc(FreeFuncPtr freefunc) __THROW _NODISCARD _NONNULL(1);
+void        hashmapnum_set_free_value_callback(HashMapNum *const map, FreeFuncPtr callback) __THROW _NONNULL(1);
+void        hashmapnum_insert(HashMapNum *const map, Ulong key, void *value) __THROW _NONNULL(1, 3);
+void       *hashmapnum_get(HashMapNum *const map, Ulong key) __THROW _NONNULL(1);
+void        hashmapnum_remove(HashMapNum *const map, Ulong key);
+int         hashmapnum_size(HashMapNum *const map);
+int         hashmapnum_cap(HashMapNum *const map);
+void        hashmapnum_forall(HashMapNum *const map, void (*action)(Ulong key, void *value));
+void        hashmapnum_clear(HashMapNum *const map);
+void        hashmapnum_append(HashMapNum *const dst, HashMapNum *const src);
+void        hashmapnum_append_waction(HashMapNum *const dst, HashMapNum *const src, void (*existing_action)(void *dstnodevalue, void *srcnodevalue));
 
 /* ----------------------------- Tests ----------------------------- */
 
