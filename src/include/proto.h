@@ -232,4 +232,12 @@ long  lclamp(long x, long min, long max) __THROW _CONST _NODISCARD;
 float absf(float x) __THROW _CONST _NODISCARD;
 
 
+
+/* ---------------------------------------------------------- atomic_bool_sync.c ---------------------------------------------------------- */
+
+int atomic_bool_sync_get(atomic_bool_sync *b);
+void atomic_bool_sync_set_true(atomic_bool_sync *b);
+void atomic_bool_sync_set_false(atomic_bool_sync *b);
+
+
 _END_C_LINKAGE

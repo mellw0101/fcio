@@ -560,3 +560,7 @@ typedef struct HashMapNum   HashMapNum;
 /* ----------------------------- future.c ----------------------------- */
 
 typedef struct Future  Future;
+
+/* ----------------------------- atomic_bool_sync.c ----------------------------- */
+
+typedef struct atomic_bool_sync  atomic_bool_sync;
