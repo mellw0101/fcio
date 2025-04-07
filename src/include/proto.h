@@ -7,6 +7,7 @@
 #pragma once
 
 
+#include "config.h"
 #include "def.h"
 
 
@@ -120,8 +121,8 @@ void        statalloc(const char *const restrict path, struct stat **ptr) __THRO
 /* ---------------------------------------------------------- cvec.c ---------------------------------------------------------- */
 
 
-CVec *cvec_create(void);
-CVec *cvec_create_setfree(FreeFuncPtr free);
+CVec *cvec_create(void) __THROW _NODISCARD _RETURNS_NONNULL;
+CVec *cvec_create_setfree(FreeFuncPtr free) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 void  cvec_free(CVec *const v);
 void  cvec_setfree(CVec *const v, FreeFuncPtr free);
 void  cvec_push(CVec *const v, void *const item);
@@ -130,6 +131,7 @@ void *cvec_get(CVec *const v, int index);
 int   cvec_len(CVec *const v);
 int   cvec_cap(CVec *const v);
 void  cvec_clear(CVec *const v);
+void  cvec_qsort(CVec *const v, int (*cmp)(const void *a, const void *b));
 
 
 /* ---------------------------------------------------------- hashmap.c ---------------------------------------------------------- */
