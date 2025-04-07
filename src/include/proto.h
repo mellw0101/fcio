@@ -131,7 +131,7 @@ void *cvec_get(CVec *const v, int index);
 int   cvec_len(CVec *const v);
 int   cvec_cap(CVec *const v);
 void  cvec_clear(CVec *const v);
-void  cvec_qsort(CVec *const v, int (*cmp)(const void *a, const void *b));
+void  cvec_qsort(CVec *const v, CmpFuncPtr cmp);
 
 
 /* ---------------------------------------------------------- hashmap.c ---------------------------------------------------------- */

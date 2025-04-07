@@ -540,6 +540,7 @@
 
 
 typedef void (*FreeFuncPtr)(void *);
+typedef int (*CmpFuncPtr)(const void *, const void *);
 
 
 /* ---------------------------------------------------------- Struct's ---------------------------------------------------------- */

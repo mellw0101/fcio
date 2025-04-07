@@ -146,7 +146,7 @@ void cvec_clear(CVec *const v) {
 }
 
 /* Sort the internal array using `qsort` running `cmp`. */
-void cvec_qsort(CVec *const v, int (*cmp)(const void *a, const void *b)) {
+void cvec_qsort(CVec *const v, CmpFuncPtr cmp) {
   CVEC_MUTEX_ACTION(
     qsort(v->data, v->len, _PTRSIZE, cmp);
   );
