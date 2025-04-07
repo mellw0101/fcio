@@ -432,21 +432,39 @@
 # undef ARRAY_SIZE
 #endif
 
-/* Useful when adding something to a ptr array and checking the size each time. */
-#define ENSURE_PTR_ARRAY_SIZE(array, cap, size)         \
-  DO_WHILE(                                             \
-    if ((cap) == (size)) {                              \
-      (cap) *= 2;                                       \
-      (array) = xrealloc((array), (_PTRSIZE * (cap)));  \
-    }                                                   \
-  )
+#ifdef __cplusplus
+  /* Useful when adding something to a ptr array and checking the size each time. */
+# define ENSURE_PTR_ARRAY_SIZE(array, cap, size)                         \
+    DO_WHILE(                                                            \
+      if ((cap) == (size)) {                                             \
+        (cap) *= 2;                                                      \
+        (array) = (__TYPE(array))xrealloc((array), (_PTRSIZE * (cap)));  \
+      }                                                                  \
+    )
 
 /* To save memory rellocate the array to one more then size to hold a null ptr. */
-#define TRIM_PTR_ARRAY(array, cap, size)              \
-  DO_WHILE(                                           \
-    (cap) = ((size) + 1);                             \
-    (array) = xrealloc((array), (_PTRSIZE * (cap)));  \
-  )
+# define TRIM_PTR_ARRAY(array, cap, size)                              \
+    DO_WHILE(                                                          \
+      (cap) = ((size) + 1);                                            \
+      (array) = (__TYPE(array))xrealloc((array), (_PTRSIZE * (cap)));  \
+    )
+#else
+  /* Useful when adding something to a ptr array and checking the size each time. */
+# define ENSURE_PTR_ARRAY_SIZE(array, cap, size)          \
+    DO_WHILE(                                             \
+      if ((cap) == (size)) {                              \
+        (cap) *= 2;                                       \
+        (array) = xrealloc((array), (_PTRSIZE * (cap)));  \
+      }                                                   \
+    )
+
+  /* To save memory rellocate the array to one more then size to hold a null ptr. */
+# define TRIM_PTR_ARRAY(array, cap, size)               \
+    DO_WHILE(                                           \
+      (cap) = ((size) + 1);                             \
+      (array) = xrealloc((array), (_PTRSIZE * (cap)));  \
+    )
+#endif
 
 /* Shorthand to assign the value to a ptr.  Useful when assigning ptr passed as parameters to functions that might be `NULL`. */
 #define ASSIGN_IF_VALID(ptr, value)  DO_WHILE(((ptr) ? (*(ptr) = (value)) : ((int)0));)
