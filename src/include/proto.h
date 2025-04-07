@@ -240,4 +240,15 @@ void atomic_bool_sync_set_true(atomic_bool_sync *b);
 void atomic_bool_sync_set_false(atomic_bool_sync *b);
 
 
+
+/* ---------------------------------------------------------- atomicbool.c ---------------------------------------------------------- */
+
+
+atomicbool *atomicbool_create(void);
+void atomicbool_free(atomicbool *ab);
+bool atomicbool_get(atomicbool *ab);
+void atomicbool_set_true(atomicbool *ab);
+void atomicbool_set_false(atomicbool *ab);
+
+
 _END_C_LINKAGE

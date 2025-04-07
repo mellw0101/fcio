@@ -563,4 +563,10 @@ typedef struct Future  Future;
 
 /* ----------------------------- atomic_bool_sync.c ----------------------------- */
 
-typedef struct atomic_bool_sync  atomic_bool_sync;
+typedef struct {
+  volatile int value;
+} atomic_bool_sync;
+
+/* ----------------------------- atomicbool.c ----------------------------- */
+
+typedef struct atomicbool  atomicbool;

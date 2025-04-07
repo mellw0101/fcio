@@ -7,11 +7,6 @@
 #include "../include/proto.h"
 
 
-struct atomic_bool_sync {
-  volatile int value;
-};
-
-
 int atomic_bool_sync_get(atomic_bool_sync *b) {
   return __sync_fetch_and_add(&b->value, 0);
 }
