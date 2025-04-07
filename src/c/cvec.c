@@ -132,3 +132,15 @@ int cvec_cap(CVec *const v) {
   );
   return ret;
 }
+
+/* Clear the vector.  Note that this uses the provided free function to free all elements, if it has been provided. */
+void cvec_clear(CVec *const v) {
+  CVEC_MUTEX_ACTION(
+    if (v->free) {
+      for (int i=0; i<v->len; ++i) {
+        v->free(v->data[i]);
+      }
+    } 
+    v->len = 0;
+  );
+}
