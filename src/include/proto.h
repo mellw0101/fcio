@@ -254,4 +254,16 @@ void atomicbool_set_true(atomicbool *ab);
 void atomicbool_set_false(atomicbool *ab);
 
 
+/* ---------------------------------------------------------- queue.c ---------------------------------------------------------- */
+
+
+Queue *queue_create(void);
+void queue_free(Queue *q);
+void queue_set_free_func(Queue *q, FreeFuncPtr free_func);
+void queue_enqueue(Queue *q, void *data);
+void *queue_pop(Queue *q);
+void *queue_peak(Queue *q);
+Ulong queue_size(Queue *q);
+
+
 _END_C_LINKAGE

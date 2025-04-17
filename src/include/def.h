@@ -589,3 +589,8 @@ typedef struct {
 /* ----------------------------- atomicbool.c ----------------------------- */
 
 typedef struct atomicbool  atomicbool;
+
+/* ----------------------------- queue.c ----------------------------- */
+
+typedef struct Queue  Queue;
+
