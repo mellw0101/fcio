@@ -24,8 +24,11 @@ extern _NO_RETURN _PRINTFLIKE(1, 2) void (*die_callback)(const char *format, ...
 void fcio_set_die_callback(void (*callback)(const char *format, ...));
 
 void stdoutwrite(const char *const restrict data, Ulong len) _NONNULL(1);
+void stderrwrite(const char *const restrict data, Ulong len) _NONNULL(1);
 void writef(const char *const restrict format, ...) _NONNULL(1) _PRINTFLIKE(1, 2);
 void vwritef(const char *const restrict format, va_list ap) _NONNULL(1);
+void writeferr(const char *const restrict format, ...) _NONNULL(1) _PRINTFLIKE(1, 2);
+void vwriteferr(const char *const restrict format, va_list ap) _NONNULL(1);
 bool ynanswer(const char *const restrict format, ...);
 
 
@@ -39,16 +42,16 @@ bool non_exec_file_exists(const char *const restrict path) __THROW _NODISCARD _N
 /* ---------------------------------------------------------- dirs.c ---------------------------------------------------------- */
 
 
-bool dir_exists(const char *const restrict path);
+bool               dir_exists(const char *const restrict path);
 directory_entry_t *directory_entry_make(void);
 directory_entry_t *directory_entry_extract(directory_t *const dir, Ulong idx);
-bool directory_entry_is_file(directory_entry_t *const entry);
-bool directory_entry_is_non_exec_file(directory_entry_t *const entry);
-void directory_entry_free(directory_entry_t *const entry);
-void directory_data_init(directory_t *const dir);
-void directory_data_free(directory_t *const dir);
-int directory_get(const char *const restrict path, directory_t *const output);
-int directory_get_recurse(const char *const restrict path, directory_t *const output);
+bool               directory_entry_is_file(directory_entry_t *const entry);
+bool               directory_entry_is_non_exec_file(directory_entry_t *const entry);
+void               directory_entry_free(directory_entry_t *const entry);
+void               directory_data_init(directory_t *const dir);
+void               directory_data_free(directory_t *const dir);
+int                directory_get(const char *const restrict path, directory_t *const output);
+int                directory_get_recurse(const char *const restrict path, directory_t *const output);
 
 /* ----------------------------- Test's ----------------------------- */
 

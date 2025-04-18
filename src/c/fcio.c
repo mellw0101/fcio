@@ -10,6 +10,7 @@
 /* ----------------------------- Variable decl's ----------------------------- */
 
 static mutex_t stdout_mutex = mutex_init_static;
+static mutex_t stderr_mutex = mutex_init_static;
 
 /* ----------------------------- Die callback ----------------------------- */
 
@@ -38,6 +39,14 @@ void stdoutwrite(const char *const restrict data, Ulong len) {
   ););
 }
 
+/* Write `len` of `data` to stderr in a fully thread and process safe manner. */
+void stderrwrite(const char *const restrict data, Ulong len) {
+  ASSERT(data);
+  mutex_action(&stderr_mutex, fdlock_action(STDERR_FILENO, F_WRLCK,
+    ALWAYS_ASSERT(write(STDERR_FILENO, data, len) != -1);
+  ););
+}
+
 /* Write a formated string to stdout in a thread and process safe manner. */
 void writef(const char *const restrict format, ...) {
   ASSERT(format);
@@ -63,6 +72,34 @@ void vwritef(const char *const restrict format, va_list ap) {
   /* Write the string to stdout. */
   stdoutwrite(string, len);
   /* Free the allocated string. */
+  free(string);
+}
+
+/* Write a formated string to stderr in a thread and process safe manner. */
+void writeferr(const char *const restrict format, ...) {
+  ASSERT(format);
+  int len;
+  char *string;
+  va_list ap;
+  /* Format the string. */
+  va_start(ap, format);
+  string = valstr(format, ap, &len);
+  va_end(ap);
+  /* Write the formated string to stderr. */
+  stderrwrite(string, len);
+  /* Free the formatted string. */
+  free(string);
+}
+
+/* Same as `writeferr()`, but takes a `va_list` directly as a parameter. */
+void vwriteferr(const char *const restrict format, va_list ap) {
+  ASSERT(format);
+  int len;
+  /* Get the formatted string. */
+  char *string = valstr(format, ap, &len);
+  /* Write the string to stderr. */
+  stderrwrite(string, len);
+  /* Free the formatted string. */
   free(string);
 }
 

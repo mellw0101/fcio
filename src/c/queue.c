@@ -26,6 +26,7 @@ struct Queue {
   QueueNode *tail;
   Ulong size;
   FreeFuncPtr free_func;
+  mutex_t mutex;
 };
 
 
@@ -38,6 +39,7 @@ Queue *queue_create(void) {
   q->tail = NULL;
   q->size = 0;
   q->free_func = NULL;
+  mutex_init(&q->mutex, NULL);
   return q;
 }
 
@@ -47,18 +49,23 @@ void queue_free(Queue *q) {
   if (!q) {
     return;
   }
-  while (q->head) {
-    temp = q->head;
-    q->head = q->head->next;
-    CALL_IF_VALID(q->free_func, temp->data);
-    free(temp);
-  }
+  mutex_action(&q->mutex,
+    while (q->head) {
+      temp = q->head;
+      q->head = q->head->next;
+      CALL_IF_VALID(q->free_func, temp->data);
+      free(temp);
+    }
+  );
+  mutex_destroy(&q->mutex);
   free(q);
 }
 
 void queue_set_free_func(Queue *q, FreeFuncPtr free_func) {
   ASSERT(q);
-  q->free_func = free_func;
+  mutex_action(&q->mutex,
+    q->free_func = free_func;
+  );
 }
 
 void queue_enqueue(Queue *q, void *data) {
@@ -67,43 +74,59 @@ void queue_enqueue(Queue *q, void *data) {
   QueueNode *node = xmalloc(sizeof(*node));
   node->data = data;
   node->next = NULL;
-  if (!q->tail) {
-    q->head = node;
-    q->tail = node;
-  }
-  else {
-    q->tail->next = node;
-    q->tail = node;
-  }
-  ++q->size;
+  mutex_action(&q->mutex,
+    if (!q->tail) {
+      q->head = node;
+      q->tail = node;
+    }
+    else {
+      q->tail->next = node;
+      q->tail = node;
+    }
+    ++q->size;
+  );
 }
 
 void *queue_pop(Queue *q) {
   ASSERT(q);
-  QueueNode *node = q->head;
+  QueueNode *node;
   void *data;
-  if (!node) {
-    return NULL;
-  }
-  data = node->data;
-  /* Advance the head to the next entry. */
-  q->head = q->head->next;
-  if (!q->head) {
-    q->tail = NULL;
-  }
-  free(node);
-  --q->size;
+  mutex_action(&q->mutex,
+    if (!q->head) {
+      return NULL;
+    }
+    node = q->head;
+    data = node->data;
+    /* Advance the head to the next entry. */
+    q->head = q->head->next;
+    if (!q->head) {
+      q->tail = NULL;
+    }
+    free(node);
+    --q->size;
+  );
   return data;
 }
 
 void *queue_peak(Queue *q) {
   ASSERT(q);
-  if (!q->head) {
-    return NULL;
-  }
-  return q->head->data;
+  void *ret;
+  mutex_action(&q->mutex,
+    if (!q->head) {
+      ret = NULL;
+    }
+    else {
+      ret = q->head->data;
+    }
+  );
+  return ret;
 }
 
 Ulong queue_size(Queue *q) {
-  return q->size;
+  ASSERT(q);
+  Ulong ret;
+  mutex_action(&q->mutex,
+    ret = q->size;
+  );
+  return ret;
 }
