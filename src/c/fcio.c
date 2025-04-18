@@ -63,18 +63,6 @@ void writef(const char *const restrict format, ...) {
   free(string);
 }
 
-/* Same as `writef()`, but takes a `va_list` directly as a parameter. */
-void vwritef(const char *const restrict format, va_list ap) {
-  ASSERT(format);
-  int len;
-  /* Get the formated string. */
-  char *string = valstr(format, ap, &len);
-  /* Write the string to stdout. */
-  stdoutwrite(string, len);
-  /* Free the allocated string. */
-  free(string);
-}
-
 /* Write a formated string to stderr in a thread and process safe manner. */
 void writeferr(const char *const restrict format, ...) {
   ASSERT(format);
@@ -88,6 +76,18 @@ void writeferr(const char *const restrict format, ...) {
   /* Write the formated string to stderr. */
   stderrwrite(string, len);
   /* Free the formatted string. */
+  free(string);
+}
+
+/* Same as `writef()`, but takes a `va_list` directly as a parameter. */
+void vwritef(const char *const restrict format, va_list ap) {
+  ASSERT(format);
+  int len;
+  /* Get the formated string. */
+  char *string = valstr(format, ap, &len);
+  /* Write the string to stdout. */
+  stdoutwrite(string, len);
+  /* Free the allocated string. */
   free(string);
 }
 

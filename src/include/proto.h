@@ -26,8 +26,8 @@ void fcio_set_die_callback(void (*callback)(const char *format, ...));
 void stdoutwrite(const char *const restrict data, Ulong len) _NONNULL(1);
 void stderrwrite(const char *const restrict data, Ulong len) _NONNULL(1);
 void writef(const char *const restrict format, ...) _NONNULL(1) _PRINTFLIKE(1, 2);
-void vwritef(const char *const restrict format, va_list ap) _NONNULL(1);
 void writeferr(const char *const restrict format, ...) _NONNULL(1) _PRINTFLIKE(1, 2);
+void vwritef(const char *const restrict format, va_list ap) _NONNULL(1);
 void vwriteferr(const char *const restrict format, va_list ap) _NONNULL(1);
 bool ynanswer(const char *const restrict format, ...);
 
