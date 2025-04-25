@@ -241,9 +241,9 @@ float absf(float x) __THROW _CONST _NODISCARD;
 
 /* ---------------------------------------------------------- atomic_bool_sync.c ---------------------------------------------------------- */
 
-int atomic_bool_sync_get(atomic_bool_sync *b);
-void atomic_bool_sync_set_true(atomic_bool_sync *b);
-void atomic_bool_sync_set_false(atomic_bool_sync *b);
+int  atomic_bool_sync_get(atomic_bool_sync *const b);
+void atomic_bool_sync_set_true(atomic_bool_sync *const b);
+void atomic_bool_sync_set_false(atomic_bool_sync *const b);
 
 
 
