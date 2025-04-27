@@ -537,6 +537,45 @@
   )
 
 
+/* ---------------------------------------------------------- Circular list define's ---------------------------------------------------------- */
+
+#ifdef CLIST_SINGLE
+# undef CLIST_SINGLE
+#endif
+#ifdef CLIST_ADV_NEXT
+# undef CLIST_ADV_NEXT
+#endif
+#ifdef CLIST_ADV_PREV
+# undef CLIST_ADV_PREV
+#endif
+
+#define CLIST_SINGLE(listptr)    ((listptr) == (listptr)->next)
+#define CLIST_ADV_NEXT(listptr)  DO_WHILE((listptr) = (listptr)->next;)
+#define CLIST_ADV_PREV(listptr)  DO_WHILE((listptr) = (listptr)->prev;)
+
+#define CLIST_ITER(headptr, ptr, ...)  \
+  DO_WHILE(                            \
+    if (headptr) {                     \
+      __TYPE(headptr) ptr;             \
+      __TYPE(headptr) next = headptr;  \
+      do {                             \
+        ptr = next;                    \
+        next = next->next;             \
+        DO_WHILE(__VA_ARGS__);         \
+      } while (next != headptr);       \
+    }                                  \
+  )
+
+#define CLIST_INIT(ptr)  DO_WHILE((ptr)->next = (ptr); (ptr)->prev = (ptr);)
+
+/* Unlink a circular linked list node, this only ensures that the node before and after are correctly linked. */
+#define CLIST_UNLINK(ptr)             \
+  DO_WHILE(                           \
+    (ptr)->prev->next = (ptr)->next;  \
+    (ptr)->next->prev = (ptr)->prev;  \
+  )
+
+
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
 
 

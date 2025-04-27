@@ -57,3 +57,12 @@ void statalloc(const char *const restrict path, struct stat **ptr) {
   !*ptr ? (*ptr = xmalloc(sizeof(**ptr))) : 0;
   ALWAYS_ASSERT(stat(path, *ptr) != -1);
 }
+
+/* Return's an allocated string containg the current working directory based of the env var `PWD`. */
+char *getpwd(void) {
+  const char *pwd = getenv("PWD");
+  if (!pwd) {
+    return COPY_OF("");
+  }
+  return copy_of(pwd);
+}

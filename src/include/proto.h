@@ -119,6 +119,7 @@ const char *tail(const char *const restrict path) __THROW _NODISCARD _RETURNS_NO
 const char *ext(const char *const restrict path) __THROW _NODISCARD _NONNULL(1);
 char       *concatpath(const char *const restrict s1, const char *const restrict s2) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 void        statalloc(const char *const restrict path, struct stat **ptr) __THROW _NONNULL(1, 2);
+char       *getpwd(void);
 
 
 /* ---------------------------------------------------------- cvec.c ---------------------------------------------------------- */
@@ -267,6 +268,12 @@ void queue_enqueue(Queue *q, void *data);
 void *queue_pop(Queue *q);
 void *queue_peak(Queue *q);
 Ulong queue_size(Queue *q);
+
+
+/* ---------------------------------------------------------- blkdev.c ---------------------------------------------------------- */
+
+
+bool blkdev_exists(const char *const restrict path);
 
 
 _END_C_LINKAGE
