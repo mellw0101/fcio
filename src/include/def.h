@@ -59,10 +59,17 @@
 
 /* Deduce the type `x` is.  Works in both `c` and `c++`. */
 #ifdef __cplusplus
-# define __TYPE(x)  decltype(x)
+# define __TYPE(x)           decltype(x)
 #else
 # define __TYPE(x)  __typeof__((x))
-#endif                   
+#endif
+
+/* Malloc `ptr` by its type size, this is made to be used mainly on structures.  Works in both `c` and `c++` */
+#ifdef __cplusplus
+# define MALLOC_STRUCT(ptr)  DO_WHILE((ptr) = (__TYPE(ptr))xmalloc(sizeof(*(ptr)));)
+#else
+# define MALLOC_STRUCT(ptr)  DO_WHILE((ptr) = xmalloc(sizeof(*(ptr)));)
+#endif
 
 /* ----------------------------- String helper's ----------------------------- */
 
