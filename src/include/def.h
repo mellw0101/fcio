@@ -52,6 +52,9 @@
 #ifdef __TYPE
 # undef __TYPE
 #endif
+#ifdef MALLOC_STRUCT
+# undef MALLOC_STRUCT
+#endif
 
 /* Perform actions protected from accidental missuse. */
 #define DO_WHILE(...)                do {__VA_ARGS__} while (0)
@@ -59,7 +62,7 @@
 
 /* Deduce the type `x` is.  Works in both `c` and `c++`. */
 #ifdef __cplusplus
-# define __TYPE(x)           decltype(x)
+# define __TYPE(x)  decltype(x)
 #else
 # define __TYPE(x)  __typeof__((x))
 #endif
@@ -78,6 +81,9 @@
 #endif
 #ifdef S__LEN
 # undef S__LEN
+#endif
+#ifdef COPY_OF
+# undef COPY_OF
 #endif
 
 #define STRLEN(x)  (sizeof((x)) - 1)
@@ -555,6 +561,18 @@
 #ifdef CLIST_ADV_PREV
 # undef CLIST_ADV_PREV
 #endif
+#ifdef CLIST_ITER
+# undef CLIST_ITER
+#endif
+#ifdef CLIST_INIT
+# undef CLIST_INIT
+#endif
+#ifdef CLIST_UNLINK
+# undef CLIST_UNLINK
+#endif
+#ifdef CLIST_INSERT_AFTER
+# undef CLIST_INSERT_AFTER
+#endif
 
 #define CLIST_SINGLE(listptr)    ((listptr) == (listptr)->next)
 #define CLIST_ADV_NEXT(listptr)  DO_WHILE((listptr) = (listptr)->next;)
@@ -580,6 +598,16 @@
   DO_WHILE(                           \
     (ptr)->prev->next = (ptr)->next;  \
     (ptr)->next->prev = (ptr)->prev;  \
+  )
+
+#define CLIST_INSERT_AFTER(ptr, after)  \
+  DO_WHILE(                             \
+    __TYPE(after) ap = (after);         \
+    __TYPE(ptr)    p = (ptr);           \
+    (p)->prev        = (ap);            \
+    (p)->next        = (ap)->next;      \
+    (ap)->next->prev = (p);             \
+    (ap)->next       = (p);             \
   )
 
 
