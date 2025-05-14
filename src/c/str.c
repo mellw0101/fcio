@@ -68,6 +68,12 @@ bool parse_num(const char *const restrict string, long *const result) {
   return TRUE;
 }
 
+/* Free the string at `dest` and return the string at `src`. */
+char *free_and_assign(char *dest, char *src) {
+  free(dest);
+  return src;
+}
+
 /* ----------------------------- split_string ----------------------------- */
 
 /* Split a string by demiliter. */
