@@ -115,6 +115,14 @@ void *cvec_get(CVec *const v, int index) {
   return ret;
 }
 
+/* Remove's the ptr at `index`. */
+void cvec_remove(CVec *const v, int index) {
+  CVEC_MUTEX_ACTION(
+    ALWAYS_ASSERT(index >= 0 && index < v->len);
+    memmove((v->data + index), (v->data + index + 1), (_PTRSIZE * (v->len-- - index - 1)));
+  );
+}
+
 /* Get the current number of elements in the vector. */
 int cvec_len(CVec *const v) {
   int ret;
