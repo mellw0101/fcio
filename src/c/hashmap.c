@@ -569,6 +569,13 @@ HashMapNum *hashmapnum_create(void) {
   return map;
 }
 
+/* Create a new allocated `HashMapNum` structure that uses `freefunc` to free the values of nodes when the map is freed. */
+HashMapNum *hashmapnum_create_wfreefunc(FreeFuncPtr freefunc) {
+  HashMapNum *map = hashmapnum_create();
+  hashmapnum_set_free_value_callback(map, freefunc);
+  return map;
+} 
+
 /* Free a `numeric hashmap` structure. */
 void hashmapnum_free(HashMapNum *const map) {
   HashNodeNum *next;
@@ -590,6 +597,13 @@ void hashmapnum_free(HashMapNum *const map) {
 void hashmapnum_set_free_value_callback(HashMapNum *const map, FreeFuncPtr callback) {
   HASHMAPNUM_MUTEX_ACTION(
     map->free_value = callback;
+  );
+}
+
+void hashmapnum_insert(HashMapNum *const map, Ulong key, void *value) {
+  ASSERT(value);
+  HASHMAPNUM_MUTEX_ACTION(
+    hashmapnum_insert_unlocked(map, key, value);
   );
 }
 
