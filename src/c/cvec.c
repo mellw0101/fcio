@@ -44,6 +44,17 @@ struct CVec {
 };
 
 
+
+/* ---------------------------------------------------------- Static function's ---------------------------------------------------------- */
+
+
+/* Remove's the ptr at `index`. */
+static inline void cvec_remove_internal(CVec *const v, int index) {
+  ALWAYS_ASSERT(index >= 0 && index < v->len);
+  memmove((v->data + index), (v->data + index + 1), (_PTRSIZE * (v->len-- - index - 1)));
+}
+
+
 /* ---------------------------------------------------------- Function's ---------------------------------------------------------- */
 
 
@@ -118,8 +129,18 @@ void *cvec_get(CVec *const v, int index) {
 /* Remove's the ptr at `index`. */
 void cvec_remove(CVec *const v, int index) {
   CVEC_MUTEX_ACTION(
-    ALWAYS_ASSERT(index >= 0 && index < v->len);
-    memmove((v->data + index), (v->data + index + 1), (_PTRSIZE * (v->len-- - index - 1)));
+    cvec_remove_internal(v, index);
+  );
+}
+
+/* Remove's any entry in `v` that has the same ptr as value. */
+void cvec_remove_by_value(CVec *const v, void *const value) {
+  CVEC_MUTEX_ACTION(
+    for (int i=0; i<v->len; ++i) {
+      if (v->data[i] == value) {
+        cvec_remove_internal(v, i--);
+      }
+    }
   );
 }
 

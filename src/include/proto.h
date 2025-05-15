@@ -134,6 +134,7 @@ void  cvec_push(CVec *const v, void *const item);
 void  cvec_trim(CVec *const v);
 void *cvec_get(CVec *const v, int index);
 void  cvec_remove(CVec *const v, int index);
+void  cvec_remove_by_value(CVec *const v, void *const value);
 int   cvec_len(CVec *const v);
 int   cvec_cap(CVec *const v);
 void  cvec_clear(CVec *const v);
