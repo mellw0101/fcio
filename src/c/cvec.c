@@ -92,6 +92,25 @@ void cvec_free(CVec *const v) {
   free(v);
 }
 
+/* Works exactly like `cvec_free()` but can be used for things that need `void *` as a parameter. */
+void cvec_free_void_ptr(void *arg) {
+  ASSERT(arg);
+  CVec *v = arg;
+  CVEC_MUTEX_ACTION(
+    /* Only iterate when the free function is valid. */
+    if (v->free) {
+      /* Free all elements using the chosen free function. */
+      for (int i=0; i<v->len; ++i) {
+        v->free(v->data[i]);
+      }
+    }
+    free(v->data);
+  );
+  mutex_destroy(&v->mutex);
+  free(v);
+}
+
+
 /* Set the element free function.  Note that free() is the default one and vill be used if none is chosen, pass NULL to not free elements. */
 void cvec_setfree(CVec *const v, FreeFuncPtr free) {
   CVEC_MUTEX_ACTION(
