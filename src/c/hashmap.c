@@ -593,6 +593,25 @@ void hashmapnum_free(HashMapNum *const map) {
   free(map);
 }
 
+/* Same as `hashmapnum_free()` but for use when a free'ing function that needs a `void *` is needed. */
+void hashmapnum_free_void_ptr(void *arg) {
+  ASSERT(arg);
+  HashMapNum *map = arg;
+  HashNodeNum *next;
+  HASHMAPNUM_MUTEX_ACTION(
+    HASHMAPNUM_ITER(map, i, node,
+      while (node) {
+        next = node->next;
+        hashmapnum_free_node(map, node);
+        node = next;
+      }
+    );
+  );
+  mutex_destroy(&map->mutex);
+  free(map->buckets);
+  free(map);
+}
+
 /* Set the function that should be used to free HashNodeNum's value.  Signature should ba `void foo(void *)`. */
 void hashmapnum_set_free_value_callback(HashMapNum *const map, FreeFuncPtr callback) {
   HASHMAPNUM_MUTEX_ACTION(

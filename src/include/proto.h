@@ -165,6 +165,7 @@ void     hashmap_append_waction(HashMap *const dst, HashMap *const src, void (*e
 
 HashMapNum *hashmapnum_create(void) __THROW _NODISCARD _RETURNS_NONNULL;
 void        hashmapnum_free(HashMapNum *const map) __THROW _NONNULL(1);
+void        hashmapnum_free_void_ptr(void *arg);
 HashMapNum *hashmapnum_create_wfreefunc(FreeFuncPtr freefunc) __THROW _NODISCARD _NONNULL(1);
 void        hashmapnum_set_free_value_callback(HashMapNum *const map, FreeFuncPtr callback) __THROW _NONNULL(1);
 void        hashmapnum_insert(HashMapNum *const map, Ulong key, void *value) __THROW _NONNULL(1, 3);
