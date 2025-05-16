@@ -698,6 +698,21 @@ void hashmapnum_forall(HashMapNum *const map, void (*action)(Ulong key, void *va
   );
 }
 
+/* Perform some action on all entries in the map.  Its importent to not run other hashmap
+ * functions inside `action`, as this is thread-safe, and will cause a deadlock. */
+void hashmapnum_forall_wdata(HashMapNum *const map, void (*action)(Ulong key, void *value, void *data), void *data) {
+  ASSERT(action);
+  /* Ensure thread-safe operation. */
+  HASHMAPNUM_MUTEX_ACTION(
+    HASHMAPNUM_ITER(map, i, node,
+      while (node) {
+        action(node->key, node->value, data);
+        node = node->next;
+      }
+    );
+  );
+}
+
 /* Clear and return `map` to original state when created. */
 void hashmapnum_clear(HashMapNum *const map) {
   HashNodeNum *next;

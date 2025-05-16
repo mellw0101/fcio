@@ -174,6 +174,7 @@ void        hashmapnum_remove(HashMapNum *const map, Ulong key);
 int         hashmapnum_size(HashMapNum *const map);
 int         hashmapnum_cap(HashMapNum *const map);
 void        hashmapnum_forall(HashMapNum *const map, void (*action)(Ulong key, void *value));
+void        hashmapnum_forall_wdata(HashMapNum *const map, void (*action)(Ulong key, void *value, void *data), void *data);
 void        hashmapnum_clear(HashMapNum *const map);
 void        hashmapnum_append(HashMapNum *const dst, HashMapNum *const src);
 void        hashmapnum_append_waction(HashMapNum *const dst, HashMapNum *const src, void (*existing_action)(void *dstnodevalue, void *srcnodevalue));
