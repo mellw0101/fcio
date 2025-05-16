@@ -493,7 +493,6 @@ static void hashmapnum_resize(HashMapNum *const map) {
 /* `INTERNAL`  Insert a entry into the map without locking the mutex.  Used internaly when mutex is already locked. */
 static void hashmapnum_insert_unlocked(HashMapNum *const map, Ulong key, void *value) {
   ASSERT(map);
-  ASSERT(key);
   ASSERT(value);
   /* Index in the buckets of map, based on the current cap of the map. */
   Ulong index;
@@ -529,7 +528,6 @@ static HashNodeNum *hashmapnum_get_node_unlocked(HashMapNum *const map, Ulong ke
   ASSERT(map);
   ASSERT(map->cap);
   ASSERT(map->buckets);
-  ASSERT(key);
   Ulong index = (key & (map->cap - 1));
   HashNodeNum *node = map->buckets[index];
   while (node) {
@@ -546,7 +544,6 @@ static void *hashmapnum_get_unlocked(HashMapNum *const map, Ulong key) {
   ASSERT(map);
   ASSERT(map->cap);
   ASSERT(map->buckets);
-  ASSERT(key);
   Ulong index = (key & (map->cap - 1));
   HashNodeNum *node = map->buckets[index];
   while (node) {
@@ -628,7 +625,6 @@ void hashmapnum_insert(HashMapNum *const map, Ulong key, void *value) {
 
 /* Retrieve the `value` of a entry using the key of that entry, if any.  Otherwise, returns `NULL`. */
 void *hashmapnum_get(HashMapNum *const map, Ulong key) {
-  ASSERT(key);
   void *ret;
   HASHMAPNUM_MUTEX_ACTION(
     ret = hashmapnum_get_unlocked(map, key);
@@ -638,7 +634,6 @@ void *hashmapnum_get(HashMapNum *const map, Ulong key) {
 
 /* Remove one entry from the hash map. */
 void hashmapnum_remove(HashMapNum *const map, Ulong key) {
-  ASSERT(key);
   Ulong index;
   HashNodeNum *node;
   HashNodeNum *prev = NULL;

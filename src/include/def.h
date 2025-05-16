@@ -610,6 +610,14 @@
     (ap)->next       = (p);             \
   )
 
+/* ----------------------------- Struct helper define's ----------------------------- */
+
+#ifdef STRUCT_FIELD_PTR
+# undef STRUCT_FIELD_PTR
+#endif
+
+#define STRUCT_FIELD_PTR(struct, field)  ((const char *)(struct) + offsetof(__TYPE(*struct), field))
+
 
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
 
