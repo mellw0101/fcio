@@ -273,7 +273,7 @@
 /* Shorthand to print the function and time of the timer in `milli-seconds`. */
 #define TIMER_PRINT(ms)                                   \
   DO_WHILE(                                               \
-    printf("%s: Time: %.5f ms\n", __func__, (double)ms);  \
+    writef("%s: Time: %.5f ms\n", __func__, (double)ms);  \
   )
 
 /* Measure the time it takes to perform `action`, and create a named float that will hold the result. */
