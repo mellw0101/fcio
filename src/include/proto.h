@@ -282,4 +282,10 @@ Ulong queue_size(Queue *q);
 bool blkdev_exists(const char *const restrict path);
 
 
+/* ---------------------------------------------------------- utils.c ---------------------------------------------------------- */
+
+
+int digits(long n);
+
+
 _END_C_LINKAGE
