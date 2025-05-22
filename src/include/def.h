@@ -55,6 +55,21 @@
 #ifdef MALLOC_STRUCT
 # undef MALLOC_STRUCT
 #endif
+#ifdef SYS_BYTE_ORDER
+# undef SYS_BYTE_ORDER
+#endif
+#ifdef SYS_LITTLE_ENDIAN
+# undef SYS_LITTLE_ENDIAN
+#endif
+#ifdef SYS_BIG_ENDIAN
+# undef SYS_BIG_ENDIAN
+#endif
+#ifdef PACKED_UINT
+# undef PACKED_UINT
+#endif
+#ifdef UNPACK_UINT
+# undef UNPACK_UINT
+#endif
 
 /* Perform actions protected from accidental missuse. */
 #define DO_WHILE(...)                do {__VA_ARGS__} while (0)
