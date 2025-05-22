@@ -74,6 +74,40 @@
 # define MALLOC_STRUCT(ptr)  DO_WHILE((ptr) = xmalloc(sizeof(*(ptr)));)
 #endif
 
+#if defined(__linux__)
+# include <endian.h>
+# define SYS_BYTE_ORDER     __BYTE_ORDER
+# define SYS_BIG_ENDIAN     __BIG_ENDIAN
+# define SYS_LITTLE_ENDIAN  __LITTLE_ENDIAN
+#elif (defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
+# include <sys/endian.h>
+# define SYS_BYTE_ORDER     _BYTE_ORDER
+# define SYS_BIG_ENDIAN     _BIG_ENDIAN
+# define SYS_LITTLE_ENDIAN  _LITTLE_ENDIAN
+#endif
+
+#ifdef SYS_BYTE_ORDER
+# if SYS_BYTE_ORDER == SYS_LITTLE_ENDIAN
+#   define PACKED_UINT(r, g, b, a)                                                              \
+      /* When using little endian memory layout, we place the least significant byte fists. */  \
+      (((Uchar)(a) << 24) | ((Uchar)(b) << 16) | ((Uchar)(g) << 8) | (Uchar)(r))
+#   define UNPACK_UINT(x, index)                                        \
+      /* Unpack a packed int and get the Uchar of the given `index`.    \
+       * Note that this correctly parses the `index` so to get the `r`  \
+       * value from a packed int use `index` zero. */                   \
+      (((x) >> ((index) * 8)) & 0xFF)
+# else
+#   define PACKED_UINT(r, g, b, a)                                                          \
+      /* When using big endian memory layout, we place the most significant byte fists. */  \
+      (((Uchar)(r) << 24) | ((Uchar)(g) << 16) | ((Uchar)(b) << 8) | (Uchar)(a))
+#   define UNPACK_UINT(x, index)                                        \
+      /* Unpack a packed int and get the Uchar of the given `index`.    \
+       * Note that this correctly parses the `index` so to get the `r`  \
+       * value from a packed int use `index` zero. */                   \
+      (((x) >> (labs((index) - 3) * 8)) & 0xFF)
+# endif
+#endif
+
 /* ----------------------------- String helper's ----------------------------- */
 
 #ifdef STRLEN
