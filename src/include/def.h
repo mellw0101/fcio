@@ -201,6 +201,12 @@
 #ifdef CLAMP
 # undef CLAMP
 #endif
+#ifdef MAX
+# undef MAX
+#endif
+#ifdef MIN
+# undef MIN
+#endif
 
 #define round_short(x)  ((x) >= 0 ? (short)((x) + 0.5) : (short)((x) - 0.5))
 
@@ -212,6 +218,9 @@
 
 /* Ensure `x` cannot be less then `min` nor more then `max`. */
 #define CLAMP(x, min, max)  (((x) > (max)) ? ((x) = (max)) : ((x) < (min)) ? ((x) = (min)) : ((int)0))
+
+#define MIN(x, min) (((x) < (min)) ? (min) : (x))
+#define MAX(x, max) (((x) > (max)) ? (max) : (x))
 
 /* ----------------------------- xterm ----------------------------- */
 

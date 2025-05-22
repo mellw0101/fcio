@@ -218,7 +218,7 @@ void mvcursleft(int ncols);
 
 void initcheck_utf8(void);
 int charlen(const char *const restrict ptr) __THROW _NODISCARD _CONST _NONNULL(1);
-int ctowc(wchar *const wc, const char *const c) __THROW _NODISCARD _CONST _NONNULL(1, 2);
+// int ctowc(wchar *const wc, const char *const c) __THROW _NODISCARD _CONST _NONNULL(1, 2);
 bool isconeof(const char c, const char *const restrict string) __THROW _NODISCARD _CONST _NONNULL(2);
 
 
