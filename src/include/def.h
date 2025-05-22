@@ -89,7 +89,7 @@
 #ifdef SYS_BYTE_ORDER
 # if SYS_BYTE_ORDER == SYS_LITTLE_ENDIAN
 #   define PACKED_UINT(r, g, b, a)                                                              \
-      /* When using little endian memory layout, we place the least significant byte fists. */  \
+      /* When using little endian memory layout, we place the least significant byte first. */  \
       (((Uchar)(a) << 24) | ((Uchar)(b) << 16) | ((Uchar)(g) << 8) | (Uchar)(r))
 #   define UNPACK_UINT(x, index)                                        \
       /* Unpack a packed int and get the Uchar of the given `index`.    \
@@ -98,7 +98,7 @@
       (((x) >> ((index) * 8)) & 0xFF)
 # else
 #   define PACKED_UINT(r, g, b, a)                                                          \
-      /* When using big endian memory layout, we place the most significant byte fists. */  \
+      /* When using big endian memory layout, we place the most significant byte first. */  \
       (((Uchar)(r) << 24) | ((Uchar)(g) << 16) | ((Uchar)(b) << 8) | (Uchar)(a))
 #   define UNPACK_UINT(x, index)                                        \
       /* Unpack a packed int and get the Uchar of the given `index`.    \
