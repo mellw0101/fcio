@@ -253,11 +253,14 @@
 #ifdef CLAMP
 # undef CLAMP
 #endif
-#ifdef MAX
-# undef MAX
+#ifdef CLAMP_MAX_INLINE
+# undef CLAMP_MAX_INLINE
 #endif
-#ifdef MIN
-# undef MIN
+#ifdef CLAMP_MIN_INLINE
+# undef CLAMP_MIN_INLINE
+#endif
+#ifdef CLAMP_INLINE
+# undef CLAMP_INLINE
 #endif
 
 #define round_short(x)  ((x) >= 0 ? (short)((x) + 0.5) : (short)((x) - 0.5))
@@ -271,14 +274,14 @@
 /* Ensure `x` cannot be less then `min` nor more then `max`. */
 #define CLAMP(x, min, max)  (((x) > (max)) ? ((x) = (max)) : ((x) < (min)) ? ((x) = (min)) : ((int)0))
 
+#define CLAMP_MIN_INLINE(x, min) (((x) < (min)) ? (min) : (x))
+#define CLAMP_MAX_INLINE(x, max) (((x) > (max)) ? (max) : (x))
+
 #define CLAMP_INLINE(x, min, max)  \
   /* Clamp x as an expression and not as an assignment, meaning this   \
    * will never ever change `x` just ensure that the value from this   \
    * expression can never be more then max and never less then min */  \
-  (__TYPE(x))(((x) > (max)) ? (max) : ((x) < (min)) ? (min) : (x))
-
-#define MIN(x, min) (((x) < (min)) ? (min) : (x))
-#define MAX(x, max) (((x) > (max)) ? (max) : (x))
+  (((x) > (max)) ? (__TYPE(x))(max) : ((x) < (min)) ? (__TYPE(x))(min) : (__TYPE(x))(x))
 
 /* ----------------------------- xterm ----------------------------- */
 
