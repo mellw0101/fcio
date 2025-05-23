@@ -123,7 +123,8 @@
 # endif
 #endif
 
-#define UNPACK_UINT_FLOAT(x, index)  ((float)UNPACK_UINT(x, index) / 255.0f)
+#define PACKED_UINT_FLOAT(r, g, b, a)  PACKED_UINT((255.0f * (r)), (255.0f * (g)), (255.0f * (b)), (255.0f * (a)))
+#define UNPACK_UINT_FLOAT(x, index)    ((float)UNPACK_UINT(x, index) / 255.0f)
 
 /* ----------------------------- String helper's ----------------------------- */
 
@@ -281,12 +282,30 @@
 #ifdef xterm_color_index
 # undef xterm_color_index
 #endif
+#ifdef xterm_grayscale_byte
+# undef xterm_grayscale_byte
+#endif
+#ifdef grayscale_xterm_color_index
+# undef grayscale_xterm_color_index
+#endif
+#ifdef xterm_grayscale_color_index
+# undef xterm_grayscale_color_index
+#endif
 
-/* Return`s a rounded xterm-256 scale value from a 8-bit rgb value.  */
-#define xterm_byte_scale(bit)  round_short(((double)bit / 255) * 5)
+#define xterm_byte_scale(bit)  \
+  /* Return`s a rounded xterm-256 scale value from a 8-bit rgb value.  */ \
+  round_short(((double)bit / 255) * 5)
 
-/* Return the xterm-256 index for a given 8bit rgb value. */
-#define xterm_color_index(r, g, b)  short(16 + (36 * xterm_byte_scale(r)) + (6 * xterm_byte_scale(g)) + xterm_byte_scale(b))
+#define xterm_color_index(r, g, b)                              \
+  /* Return the xterm-256 index for a given 8bit rgb value. */  \
+  (short)(16 + (36 * xterm_byte_scale(r)) + (6 * xterm_byte_scale(g)) + xterm_byte_scale(b))
+
+#define xterm_grayscale_byte(r, g, b)  round_short(((0.299 * (r) + 0.587 * (g) + 0.114 * (b)) / 255.0) * 5)
+
+#define grayscale_xterm_color_index(r, g, b) \
+  (16 + 36 * xterm_grayscale_byte(r, g, b) + 6 * xterm_grayscale_byte(r, g, b) + xterm_grayscale_byte(r, g, b))
+
+#define xterm_grayscale_color_index(r, g, b) grayscale_xterm_color_index(r, g, b)
 
 /* ----------------------------- Profiling ----------------------------- */
 
@@ -669,6 +688,27 @@
     (ap)->next->prev = (p);             \
     (ap)->next       = (p);             \
   )
+
+/* ----------------------------- Double linked list helper's ----------------------------- */
+
+#ifdef DLIST_FOR_NEXT
+# undef DLIST_FOR_NEXT
+#endif
+#ifdef DLIST_FOR_PREV
+# undef DLIST_FOR_PREV
+#endif
+
+#define DLIST_FOR_NEXT(start, name)                                                   \
+  /* Iterate over a double linked list starting at `start` and iterating using        \
+   * `(name) = (name)->next` until we reach a `NULL`.  Note that this can take        \
+   * the `start` ptr in any constness as it will clean the type for declaration. */   \
+  for(__TYPE(&(*(start))) name=(start); name; name=name->next)
+
+#define DLIST_FOR_PREV(start, name)                                                   \
+  /* Iterate over a double linked list starting at `start` and iterating using        \
+   * `(name) = (name)->prev` until we reach a `NULL`.  Note that this can take        \
+   * the `start` ptr in any constness as it will clean the type for declaration. */   \
+  for(__TYPE(&(*(start))) name=(start); name; name=name->prev)
 
 /* ----------------------------- Struct helper define's ----------------------------- */
 
