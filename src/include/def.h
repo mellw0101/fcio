@@ -271,6 +271,12 @@
 /* Ensure `x` cannot be less then `min` nor more then `max`. */
 #define CLAMP(x, min, max)  (((x) > (max)) ? ((x) = (max)) : ((x) < (min)) ? ((x) = (min)) : ((int)0))
 
+#define CLAMP_INLINE(x, min, max)  \
+  /* Clamp x as an expression and not as an assignment, meaning this   \
+   * will never ever change `x` just ensure that the value from this   \
+   * expression can never be more then max and never less then min */  \
+  (__TYPE(x))(((x) > (max)) ? (max) : ((x) < (min)) ? (min) : (x))
+
 #define MIN(x, min) (((x) < (min)) ? (min) : (x))
 #define MAX(x, max) (((x) > (max)) ? (max) : (x))
 
