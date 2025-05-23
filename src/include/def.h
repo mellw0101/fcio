@@ -123,6 +123,8 @@
 # endif
 #endif
 
+#define UNPACK_UINT_FLOAT(x, index)  ((float)UNPACK_UINT(x, index) / 255.0f)
+
 /* ----------------------------- String helper's ----------------------------- */
 
 #ifdef STRLEN
