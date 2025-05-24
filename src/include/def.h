@@ -719,6 +719,18 @@
    * the `start` ptr in any constness as it will clean the type for declaration. */   \
   for(__TYPE(&(*(start))) name=(start); name; name=name->prev)
 
+#define DLIST_NODECL_FOR_NEXT(start, name)                                            \
+  /* Iterate over a double linked list starting at `start` and iterating using        \
+   * `(name) = (name)->next` until we reach a `NULL`.  Note that this can take        \
+   * the `start` ptr in any constness as it will clean the type for declaration. */   \
+  for((name)=(start); (name); (name)=(name)->next)
+
+#define DLIST_NODECL_FOR_PREV(start, name)                                            \
+  /* Iterate over a double linked list starting at `start` and iterating using        \
+   * `(name) = (name)->prev` until we reach a `NULL`.  Note that this can take        \
+   * the `start` ptr in any constness as it will clean the type for declaration. */   \
+  for((name)=(start); (name); (name)=(name)->prev)
+
 /* ----------------------------- Struct helper define's ----------------------------- */
 
 #ifdef STRUCT_FIELD_PTR

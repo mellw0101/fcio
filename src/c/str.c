@@ -286,7 +286,7 @@ char *xnstrninj(char *restrict dst, Ulong dstlen, const char *const restrict src
   ASSERT(dst);
   ASSERT(src);
   /* Always assert that idx is valid. */
-  ALWAYS_ASSERT(idx < dstlen);
+  ALWAYS_ASSERT(idx <= dstlen);
   /* Reallocate dst to fit src and a NULL-TERMINATOR. */
   dst = xrealloc(dst, (dstlen + srclen + 1));
   /* First move the data at idx by srclen. */
