@@ -712,6 +712,9 @@
 #ifdef DLIST_ND_FOR_PREV
 # undef DLIST_ND_FOR_PREV
 #endif
+#ifdef DLIST_INSERT_AFTER
+# undef DLIST_INSERT_AFTER
+#endif
 
 #define DLIST_FOR_NEXT(start, name)                                                   \
   /* Iterate over a double linked list starting at `start` and iterating using        \
@@ -736,6 +739,18 @@
    * using `(name) = (name)->prev` until we reach a `NULL`.  Note that    \
    * this does not declare `name` rather uses an existing ptr. */         \
   for((name)=(start); (name); (name)=(name)->prev)
+
+#define DLIST_INSERT_AFTER(after, node)  \
+  DO_WHILE(                              \
+    __TYPE(after) ap = (after);          \
+    __TYPE(node)  np = (node);           \
+    np->next = ap->next;                 \
+    np->prev = ap;                       \
+    if (ap->next) {                      \
+      ap->next->prev = np;               \
+    }                                    \
+    ap->next = np;                       \
+  )
 
 /* ----------------------------- Struct helper define's ----------------------------- */
 
