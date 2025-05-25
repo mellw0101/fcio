@@ -740,16 +740,17 @@
    * this does not declare `name` rather uses an existing ptr. */         \
   for((name)=(start); (name); (name)=(name)->prev)
 
-#define DLIST_INSERT_AFTER(after, node)  \
-  DO_WHILE(                              \
-    __TYPE(after) ap = (after);          \
-    __TYPE(node)  np = (node);           \
-    np->next = ap->next;                 \
-    np->prev = ap;                       \
-    if (ap->next) {                      \
-      ap->next->prev = np;               \
-    }                                    \
-    ap->next = np;                       \
+#define DLIST_INSERT_AFTER(after, node)                       \
+  /* Insert `node` after `after` in a double linked list. */  \
+  DO_WHILE(                                                   \
+    __TYPE(after) ap = (after);                               \
+    __TYPE(node)  np = (node);                                \
+    np->next = ap->next;                                      \
+    np->prev = ap;                                            \
+    if (ap->next) {                                           \
+      ap->next->prev = np;                                    \
+    }                                                         \
+    ap->next = np;                                            \
   )
 
 /* ----------------------------- Struct helper define's ----------------------------- */
