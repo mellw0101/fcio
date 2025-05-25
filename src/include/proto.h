@@ -112,6 +112,13 @@ char *xnstrinj(char *restrict dst, Ulong dstlen, const char *const restrict src,
 char *xstrninj(char *restrict dst, const char *const restrict src, Ulong srclen, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 char *xstrinj(char *restrict dst, const char *const restrict src, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 
+/* ----------------------------- xstr_erase ----------------------------- */
+
+char *xstrn_erase_norealloc(char *restrict dst, Ulong dstlen, Ulong index, Ulong len);
+char *xstr_erase_norealloc(char *restrict dst, Ulong index, Ulong len);
+char *xstrn_erase(char *restrict dst, Ulong dstlen, Ulong index, Ulong len);
+char *xstr_erase(char *restrict dst, Ulong index, Ulong len);
+
 
 /* ---------------------------------------------------------- path.c ---------------------------------------------------------- */
 

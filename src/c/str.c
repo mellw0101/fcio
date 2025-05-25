@@ -312,3 +312,39 @@ char *xstrninj(char *restrict dst, const char *const restrict src, Ulong srclen,
 char *xstrinj(char *restrict dst, const char *const restrict src, Ulong idx) {
   return xnstrninj(dst, strlen(dst), src, strlen(src), idx);
 }
+
+/* ----------------------------- xstr_erase ----------------------------- */
+
+/* Erase `len` of `dst` at `index`.  Note that this function does `NOT` reallocate `dst`, it just `null-terminates` at the new length. */
+char *xstrn_erase_norealloc(char *restrict dst, Ulong dstlen, Ulong index, Ulong len) {
+  ASSERT(dst);
+  ALWAYS_ASSERT((index + len) <= dstlen);
+  /* Move data from `index + len` to `index` in `dst`. */
+  memmove((dst + index), (dst + index + len), (dstlen - index - len));
+  /* Then explicitly `null-terminate` `dst`. */
+  dst[dstlen - len] = '\0';
+  return dst;
+}
+
+/* Erase `len` of `dst` at `index`.  Note that this function does `NOT` reallocate `dst`, it just `null-terminates` at the new length. */
+char *xstr_erase_norealloc(char *restrict dst, Ulong index, Ulong len) {
+  return xstrn_erase_norealloc(dst, strlen(dst), index, len);
+}
+
+/* Erase `len` of `dst` at `index`. */
+char *xstrn_erase(char *restrict dst, Ulong dstlen, Ulong index, Ulong len) {
+  ASSERT(dst);
+  ALWAYS_ASSERT((index + len) <= dstlen);
+  /* Move data from `index + len` to `index` in `dst`. */
+  memmove((dst + index), (dst + index + len), (dstlen - index - len));
+  /* Reallocate `dst` to fit just the new length plus a `null-terminator.` */
+  dst = xrealloc(dst, (dstlen - len + 1));
+  /* Then explicitly `null-terminate` `dst`. */
+  dst[dstlen - len] = '\0';
+  return dst;
+}
+
+/* Erase `len` of `dst` at `index`. */
+char *xstr_erase(char *restrict dst, Ulong index, Ulong len) {
+  return xstrn_erase(dst, strlen(dst), index, len);
+}
