@@ -715,6 +715,13 @@
 #ifdef DLIST_INSERT_AFTER
 # undef DLIST_INSERT_AFTER
 #endif
+#ifdef DLIST_ADV_NEXT
+# undef DLIST_ADV_NEXT
+#endif
+#ifdef DLIST_ADV_PREV
+# undef DLIST_ADV_PREV
+#endif
+
 
 #define DLIST_FOR_NEXT(start, name)                                                   \
   /* Iterate over a double linked list starting at `start` and iterating using        \
@@ -752,6 +759,9 @@
     }                                                         \
     ap->next = np;                                            \
   )
+
+#define DLIST_ADV_NEXT(ptr)  CLIST_ADV_NEXT(ptr)
+#define DLIST_ADV_PREV(ptr)  CLIST_ADV_PREV(ptr)
 
 /* ----------------------------- Struct helper define's ----------------------------- */
 
