@@ -721,7 +721,9 @@
 #ifdef DLIST_ADV_PREV
 # undef DLIST_ADV_PREV
 #endif
-
+#ifdef DLIST_ND_FOR_NEXT_END
+# undef DLIST_ND_FOR_NEXT_END
+#endif
 
 #define DLIST_FOR_NEXT(start, name)                                                   \
   /* Iterate over a double linked list starting at `start` and iterating using        \
