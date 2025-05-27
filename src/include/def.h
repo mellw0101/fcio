@@ -706,11 +706,23 @@
 #ifdef DLIST_FOR_PREV
 # undef DLIST_FOR_PREV
 #endif
+#ifdef DLIST_FOR_NEXT_END
+# undef DLIST_ND_FOR_NEXT_END
+#endif
+#ifdef DLIST_FOR_PREV_END
+# undef DLIST_ND_FOR_NEXT_END
+#endif
 #ifdef DLIST_ND_FOR_NEXT
 # undef DLIST_ND_FOR_NEXT
 #endif
 #ifdef DLIST_ND_FOR_PREV
 # undef DLIST_ND_FOR_PREV
+#endif
+#ifdef DLIST_ND_FOR_NEXT_END
+# undef DLIST_ND_FOR_NEXT_END
+#endif
+#ifdef DLIST_ND_FOR_PREV_END
+# undef DLIST_ND_FOR_NEXT_END
 #endif
 #ifdef DLIST_INSERT_AFTER
 # undef DLIST_INSERT_AFTER
@@ -721,21 +733,30 @@
 #ifdef DLIST_ADV_PREV
 # undef DLIST_ADV_PREV
 #endif
-#ifdef DLIST_ND_FOR_NEXT_END
-# undef DLIST_ND_FOR_NEXT_END
-#endif
 
-#define DLIST_FOR_NEXT(start, name)                                                   \
-  /* Iterate over a double linked list starting at `start` and iterating using        \
-   * `(name) = (name)->next` until we reach a `NULL`.  Note that this can take        \
-   * the `start` ptr in any constness as it will clean the type for declaration. */   \
+#define DLIST_FOR_NEXT(start, name)                                                  \
+  /* Iterate over a double linked list starting at `start` and iterating using       \
+   * `(name) = (name)->next` until we reach a `NULL`.  Note that this can take       \
+   * the `start` ptr in any constness as it will clean the type for declaration. */  \
   for (__TYPE(&(*(start))) name=(start); name; name=name->next)
 
-#define DLIST_FOR_PREV(start, name)                                                   \
-  /* Iterate over a double linked list starting at `start` and iterating using        \
-   * `(name) = (name)->prev` until we reach a `NULL`.  Note that this can take        \
-   * the `start` ptr in any constness as it will clean the type for declaration. */   \
+#define DLIST_FOR_PREV(start, name)                                                  \
+  /* Iterate over a double linked list starting at `start` and iterating using       \
+   * `(name) = (name)->prev` until we reach a `NULL`.  Note that this can take       \
+   * the `start` ptr in any constness as it will clean the type for declaration. */  \
   for (__TYPE(&(*(start))) name=(start); name; name=name->prev)
+
+#define DLIST_FOR_NEXT_END(start, end, name)                                         \
+  /* Iterate over a double linked list starting at `start` and iterating using       \
+   * `(name) = (name)->next` until we reach `end`.  Note that this can take          \
+   * the `start` ptr in any constness as it will clean the type for declaration. */  \
+  for (__TYPE(&(*(start))) name=(start); name!=(end); name=name->next)
+
+#define DLIST_FOR_PREV_END(start, end, name)                                         \
+  /* Iterate over a double linked list starting at `start` and iterating using       \
+   * `(name) = (name)->prev` until we reach `end`.  Note that this can take          \
+   * the `start` ptr in any constness as it will clean the type for declaration. */  \
+  for (__TYPE(&(*(start))) name=(start); name!=(end); name=name->prev)
 
 #define DLIST_ND_FOR_NEXT(start, name)                                    \
   /* Iterate over a double linked list starting at `start` and iterating  \
@@ -749,8 +770,17 @@
    * this does not declare `name` rather uses an existing ptr. */         \
   for ((name)=(start); (name); (name)=(name)->prev)
 
-#define DLIST_ND_FOR_NEXT_END(start, end, name)  \
-  for ((name)=(start); (name) != (end); (name)=(name)->next)
+#define DLIST_ND_FOR_NEXT_END(start, end, name)                           \
+  /* Iterate over a double linked list starting at `start` and iterating  \
+   * using `(name) = (name)->next` until we reach `end`.  Note that       \
+   * this does not declare `name` rather uses an existing ptr.  */        \
+  for ((name)=(start); (name)!=(end); (name)=(name)->next)
+
+#define DLIST_ND_FOR_PREV_END(start, end, name)                           \
+  /* Iterate over a double linked list starting at `start` and iterating  \
+   * using `(name) = (name)->prev` until we reach `end`.  Note that       \
+   * this does not declare `name` rather uses an existing ptr. */         \
+  for ((name)=(start); (name)!=(end); (name)=(name)->prev)
 
 #define DLIST_INSERT_AFTER(after, node)                       \
   /* Insert `node` after `after` in a double linked list. */  \
