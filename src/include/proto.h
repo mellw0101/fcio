@@ -107,6 +107,10 @@ char *xstrcat(char *restrict dst, const char *const restrict src) __THROW _NODIS
 
 /* ----------------------------- xstrinj ----------------------------- */
 
+char *xnstrninj_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
+char *xnstrinj_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
+char *xstrninj_norealloc(char *restrict dst, const char *const restrict src, Ulong srclen, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
+char *xstrinj_norealloc(char *restrict dst, const char *const restrict src, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 char *xnstrninj(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
 char *xnstrinj(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
 char *xstrninj(char *restrict dst, const char *const restrict src, Ulong srclen, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);

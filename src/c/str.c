@@ -282,6 +282,36 @@ char *xstrcat(char *restrict dst, const char *const restrict src) {
 /* ----------------------------- xstrinj ----------------------------- */
 
 /* Inject `src` into `dst` at index `idx`. */
+char *xnstrninj_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen, Ulong idx) {
+  ASSERT(dst);
+  ASSERT(src);
+  /* Always assert that idx is valid. */
+  ALWAYS_ASSERT(idx <= dstlen);
+  /* First move the data at idx by srclen. */
+  memmove((dst + idx + srclen), (dst + idx), (dstlen - idx));
+  /* Then copy src into dst at idx. */
+  memcpy((dst + idx), src, srclen);
+  /* Explicitly set the `null-terminator`, this way it does not matter if `dstlen` is the full length of `dst`. */
+  dst[dstlen + srclen] = '\0';
+  return dst;
+}
+
+/* Inject `src` into `dst` at index `idx`. */
+char *xnstrinj_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong idx) {
+  return xnstrninj_norealloc(dst, dstlen, src, strlen(src), idx);
+}
+
+/* Inject `src` into `dst` at index `idx`. */
+char *xstrninj_norealloc(char *restrict dst, const char *const restrict src, Ulong srclen, Ulong idx) {
+  return xnstrninj_norealloc(dst, strlen(dst), src, srclen, idx);
+}
+
+/* Inject `src` into `dst` at index `idx`. */
+char *xstrinj_norealloc(char *restrict dst, const char *const restrict src, Ulong idx) {
+  return xnstrninj_norealloc(dst, strlen(dst), src, strlen(src), idx);
+}
+
+/* Inject `src` into `dst` at index `idx`. */
 char *xnstrninj(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen, Ulong idx) {
   ASSERT(dst);
   ASSERT(src);
