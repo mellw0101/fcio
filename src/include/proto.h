@@ -100,6 +100,10 @@ char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) __TH
 
 /* ----------------------------- xstrcat ----------------------------- */
 
+char *xnstrncat_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen) __THROW _RETURNS_NONNULL _NONNULL(1, 3);
+char *xnstrcat_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src) __THROW _RETURNS_NONNULL _NONNULL(1, 3);
+char *xstrncat_norealloc(char *restrict dst, const char *const restrict src, Ulong srclen) __THROW _RETURNS_NONNULL _NONNULL(1, 2);
+char *xstrcat_norealloc(char *restrict dst, const char *const restrict src) __THROW _RETURNS_NONNULL _NONNULL(1, 2);
 char *xnstrncat(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
 char *xnstrcat(char *restrict dst, Ulong dstlen, const char *const restrict src) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
 char *xstrncat(char *restrict dst, const char *const restrict src, Ulong srclen) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);

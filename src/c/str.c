@@ -251,6 +251,33 @@ char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) {
 /* ----------------------------- xstrcat ----------------------------- */
 
 /* Append `src` to the end of `dst`. */
+char *xnstrncat_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen) {
+  ASSERT(dst);
+  ASSERT(src);
+  /* Append src to dst. */
+  memcpy((dst + dstlen), src, srclen);
+  /* Null terminate the string. */
+  dst[dstlen + srclen] = '\0';
+  /* Then return dst. */
+  return dst;
+}
+
+/* Append `src` to the end of `dst`. */
+char *xnstrcat_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src) {
+  return xnstrncat_norealloc(dst, dstlen, src, strlen(src));
+}
+
+/* Append `src` to the end of `dst`. */
+char *xstrncat_norealloc(char *restrict dst, const char *const restrict src, Ulong srclen) {
+  return xnstrncat_norealloc(dst, strlen(dst), src, srclen);
+}
+
+/* Append `src` to the end of `dst`. */
+char *xstrcat_norealloc(char *restrict dst, const char *const restrict src) {
+  return xnstrncat_norealloc(dst, strlen(dst), src, strlen(src));
+}
+
+/* Append `src` to the end of `dst`. */
 char *xnstrncat(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen) {
   ASSERT(dst);
   ASSERT(src);
