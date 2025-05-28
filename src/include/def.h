@@ -733,6 +733,9 @@
 #ifdef DLIST_ADV_PREV
 # undef DLIST_ADV_PREV
 #endif
+#ifdef DLIST_UNLINK
+# undef DLIST_UNLINK
+#endif
 
 #define DLIST_FOR_NEXT(start, name)                                                  \
   /* Iterate over a double linked list starting at `start` and iterating using       \
@@ -797,6 +800,16 @@
 
 #define DLIST_ADV_NEXT(ptr)  CLIST_ADV_NEXT(ptr)
 #define DLIST_ADV_PREV(ptr)  CLIST_ADV_PREV(ptr)
+
+#define DLIST_UNLINK(ptr)               \
+  DO_WHILE(                             \
+    if ((ptr)->prev) {                  \
+      (ptr)->prev->next = (ptr)->next;  \
+    }                                   \
+    if ((ptr)->next) {                  \
+      (ptr)->next->prev = (ptr)->prev;  \
+    }                                   \
+  )
 
 /* ----------------------------- Struct helper define's ----------------------------- */
 
