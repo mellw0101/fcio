@@ -95,8 +95,8 @@ char *fmtstr_len(int *const fmtlen, const char *const restrict format, ...) __TH
 
 /* ----------------------------- fmtstrcat ----------------------------- */
 
-char *fmtstrncat(char *restrict dst, Ulong dstlen, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
-char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
+char *fmtstrncat(char *restrict dst, Ulong dstlen, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3) _PRINTFLIKE(3, 4);
+char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2) _PRINTFLIKE(2, 3);
 
 /* ----------------------------- xstrcat ----------------------------- */
 
