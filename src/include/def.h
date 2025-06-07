@@ -727,6 +727,9 @@
 #ifdef DLIST_INSERT_AFTER
 # undef DLIST_INSERT_AFTER
 #endif
+#ifdef DLIST_INSERT_DLIST_AFTER
+# undef DLIST_INSERT_DLIST_AFTER
+#endif
 #ifdef DLIST_ADV_NEXT
 # undef DLIST_ADV_NEXT
 #endif
@@ -796,6 +799,23 @@
       ap->next->prev = np;                                    \
     }                                                         \
     ap->next = np;                                            \
+  )
+
+#define DLIST_INSERT_DLIST_AFTER(after, top, bot)                     \
+  /* Insert an double linked list into another one after `after`. */  \
+  DO_WHILE(                                                           \
+    /* Make a new pointer for all passed params, as                   \
+     * this not only ensures that there are no side-                  \
+     * effects, but also that we have some type safety */             \
+    __TYPE(after) ap = (after);                                       \
+    __TYPE(top)   tp = (top);                                         \
+    __TYPE(bot)   bp = (bot);                                         \
+    bp->next = ap->next;                                              \
+    if (bp->next) {                                                   \
+      bp->next->prev = bp;                                            \
+    }                                                                 \
+    ap->next = tp;                                                    \
+    tp->prev = ap;                                                    \
   )
 
 #define DLIST_ADV_NEXT(ptr)  CLIST_ADV_NEXT(ptr)
