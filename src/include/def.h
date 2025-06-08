@@ -574,7 +574,13 @@
 /* Shorthand to assign the value to a ptr.  Useful when assigning ptr passed as parameters to functions that might be `NULL`. */
 #define ASSIGN_IF_VALID(ptr, value)  DO_WHILE(((ptr) ? (*(ptr) = (value)) : ((int)0));)
 
-#define ASSIGN_FIELD_IF_VALID(ptr, field, value)  DO_WHILE((ptr) ? ((ptr)->field = (value)) : ((int)0);)
+#define ASSIGN_FIELD_IF_VALID(ptr, field, value)      \
+  DO_WHILE(                                           \
+    /* (ptr) ? ((ptr)->field=(value)) : ((int)0); */  \
+    if (ptr) {                                        \
+      (ptr)->field = (value);                         \
+    }                                                 \
+  )
 
 /* Get the size of a stack based array. */
 #define ARRAY_SIZE(array)  (sizeof((array)) / sizeof((array)[0]))
