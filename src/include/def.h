@@ -126,6 +126,10 @@
 #define PACKED_UINT_FLOAT(r, g, b, a)  PACKED_UINT((255.0f * (r)), (255.0f * (g)), (255.0f * (b)), (255.0f * (a)))
 #define UNPACK_UINT_FLOAT(x, index)    ((float)UNPACK_UINT(x, index) / 255.0f)
 
+#define _UNUSED_ARG(x) \
+  /* Can be used instead of __attribute__((__unused__)) for a function argument. */ \
+  ((void)(x))
+
 /* ----------------------------- String helper's ----------------------------- */
 
 #ifdef STRLEN
@@ -870,6 +874,7 @@ typedef struct {
   char *ext;          /* The extention, if any. */
   char *clean_name;   /* When `name` has a extention, this is `name` without that extention, otherwise this is `NULL`. */
   struct stat *stat;  /* Stat data for the entry. */
+  Ulong namelen;      /* The length of the entry name. */
 } directory_entry_t;
 
 typedef struct {

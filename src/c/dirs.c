@@ -83,7 +83,7 @@ void directory_data_init(directory_t *const dir) {
   ASSERT(dir);
   dir->len = 0;
   dir->cap = 10;
-  dir->entries = xmalloc(sizeof(void *) * dir->cap);
+  dir->entries = xmalloc(_PTRSIZE * dir->cap);
   mutex_init(&dir->mutex, NULL);
 }
 
@@ -140,6 +140,7 @@ int directory_get(const char *const restrict path, directory_t *const output) {
       entry->clean_name = measured_copy(entry->name, (fileext - entry->name));
     }
     statalloc(entry->path, &entry->stat);
+    entry->namelen = (_D_ALLOC_NAMLEN(direntry) - 1);
     /* Insure thread-safe insertion of the entry. */
     mutex_action(&output->mutex,
       /* Insert the entry into output. */
@@ -174,7 +175,7 @@ int directory_get_recurse(const char *const restrict path, directory_t *const ou
   /* Then set newlen after. */
   newlen = output->len;
   /* Now we have a set scope to perform the recursive calls. */
-  for (Ulong i = waslen; i < newlen; ++i) {
+  for (Ulong i=waslen; i<newlen; ++i) {
     if (output->entries[i]->type == DT_DIR) {
       subdir = concatpath(path, output->entries[i]->name);
       directory_get_recurse(subdir, output);

@@ -405,3 +405,9 @@ char *xstrn_erase(char *restrict dst, Ulong dstlen, Ulong index, Ulong len) {
 char *xstr_erase(char *restrict dst, Ulong index, Ulong len) {
   return xstrn_erase(dst, strlen(dst), index, len);
 }
+
+/* ----------------------------- xstrcpy ----------------------------- */
+
+// char *xstrncpy(char *restrict dst, const char *const restrict src, Ulong n) {
+
+// }
