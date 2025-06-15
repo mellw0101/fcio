@@ -769,6 +769,12 @@
 #ifdef DLIST_UNLINK
 # undef DLIST_UNLINK
 #endif
+#ifdef DLIST_SWAP_FIELD_NEXT
+# undef DLIST_SWAP_FIELD_NEXT
+#endif
+#ifdef DLIST_SWAP_FIELD_PREV
+# undef DLIST_SWAP_FIELD_PREV
+#endif
 
 #define DLIST_FOR_NEXT(start, name)                                                  \
   /* Iterate over a double linked list starting at `start` and iterating using       \
@@ -860,6 +866,9 @@
       (ptr)->next->prev = (ptr)->prev;  \
     }                                   \
   )
+
+#define DLIST_SWAP_FIELD_NEXT(ptr, field)  SWAP_PTR((ptr)->next->field, (ptr)->field)
+#define DLIST_SWAP_FIELD_PREV(ptr, field)  SWAP_PTR((ptr)->prev->field, (ptr)->field)
 
 /* ----------------------------- Struct helper define's ----------------------------- */
 
