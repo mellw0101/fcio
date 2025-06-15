@@ -70,6 +70,12 @@
 #ifdef UNPACK_UINT
 # undef UNPACK_UINT
 #endif
+#ifdef _UNUSED_ARG
+# undef _UNUSED_ARG
+#endif
+#ifdef SWAP_PTR
+# undef SWAP_PTR
+#endif
 
 /* Perform actions protected from accidental missuse. */
 #define DO_WHILE(...)                do {__VA_ARGS__} while (0)
@@ -129,6 +135,15 @@
 #define _UNUSED_ARG(x) \
   /* Can be used instead of __attribute__((__unused__)) for a function argument. */ \
   ((void)(x))
+
+#define SWAP_PTR(p1, p2)                          \
+  /* Swap `p1` and `p2`.  Note that the           \
+   * temporary ptr will use the type of `p1`. */  \
+  DO_WHILE(                                       \
+    __TYPE(p1) __tmp_ptr = (p1);                  \
+    (p1) = (p2);                                  \
+    (p2) = __tmp_ptr;                             \
+  )
 
 /* ----------------------------- String helper's ----------------------------- */
 

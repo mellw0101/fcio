@@ -248,7 +248,7 @@ char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) {
   return dst;
 }
 
-/* ----------------------------- xstrcat ----------------------------- */
+/* ----------------------------- xstrcat_norealloc ----------------------------- */
 
 /* Append `src` to the end of `dst`. */
 char *xnstrncat_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen) {
@@ -276,6 +276,8 @@ char *xstrncat_norealloc(char *restrict dst, const char *const restrict src, Ulo
 char *xstrcat_norealloc(char *restrict dst, const char *const restrict src) {
   return xnstrncat_norealloc(dst, strlen(dst), src, strlen(src));
 }
+
+/* ----------------------------- xstrcat ----------------------------- */
 
 /* Append `src` to the end of `dst`. */
 char *xnstrncat(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen) {
@@ -306,7 +308,7 @@ char *xstrcat(char *restrict dst, const char *const restrict src) {
   return xnstrncat(dst, strlen(dst), src, strlen(src));
 }
 
-/* ----------------------------- xstrinj ----------------------------- */
+/* ----------------------------- xstrinj_norealloc ----------------------------- */
 
 /* Inject `src` into `dst` at index `idx`. */
 char *xnstrninj_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen, Ulong idx) {
@@ -337,6 +339,8 @@ char *xstrninj_norealloc(char *restrict dst, const char *const restrict src, Ulo
 char *xstrinj_norealloc(char *restrict dst, const char *const restrict src, Ulong idx) {
   return xnstrninj_norealloc(dst, strlen(dst), src, strlen(src), idx);
 }
+
+/* ----------------------------- xstrinj ----------------------------- */
 
 /* Inject `src` into `dst` at index `idx`. */
 char *xnstrninj(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen, Ulong idx) {
@@ -370,7 +374,7 @@ char *xstrinj(char *restrict dst, const char *const restrict src, Ulong idx) {
   return xnstrninj(dst, strlen(dst), src, strlen(src), idx);
 }
 
-/* ----------------------------- xstr_erase ----------------------------- */
+/* ----------------------------- xstr_erase_norealloc ----------------------------- */
 
 /* Erase `len` of `dst` at `index`.  Note that this function does `NOT` reallocate `dst`, it just `null-terminates` at the new length. */
 char *xstrn_erase_norealloc(char *restrict dst, Ulong dstlen, Ulong index, Ulong len) {
@@ -387,6 +391,8 @@ char *xstrn_erase_norealloc(char *restrict dst, Ulong dstlen, Ulong index, Ulong
 char *xstr_erase_norealloc(char *restrict dst, Ulong index, Ulong len) {
   return xstrn_erase_norealloc(dst, strlen(dst), index, len);
 }
+
+/* ----------------------------- xstr_erase ----------------------------- */
 
 /* Erase `len` of `dst` at `index`. */
 char *xstrn_erase(char *restrict dst, Ulong dstlen, Ulong index, Ulong len) {
