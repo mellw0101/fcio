@@ -105,7 +105,7 @@
 #define __SAFE_TYPE(x, y)                               \
   /* Expresses y, in a type safe mannor, when relating  \
    * to x.  Usage: if (x < __SAFE_TYPE(x, y)) */        \
-  (__TYPE_SAME(x, y)(y))
+  (__TYPE_SAME(x, y))(y)
 
 #define STATIC_TYPE_MATCH(x, y)  ((void)sizeof(char[1 - 2*!(sizeof(__TYPE(x)) == sizeof(__TYPE(y)))]))
 

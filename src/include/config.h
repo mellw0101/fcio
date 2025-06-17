@@ -84,6 +84,12 @@
 # define _GNUC_VER(maj, min)  0
 #endif
 
+#if (defined(__clang__) && defined(__clang_major__) && defined(__clang_minor__))
+# define _CLANG_VER(maj, min)  ((__clang_major__ > (maj)) || (__clang_major__ == (maj) && __clang_minor__ >= (min)))
+#else
+# define _CLANG_VER(maj, min)  0
+#endif
+
 /* Define _HAS_ATTRIBUTE only once, because on FreeBSD, with gcc < 5, if <config.h> gets
  * included once again after <sys/cdefs.h>, __has_attribute(x) expands to 0 always,
  * and redefining _HAS_ATTRIBUTE would turn off all attributes.  */
@@ -189,4 +195,10 @@
 # define _UNUSED __attribute__((__unused__))
 #else
 # define _UNUSED
+#endif
+
+#if (_CLANG_VER(10, 0) || _GNUC_VER(3, 1))
+# define _BUILTIN_TYPES_COMPATIBLE_P(x, y)  __builtin_types_compatible_p(x, y)
+#else
+# define _BUILTIN_TYPES_COMPATIBLE_P(x, y)  (1)
 #endif
