@@ -85,8 +85,11 @@
 #ifdef __cplusplus
 # define __TYPE(x)  decltype(x)
 #else
-# define __TYPE(x)  __typeof__((x))
+# define __TYPE(x)          __typeof__((x))
+# define __TYPE_SAME(x, y)  __typeof__(((x) + (y)) - (y))
 #endif
+
+#define STATIC_TYPE_MATCH(x, y)  ((void)sizeof(char[1 - 2*!(sizeof(__TYPE(x)) == sizeof(__TYPE(y)))]))
 
 /* Malloc `ptr` by its type size, this is made to be used mainly on structures.  Works in both `c` and `c++` */
 #ifdef __cplusplus
@@ -285,7 +288,7 @@
 #define round_short(x)  ((x) >= 0 ? (short)((x) + 0.5) : (short)((x) - 0.5))
 
 /* Ensure `x` cannot be more then `max`. */
-#define CLAMP_MAX(x, max)  (((x) > (__TYPE(x))(max)) ? ((x) = (max)) : ((int)0))
+#define CLAMP_MAX(x, max)  (((x) > (__TYPE_SAME(x, max))(max)) ? ((x) = (__TYPE_SAME(x, max))(max)) : ((int)0))
 
 /* Ensure `x` cannot be less then `min`. */
 #define CLAMP_MIN(x, min)  (((x) < (__TYPE(x))(min)) ? ((x) = (min)) : ((int)0))
