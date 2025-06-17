@@ -52,6 +52,15 @@
 #ifdef __TYPE
 # undef __TYPE
 #endif
+#ifdef __TYPE_SAME
+# undef __TYPE_SAME
+#endif
+#ifdef __SAFE_TYPE
+# undef __SAFE_TYPE
+#endif
+#ifdef STATIC_TYPE_MATCH
+# undef STATIC_TYPE_MATCH
+#endif
 #ifdef MALLOC_STRUCT
 # undef MALLOC_STRUCT
 #endif
@@ -85,9 +94,18 @@
 #ifdef __cplusplus
 # define __TYPE(x)  decltype(x)
 #else
-# define __TYPE(x)          __typeof__((x))
-# define __TYPE_SAME(x, y)  __typeof__(((x) + (y)) - (y))
+# define __TYPE(x)  __typeof__((x))
 #endif
+
+#define __TYPE_SAME(x, y)                       \
+  /* Deduses the *common* type for `x` and `y`  \
+   * (using usual arithmetic conversion).  */   \
+  __TYPE(((x) + (y)) - (y))
+
+#define __SAFE_TYPE(x, y)                               \
+  /* Expresses y, in a type safe mannor, when relating  \
+   * to x.  Usage: if (x < __SAFE_TYPE(x, y)) */        \
+  (__TYPE_SAME(x, y)(y))
 
 #define STATIC_TYPE_MATCH(x, y)  ((void)sizeof(char[1 - 2*!(sizeof(__TYPE(x)) == sizeof(__TYPE(y)))]))
 
@@ -147,6 +165,35 @@
     (p1) = (p2);                                  \
     (p2) = __tmp_ptr;                             \
   )
+
+/* ----------------------------- Safe compare helper's ----------------------------- */
+
+#ifdef LT
+# undef LT
+#endif
+#ifdef GT
+# undef GT
+#endif
+#ifdef LE
+# undef LE
+#endif
+#ifdef GE
+# undef GE
+#endif
+#ifdef EQ
+# undef EQ
+#endif
+#ifdef NE
+# undef NE
+#endif
+
+/* Safe comparison shorthands, always upconverting y to the type of (x op y). */
+#define LT(x, y)  ((x) <  __SAFE_TYPE(x, y))
+#define GT(x, y)  ((x) >  __SAFE_TYPE(x, y))
+#define LE(x, y)  ((x) <= __SAFE_TYPE(x, y))
+#define GE(x, y)  ((x) >= __SAFE_TYPE(x, y))
+#define EQ(x, y)  ((x) == __SAFE_TYPE(x, y))
+#define NE(x, y)  ((x) != __SAFE_TYPE(x, y))
 
 /* ----------------------------- String helper's ----------------------------- */
 
