@@ -98,34 +98,48 @@ char *fmtstr_len(int *const fmtlen, const char *const restrict format, ...) __TH
 char *fmtstrncat(char *restrict dst, Ulong dstlen, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3) _PRINTFLIKE(3, 4);
 char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2) _PRINTFLIKE(2, 3);
 
-/* ----------------------------- xstrcat ----------------------------- */
+/* ----------------------------- xstrcat_norealloc ----------------------------- */
 
 char *xnstrncat_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen) __THROW _RETURNS_NONNULL _NONNULL(1, 3);
 char *xnstrcat_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src) __THROW _RETURNS_NONNULL _NONNULL(1, 3);
 char *xstrncat_norealloc(char *restrict dst, const char *const restrict src, Ulong srclen) __THROW _RETURNS_NONNULL _NONNULL(1, 2);
 char *xstrcat_norealloc(char *restrict dst, const char *const restrict src) __THROW _RETURNS_NONNULL _NONNULL(1, 2);
+
+/* ----------------------------- xstrcat ----------------------------- */
+
 char *xnstrncat(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
 char *xnstrcat(char *restrict dst, Ulong dstlen, const char *const restrict src) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
 char *xstrncat(char *restrict dst, const char *const restrict src, Ulong srclen) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 char *xstrcat(char *restrict dst, const char *const restrict src) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 
-/* ----------------------------- xstrinj ----------------------------- */
+/* ----------------------------- xstrinj_norealloc ----------------------------- */
 
 char *xnstrninj_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen, Ulong idx) __THROW _RETURNS_NONNULL _NONNULL(1, 3);
 char *xnstrinj_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong idx) __THROW _RETURNS_NONNULL _NONNULL(1, 3);
 char *xstrninj_norealloc(char *restrict dst, const char *const restrict src, Ulong srclen, Ulong idx) __THROW _RETURNS_NONNULL _NONNULL(1, 2);
 char *xstrinj_norealloc(char *restrict dst, const char *const restrict src, Ulong idx) __THROW _NODISCARD _NONNULL(1, 2);
+
+/* ----------------------------- xstrinj ----------------------------- */
+
 char *xnstrninj(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
 char *xnstrinj(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3);
 char *xstrninj(char *restrict dst, const char *const restrict src, Ulong srclen, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 char *xstrinj(char *restrict dst, const char *const restrict src, Ulong idx) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 
+/* ----------------------------- xstr_erase_norealloc ----------------------------- */
+
+char *xstrn_erase_norealloc(char *restrict dst, Ulong dstlen, Ulong index, Ulong len) __THROW _RETURNS_NONNULL _NONNULL(1);
+char *xstr_erase_norealloc(char *restrict dst, Ulong index, Ulong len) __THROW _RETURNS_NONNULL _NONNULL(1);
+
 /* ----------------------------- xstr_erase ----------------------------- */
 
-char *xstrn_erase_norealloc(char *restrict dst, Ulong dstlen, Ulong index, Ulong len);
-char *xstr_erase_norealloc(char *restrict dst, Ulong index, Ulong len);
-char *xstrn_erase(char *restrict dst, Ulong dstlen, Ulong index, Ulong len);
-char *xstr_erase(char *restrict dst, Ulong index, Ulong len);
+char *xstrn_erase(char *restrict dst, Ulong dstlen, Ulong index, Ulong len) __THROW _RETURNS_NONNULL _NONNULL(1);
+char *xstr_erase(char *restrict dst, Ulong index, Ulong len) __THROW _RETURNS_NONNULL _NONNULL(1);
+
+/* ----------------------------- xstrcpy ----------------------------- */
+
+char *xstrncpy(char *restrict dst, const char *const restrict src, Ulong n) __THROW _RETURNS_NONNULL _NONNULL(1, 2);
+char *xstrcpy(char *restrict dst, const char *const restrict src) __THROW _RETURNS_NONNULL _NONNULL(1, 2);
 
 
 /* ---------------------------------------------------------- path.c ---------------------------------------------------------- */

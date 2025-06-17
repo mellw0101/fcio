@@ -414,6 +414,20 @@ char *xstr_erase(char *restrict dst, Ulong index, Ulong len) {
 
 /* ----------------------------- xstrcpy ----------------------------- */
 
-// char *xstrncpy(char *restrict dst, const char *const restrict src, Ulong n) {
+/* Copy `n` bytes of `src` to `dst`.  Note that this function will reallocate the string. */
+char *xstrncpy(char *restrict dst, const char *const restrict src, Ulong n) {
+  ASSERT(dst);
+  ASSERT(src);
+  /* Reallocate dst so that n bytes plus a null-terminator fits. */
+  dst = xrealloc(dst, (n + 1));
+  /* Perform the copy. */
+  memcpy(dst, src, n);
+  /* Always null-terminate the string, this ensures usiform behavior. */
+  dst[n] = '\0';
+  return dst;
+}
 
-// }
+/* Copy `n` bytes of `src` to `dst`.  Note that this function will reallocate the string. */
+char *xstrcpy(char *restrict dst, const char *const restrict src) {
+  return xstrncpy(dst, src, strlen(src));
+}
