@@ -198,8 +198,17 @@
 # undef NE
 #endif
 
+#define IS_SIGNED(x)  ((__TYPE(x))-1 < (__TYPE(x))0)
+
 /* Safe comparison shorthands, always upconverting y to the type of (x op y). */
-#define LT(x, y)  ((x) <  __SAFE_TYPE(x, y))
+// #define LT(x, y)  ((x) <  __SAFE_TYPE(x, y))
+#define LT(x, y) \
+  ((IS_SIGNED(x) == IS_SIGNED(y)) ? ((x) < (y)) \
+    : IS_SIGNED(x) \
+      ? ((x) < 0 || (__TYPE(y)(x) < (y))) \
+      : (((y) < 0) ? 0 : ((x) < (__TYPE(x)(y)))))
+
+
 #define GT(x, y)  ((x) >  __SAFE_TYPE(x, y))
 #define LE(x, y)  ((x) <= __SAFE_TYPE(x, y))
 #define GE(x, y)  ((x) >= __SAFE_TYPE(x, y))
