@@ -254,3 +254,47 @@
 #else
 # define COUNTED_BY_REF(x)  ((void *)0)
 #endif
+
+#if _HAS_BUILTIN(alloca)
+# define ALLOCA(size)  __builtin_alloca(size)
+#else
+# define ALLOCA(size)  ((void *)0)  
+#endif
+
+#if _HAS_BUILTIN(alloca_with_align)
+# define ALLOCA_WITH_ALIGN(n, align)  __builtin_alloca_with_align(n, align)
+#else
+# define ALLOCA_WITH_ALIGN(n, align)  ((void *)0)
+#endif
+
+#if _HAS_BUILTIN(offsetof)
+# define OFFSETOF(type, field)  __builtin_offsetof(type, field)
+#else
+# define OFFSETOF(type, field)  (0)
+#endif
+
+#if _HAS_BUILTIN(readcyclecounter)
+# define READCYCLECOUNTER()  __builtin_readcyclecounter()
+#else
+# define READCYCLECOUNTER()  (0ULL)
+#endif
+
+#if _HAS_BUILTIN(readsteadycounter)
+# define READSTEADYCOUNTER()  __builtin_readsteadycounter()
+#else
+# define READSTEADYCOUNTER()  (0ULL)
+#endif
+
+#if _HAS_BUILTIN(cpu_supports)
+# define CPU_SUPPORTS(x)  __builtin_cpu_supports(#x)
+#else
+# define CPU_SUPPORTS(x)  (0)
+#endif
+
+#if _HAS_BUILTIN(dump_struct)
+# define DUMP_STRUCT(...)  __builtin_dump_struct(__VA_ARGS__)
+#else 
+# define DUMP_STRUCT(...)  ((void)0)
+#endif
+
+#define sync_swap  __sync_swap
