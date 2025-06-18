@@ -206,7 +206,7 @@
   ((IS_SIGNED(x) == IS_SIGNED(y)) ? ((x) < (y)) \
     : IS_SIGNED(x) \
       ? ((x) < 0 || (__TYPE(y)(x) < (y))) \
-      : (((y) < 0) ? 0 : ((x) < (__TYPE(x)(y)))))
+      : (((y) < 0) ? 0 : ((x) < (__TYPE(x))(y))))
 
 
 #define GT(x, y)  ((x) >  __SAFE_TYPE(x, y))
