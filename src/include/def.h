@@ -82,8 +82,8 @@
 #ifdef _UNUSED_ARG
 # undef _UNUSED_ARG
 #endif
-#ifdef SWAP_PTR
-# undef SWAP_PTR
+#ifdef SWAP
+# undef SWAP
 #endif
 
 /* Perform actions protected from accidental missuse. */
@@ -161,14 +161,21 @@
   /* Can be used instead of __attribute__((__unused__)) for a function argument. */ \
   ((void)(x))
 
-#define SWAP_PTR(p1, p2)                          \
-  /* Swap `p1` and `p2`.  Note that the           \
-   * temporary ptr will use the type of `p1`. */  \
-  DO_WHILE(                                       \
-    __TYPE(p1) __tmp_ptr = (p1);                  \
-    (p1) = (p2);                                  \
-    (p2) = __tmp_ptr;                             \
-  )
+#if _CLANG_VER(15, 0)
+# define SWAP(x, y)                             \
+    DO_WHILE(                                   \
+      __sync_swap(&(y), __sync_swap(&(x), y));  \
+    )
+#else
+# define SWAP(x, y)                                \
+    /* Swap `x` and `y`.  Note that the            \
+     * temporary ptr will use the type of `x`. */  \
+    DO_WHILE(                                      \
+      __TYPE(x) __tmp = (x);                       \
+      (x) = (y);                                   \
+      (y) = __tmp;                                 \
+    )
+#endif
 
 /* ----------------------------- Safe compare helper's ----------------------------- */
 
@@ -921,8 +928,8 @@
     }                                   \
   )
 
-#define DLIST_SWAP_FIELD_NEXT(ptr, field)  SWAP_PTR((ptr)->next->field, (ptr)->field)
-#define DLIST_SWAP_FIELD_PREV(ptr, field)  SWAP_PTR((ptr)->prev->field, (ptr)->field)
+#define DLIST_SWAP_FIELD_NEXT(ptr, field)  SWAP((ptr)->next->field, (ptr)->field)
+#define DLIST_SWAP_FIELD_PREV(ptr, field)  SWAP((ptr)->prev->field, (ptr)->field)
 
 /* ----------------------------- Struct helper define's ----------------------------- */
 

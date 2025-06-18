@@ -296,5 +296,3 @@
 #else 
 # define DUMP_STRUCT(...)  ((void)0)
 #endif
-
-#define sync_swap  __sync_swap
