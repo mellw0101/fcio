@@ -108,6 +108,10 @@
   (__TYPE_SAME(x, y))(y)
 
 #define STATIC_TYPE_MATCH(x, y)  ((void)sizeof(char[1 - 2*!(sizeof(__TYPE(x)) == sizeof(__TYPE(y)))]))
+#define STATIC_PTR_TYPE_MATCH(x, y) \
+  DO_WHILE(                                                 \
+    ((void)sizeof(char[1 - 2 * !(sizeof(*x) == sizeof(*y))])); \
+  )
 
 /* Malloc `ptr` by its type size, this is made to be used mainly on structures.  Works in both `c` and `c++` */
 #ifdef __cplusplus

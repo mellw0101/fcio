@@ -84,6 +84,7 @@
 # define _GNUC_VER(maj, min)  0
 #endif
 
+/* Lets say you want to check if compatible with clang 10.0.  This will return true when using clang 10.0/(maj.min) or above. */
 #if (defined(__clang__) && defined(__clang_major__) && defined(__clang_minor__))
 # define _CLANG_VER(maj, min)  ((__clang_major__ > (maj)) || (__clang_major__ == (maj) && __clang_minor__ >= (min)))
 #else
@@ -125,6 +126,13 @@
 # define _ATTR_sentinel            _GNUC_VER(4, 0)
 # define _ATTR_unused              _GNUC_VER(2, 7)
 # define _ATTR_warn_unused_result  _GNUC_VER(3, 4)
+#endif
+
+/* Define _HAS_BUILTIN when the compiler has it.  Otherwise, will always return 0. */
+#if (_GNUC_VER(3, 1) || _CLANG_VER(10, 0))
+# define _HAS_BUILTIN(x)  __has_builtin(__builtin_##x)
+#else
+# define _HAS_BUILTIN(x)  0
 #endif
 
 /* Applies to: functions. */
@@ -197,8 +205,52 @@
 # define _UNUSED
 #endif
 
-#if (_CLANG_VER(10, 0) || _GNUC_VER(3, 1))
-# define _BUILTIN_TYPES_COMPATIBLE_P(x, y)  __builtin_types_compatible_p(x, y)
+#if _HAS_ATTRIBUTE(counted_by)
+# define _COUNTED_BY(x)  __attribute__((__counted_by__(x)))
 #else
-# define _BUILTIN_TYPES_COMPATIBLE_P(x, y)  (1)
+# define _COUNTED_BY(x)
+#endif
+
+#if _HAS_BUILTIN(types_compatible_p)
+# define TYPES_COMPATIBLE_P(x, y)  __builtin_types_compatible_p((x), (y))
+#else
+# define TYPES_COMPATIBLE_P(x, y)  (1)
+#endif
+
+#if _HAS_BUILTIN(prefetch)
+# define PREFETCH(...)  __builtin_prefetch(__VA_ARGS__)
+#else
+# define PREFETCH(...)  ((void)0)
+#endif
+
+#if _HAS_BUILTIN(memcpy)
+# define MEMCPY(dst, src, n)  __builtin_memcpy((dst), (src), (n))
+#else
+# define MEMCPY(dst, src, n)  memcpy((dst), (src), (n))
+#endif
+
+#if _HAS_BUILTIN(constant_p)
+# define CONSTANT_P(x)  __builtin_constant_p((x))
+#else
+# define CONSTANT_P(x)  0
+#endif
+
+#if _HAS_BUILTIN(expect)
+# define EXPECT(x, result)  __builtin_expect((x), (result))
+#else
+# define EXPECT(x, result)  (x)
+#endif
+
+#if _HAS_BUILTIN(classify_type)
+# define CLASSIFY_TYPE(x)  __builtin_classify_type(x)
+#else
+# define CLASSIFY_TYPE(x)
+#endif
+
+/* The built-in function __builtin_counted_by_ref checks whether the array object pointed to by `x`
+ * has another object associated with it that reprecents the number of elements in the array. */
+#if _HAS_BUILTIN(counted_by_ref)
+# define COUNTED_BY_REF(x)  __builtin_counted_by_ref(x)
+#else
+# define COUNTED_BY_REF(x)  ((void *)0)
 #endif
