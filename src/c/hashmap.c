@@ -603,8 +603,8 @@ void hashmapnum_free_void_ptr(void *arg) {
   HashNodeNum *next;
   HASHMAPNUM_MUTEX_ACTION(
     HASHMAPNUM_ITER(map, i, node,
-      PREFETCH(node->next);
       while (node) {
+        PREFETCH(node->next);
         next = node->next;
         hashmapnum_free_node(map, node);
         node = next;
