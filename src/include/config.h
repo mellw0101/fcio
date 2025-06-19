@@ -300,15 +300,46 @@
 # define DUMP_STRUCT(...)  ((void)0)
 #endif
 
-/* Define an atomic swap that should be compatible on almost all hardware. */
-#if (defined _HAS_BUILTIN && __has_builtin(__sync_swap))
-# define __ATOMIC_SWAP(x, y)  __sync_swap(x, y)
-#elif (_GNUC_VER(4, 7) || (defined _HAS_BUILTIN && __has_builtin(__atomic_exchange_n)))
-# define __ATOMIC_SWAP(x, y)  __atomic_exchange_n(x, y, __ATOMIC_SEQ_CST)
-#elif (_GNUC_VER(4, 1) || (defined _HAS_BUILTIN && __has_builtin(__sync_lock_test_and_set)))
-# define __ATOMIC_SWAP(x, y)  __sync_lock_test_and_set(x, y)
-#elif _HAS_ATTRIBUTE(error)
-  static void *__ATOMIC_SWAP(void *x, void *y) _ERROR("Compiler does not support atomic swap");
-#else
-# error "No atomic swap available"
+/* Unless the user declares NO_ATOMIC_OPERATIONS, make some handy helpers. */
+#ifndef NO_ATOMIC_OPERATIONS
+  /* Define an atomic swap that should be compatible on almost all hardware. */
+# if (defined __has_builtin && __has_builtin(__sync_swap))
+#   define __ATOMIC_SWAP(x, y)  __sync_swap(x, y)
+# elif (_GNUC_VER(4, 7) || (defined __has_builtin && __has_builtin(__atomic_exchange_n)))
+#   define __ATOMIC_SWAP(x, y)  __atomic_exchange_n(x, y, __ATOMIC_SEQ_CST)
+# elif (_GNUC_VER(4, 1) || (defined __has_builtin && __has_builtin(__sync_lock_test_and_set)))
+#   define __ATOMIC_SWAP(x, y)  __sync_lock_test_and_set(x, y)
+# elif _HAS_ATTRIBUTE(error)
+    static void *__ATOMIC_SWAP(void *x, void *y) _ERROR("Compiler does not support atomic swap");
+# else
+#   error "No atomic swap available"
+# endif
+  /* An atomic setting operation. */
+# if ((defined __has_builtin && __has_builtin(__atomic_store_n)) || _GNUC_VER(4, 7))
+#   define __ATOMIC_STORE(x, y)  __atomic_store_n(x, y, __ATOMIC_SEQ_CST)
+# elif ((defined __has_builtin && __has_builtin(__sync_lock_test_and_set)) || _GNUC_VER(4, 1))
+#   define __ATOMIC_STORE(x, y)  ((void)__sync_lock_test_and_set(x, y))
+# else
+#   error "No atomic store available"
+# endif
+  /* An atomic fetch operation (load with full barrier). */
+# if ((defined __has_builtin && __has_builtin(__atomic_load_n)) || _GNUC_VER(4, 7))
+#   define __ATOMIC_FETCH(x)  __atomic_load_n(x, __ATOMIC_SEQ_CST)
+# elif ((defined __has_builtin && __has_builtin(__sync_fetch_and_or)) || _GNUC_VER(4, 1))
+  /* Read-only fetch using fetch-and-OR with zero */
+#   define __ATOMIC_FETCH(x)  __sync_fetch_and_or(x, 0)
+# elif _HAS_ATTRIBUTE(error)
+    static void *__ATOMIC_FETCH(void *x) _ERROR("Compiler does not support atomic fetch");
+# else
+#   error "No atomic fetch available"
+# endif
+  /* An atomic compare-and-swap (CAS) operation. */
+# if ((defined __has_builtin && __has_builtin(__atomic_compare_exchange_n)) || _GNUC_VER(4, 7))
+#   define __ATOMIC_CAS(ptr, expected, desired) \
+    __atomic_compare_exchange_n(ptr, expected, desired, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)
+# elif _HAS_ATTRIBUTE(error)
+    static int __ATOMIC_CAS(void *ptr, void *expected, void *desired) _ERROR("Compiler does not support atomic compare-and-swap");
+# else
+#   error "No atomic compare-and-swap available"
+# endif
 #endif

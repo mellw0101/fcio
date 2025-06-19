@@ -235,6 +235,7 @@ static void hashmap_insert_unlocked(HashMap *const map, const char *const restri
   index = (hash & (map->cap - 1));
   node  = map->buckets[index];
   while (node) {
+    PREFETCH(node->next);
     if (strcmp(node->key, key) == 0) {
       /* If there is a free function set, then use it to free the value before overwriting it. */
       CALL_IF_VALID(map->free_value, node->value);
@@ -290,6 +291,7 @@ static void *hashmap_get_unlocked(HashMap *const map, const char *key) {
   Ulong index=(hash_djb2(key) & (map->cap - 1));
   HashNode *node = map->buckets[index];
   while (node) {
+    PREFETCH(node->next);
     if (strcmp(node->key, key) == 0) {
       return node->value;
     }
@@ -505,6 +507,7 @@ static void hashmapnum_insert_unlocked(HashMapNum *const map, Ulong key, void *v
   index = (key & (map->cap - 1));
   node  = map->buckets[index];
   while (node) {
+    PREFETCH(node->next);
     if (node->key == key) {
       /* If there is a free function set, then use it to free the value before overwriting it. */
       CALL_IF_VALID(map->free_value, node->value);
@@ -531,6 +534,7 @@ static HashNodeNum *hashmapnum_get_node_unlocked(HashMapNum *const map, Ulong ke
   Ulong index = (key & (map->cap - 1));
   HashNodeNum *node = map->buckets[index];
   while (node) {
+    PREFETCH(node->next);
     if (node->key == key) {
       return node;
     }
@@ -547,6 +551,7 @@ static void *hashmapnum_get_unlocked(HashMapNum *const map, Ulong key) {
   Ulong index = (key & (map->cap - 1));
   HashNodeNum *node = map->buckets[index];
   while (node) {
+    PREFETCH(node->next);
     if (node->key == key) {
       return node->value;
     }
@@ -579,6 +584,7 @@ void hashmapnum_free(HashMapNum *const map) {
   HASHMAPNUM_MUTEX_ACTION(
     HASHMAPNUM_ITER(map, i, node,
       while (node) {
+        PREFETCH(node->next);
         next = node->next;
         hashmapnum_free_node(map, node);
         node = next;
@@ -597,6 +603,7 @@ void hashmapnum_free_void_ptr(void *arg) {
   HashNodeNum *next;
   HASHMAPNUM_MUTEX_ACTION(
     HASHMAPNUM_ITER(map, i, node,
+      PREFETCH(node->next);
       while (node) {
         next = node->next;
         hashmapnum_free_node(map, node);

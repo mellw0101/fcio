@@ -178,11 +178,31 @@
 #ifdef ATOMIC_SWAP
 # undef ATOMIC_SWAP
 #endif
+#ifdef ATOMIC_STORE
+# undef ATOMIC_STORE
+#endif
 
-#define ATOMIC_SWAP(x, y)                         \
-  DO_WHILE(                                       \
-    __ATOMIC_SWAP(&(y), __ATOMIC_SWAP(&(x), y));  \
-  )
+#ifndef NO_ATOMIC_OPERATIONS
+  /* Swap */
+# define ATOMIC_SWAP(x, y)                          \
+    DO_WHILE(                                       \
+      __ATOMIC_SWAP(&(y), __ATOMIC_SWAP(&(x), y));  \
+    )
+
+  /* Store */
+# define ATOMIC_STORE(x, value)     \
+    DO_WHILE(                       \
+      __ATOMIC_STORE(&(x), value);  \
+    )
+    
+  /* Fetch */
+# define ATOMIC_FETCH(x)  \
+    __ATOMIC_FETCH(&(x))
+
+  /* Compare-and-swap (CAS) */
+# define ATOMIC_CAS(x, expected, disired)  \
+    __ATOMIC_CAS(&(x), &(expected), disired)
+#endif
 
 /* ----------------------------- Safe compare helper's ----------------------------- */
 
@@ -1021,6 +1041,15 @@
     else if (!(to_prev) && (ptr)->next) {                  \
       DLIST_ATOMIC_SWAP_FIELD_NEXT(ptr, field);            \
     }                                                      \
+  )
+
+/* ----------------------------- Single linked list helper's ----------------------------- */
+
+#define LIST_ATOMIC_PREEND(x, head)          \
+  DO_WHILE(                                  \
+    do {                                     \
+      x->next = ATOMIC_FETCH(head);          \
+    } while (!ATOMIC_CAS(head, x->next, x));  \
   )
 
 /* ----------------------------- Struct helper define's ----------------------------- */
