@@ -55,6 +55,9 @@
 #ifdef _UNUSED
 # undef _UNUSED
 #endif
+#ifdef __ATOMIC_SWAP
+# undef __ATOMIC_SWAP
+#endif
 
 #ifdef __cplusplus
 # define _BEGIN_C_LINKAGE  extern "C" {
