@@ -978,6 +978,12 @@
 #define DLIST_ADV_NEXT(ptr)  CLIST_ADV_NEXT(ptr)
 #define DLIST_ADV_PREV(ptr)  CLIST_ADV_PREV(ptr)
 
+#define DLIST_ATOMIC_ADV_NEXT(x)               \
+  do {                                         \
+    __TYPE(x) old  = ATOMIC_FETCH(x);          \
+    __TYPE(x) next = ATOMIC_FETCH(old->next);  \
+  } while (!ATOMIC_CAS(x, old, next));
+
 #define DLIST_UNLINK(ptr)               \
   DO_WHILE(                             \
     if ((ptr)->prev) {                  \
