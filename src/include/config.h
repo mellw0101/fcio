@@ -304,4 +304,6 @@
 # define __ATOMIC_SWAP(x, y)  __sync_swap(x, y)
 #elif (_GNUC_VER(4, 7) || (defined _HAS_BUILTIN && __has_builtin(__atomic_exchange_n)))
 # define __ATOMIC_SWAP(x, y)  __atomic_exchange_n(x, y, __ATOMIC_SEQ_CST)
+#else
+  static void *__ATOMIC_SWAP(void *x, void *y) _ERROR("Compiler does not support atomic swap");
 #endif

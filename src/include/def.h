@@ -161,13 +161,6 @@
   /* Can be used instead of __attribute__((__unused__)) for a function argument. */ \
   ((void)(x))
 
-#ifdef __ATOMIC_SWAP
-# define ATOMIC_SWAP(x, y)                          \
-    DO_WHILE(                                       \
-      __ATOMIC_SWAP(&(y), __ATOMIC_SWAP(&(x), y));  \
-    )
-#endif
-
 #define SWAP(x, y)                              \
   /* Swap `x` and `y`.  Note that the           \
    * temporary ptr will use the type of `x`.    \
@@ -178,6 +171,17 @@
     __TYPE(x) __tmp = (x);                      \
     (x) = (y);                                  \
     (y) = __tmp;                                \
+  )
+
+/* ----------------------------- Atomic operation helper's ----------------------------- */
+
+#ifdef ATOMIC_SWAP
+# undef ATOMIC_SWAP
+#endif
+
+#define ATOMIC_SWAP(x, y)                         \
+  DO_WHILE(                                       \
+    __ATOMIC_SWAP(&(y), __ATOMIC_SWAP(&(x), y));  \
   )
 
 /* ----------------------------- Safe compare helper's ----------------------------- */
@@ -948,6 +952,9 @@
 
 #define DLIST_SWAP_FIELD_NEXT(ptr, field)  SWAP((ptr)->next->field, (ptr)->field)
 #define DLIST_SWAP_FIELD_PREV(ptr, field)  SWAP((ptr)->prev->field, (ptr)->field)
+
+#define DLIST_ATOMIC_SWAP_FIELD_NEXT(ptr, field)  ATOMIC_SWAP((ptr)->next->field, (ptr)->field)
+#define DLIST_ATOMIC_SWAP_FIELD_PREV(ptr, field)  ATOMIC_SWAP((ptr)->prev->field, (ptr)->field)
 
 /* ----------------------------- Struct helper define's ----------------------------- */
 
