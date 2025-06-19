@@ -161,21 +161,24 @@
   /* Can be used instead of __attribute__((__unused__)) for a function argument. */ \
   ((void)(x))
 
-#if _CLANG_VER(15, 0)
-# define SWAP(x, y)                             \
-    DO_WHILE(                                   \
-      __sync_swap(&(y), __sync_swap(&(x), y));  \
-    )
-#else
-# define SWAP(x, y)                                \
-    /* Swap `x` and `y`.  Note that the            \
-     * temporary ptr will use the type of `x`. */  \
-    DO_WHILE(                                      \
-      __TYPE(x) __tmp = (x);                       \
-      (x) = (y);                                   \
-      (y) = __tmp;                                 \
+#ifdef __ATOMIC_SWAP
+# define ATOMIC_SWAP(x, y)                          \
+    DO_WHILE(                                       \
+      __ATOMIC_SWAP(&(y), __ATOMIC_SWAP(&(x), y));  \
     )
 #endif
+
+#define SWAP(x, y)                              \
+  /* Swap `x` and `y`.  Note that the           \
+   * temporary ptr will use the type of `x`.    \
+   * Also note that this is not atomic, and     \
+   * `ATOMIC_SWAP()` should be used to perform  \
+   * a fully atomic swap. */                    \
+  DO_WHILE(                                     \
+    __TYPE(x) __tmp = (x);                      \
+    (x) = (y);                                  \
+    (y) = __tmp;                                \
+  )
 
 /* ----------------------------- Safe compare helper's ----------------------------- */
 
