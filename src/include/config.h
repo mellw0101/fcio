@@ -300,10 +300,15 @@
 # define DUMP_STRUCT(...)  ((void)0)
 #endif
 
+/* Define an atomic swap that should be compatible on almost all hardware. */
 #if (defined _HAS_BUILTIN && __has_builtin(__sync_swap))
 # define __ATOMIC_SWAP(x, y)  __sync_swap(x, y)
 #elif (_GNUC_VER(4, 7) || (defined _HAS_BUILTIN && __has_builtin(__atomic_exchange_n)))
 # define __ATOMIC_SWAP(x, y)  __atomic_exchange_n(x, y, __ATOMIC_SEQ_CST)
-#else
+#elif (_GNUC_VER(4, 1) || (defined _HAS_BUILTIN && __has_builtin(__sync_lock_test_and_set)))
+# define __ATOMIC_SWAP(x, y)  __sync_lock_test_and_set(x, y)
+#elif _HAS_ATTRIBUTE(error)
   static void *__ATOMIC_SWAP(void *x, void *y) _ERROR("Compiler does not support atomic swap");
+#else
+# error "No atomic swap available"
 #endif

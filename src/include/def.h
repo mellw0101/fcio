@@ -864,7 +864,18 @@
 #ifdef DLIST_ATOMIC_SWAP_FIELD_PREV
 # undef DLIST_ATOMIC_SWAP_FIELD_PREV
 #endif
-
+#ifdef DLIST_SWAP_FIELD
+# undef DLIST_SWAP_FIELD
+#endif
+#ifdef DLIST_SAFE_SWAP_FIELD
+# undef DLIST_SAFE_SWAP_FIELD
+#endif
+#ifdef DLIST_ATOMIC_SWAP_FIELD
+# undef DLIST_ATOMIC_SWAP_FIELD
+#endif
+#ifdef DLIST_SAFE_ATOMIC_SWAP_FIELD
+# undef DLIST_SAFE_ATOMIC_SWAP_FIELD
+#endif
 
 #define DLIST_FOR_NEXT(start, name)                                                  \
   /* Iterate over a double linked list starting at `start` and iterating using       \
