@@ -957,11 +957,60 @@
     }                                   \
   )
 
-#define DLIST_SWAP_FIELD_NEXT(ptr, field)  SWAP((ptr)->next->field, (ptr)->field)
-#define DLIST_SWAP_FIELD_PREV(ptr, field)  SWAP((ptr)->prev->field, (ptr)->field)
-
+#define DLIST_SWAP_FIELD_NEXT(ptr, field)         SWAP((ptr)->next->field, (ptr)->field)
+#define DLIST_SWAP_FIELD_PREV(ptr, field)         SWAP((ptr)->prev->field, (ptr)->field)
 #define DLIST_ATOMIC_SWAP_FIELD_NEXT(ptr, field)  ATOMIC_SWAP((ptr)->next->field, (ptr)->field)
 #define DLIST_ATOMIC_SWAP_FIELD_PREV(ptr, field)  ATOMIC_SWAP((ptr)->prev->field, (ptr)->field)
+
+#define DLIST_SWAP_FIELD(ptr, field, to_prev)        \
+  /* Perform a `non-atomic` swap of `field` between  \
+   * `ptr` and either `ptr`->next or `ptr->prev`.    \
+   * Note that this does no bounds or validity       \
+   * checking, see `DLIST_SAFE_SWAP_FIELD()`. */     \
+  DO_WHILE(                                          \
+    if (to_prev) {                                   \
+      DLIST_SWAP_FIELD_PREV(ptr, field);             \
+    }                                                \
+    else {                                           \
+      DLIST_SWAP_FIELD_NEXT(ptr, field);             \
+    }                                                \
+  )
+
+#define DLIST_SAFE_SWAP_FIELD(ptr, field, to_prev)   \
+  /* Perform a `non-atomic` swap of `field` between  \
+   * `ptr` and either `ptr`->next or `ptr->prev`.    \
+   * Note that this does full bounds and validity    \
+   * checking, see `DLIST_SWAP_FIELD()`. */          \
+  DO_WHILE(                                          \
+    ASSERT(ptr);                                     \
+    if ((to_prev) && (ptr)->prev) {                  \
+      DLIST_SWAP_FIELD_PREV(ptr, field);             \
+    }                                                \
+    else if (!(to_prev) && (ptr)->next) {            \
+      DLIST_SWAP_FIELD_NEXT(ptr, field);             \
+    }                                                \
+  )
+
+#define DLIST_ATOMIC_SWAP_FIELD(ptr, field, to_prev)  \
+  DO_WHILE(                                           \
+    if (to_prev) {                                    \
+      DLIST_ATOMIC_SWAP_FIELD_PREV(ptr, field);       \
+    }                                                 \
+    else {                                            \
+      DLIST_ATOMIC_SWAP_FIELD_NEXT(ptr, field);       \
+    }                                                 \
+  )
+
+#define DLIST_SAFE_ATOMIC_SWAP_FIELD(ptr, field, to_prev)  \
+  DO_WHILE(                                                \
+    ASSERT(ptr);                                           \
+    if ((to_prev) && (ptr)->prev) {                        \
+      DLIST_ATOMIC_SWAP_FIELD_PREV(ptr, field);            \
+    }                                                      \
+    else if (!(to_prev) && (ptr)->next) {                  \
+      DLIST_ATOMIC_SWAP_FIELD_NEXT(ptr, field);            \
+    }                                                      \
+  )
 
 /* ----------------------------- Struct helper define's ----------------------------- */
 
