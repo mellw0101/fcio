@@ -233,20 +233,20 @@
 
 #define IS_SIGNED(x)  ((__TYPE(x))-1 < (__TYPE(x))0)
 
-#define SAFE_MIXED_SIGN_OP(x, y, op)                  \
-  ((IS_SIGNED(x) == IS_SIGNED(y))                     \
-    ? ((x) op (y))                                    \
-    : IS_SIGNED(x)                                    \
-      ? ((x) < 0 || ((__TYPE(y))(x)) op (y))          \
-      : (((y) < 0) ? 0 : ((x) op ((__TYPE(x))(y)))))
+#define SAFE_MIXED_SIGN_OP(x, y, op, x_under, y_under)    \
+  ((IS_SIGNED(x) == IS_SIGNED(y))                                 \
+    ? ((x) op (y))                                                \
+    : IS_SIGNED(x)                                                \
+      ? (((x) < 0) ? x_under : ((__TYPE(y))(x)) op (y))     \
+      : (((y) < 0) ? y_under : ((x) op ((__TYPE(x))(y)))))
 
 /* Safe comparison shorthands, always upconverting y to the type of (x op y). */
-#define LT(x, y)  SAFE_MIXED_SIGN_OP(x, y, <)
-#define GT(x, y)  SAFE_MIXED_SIGN_OP(x, y, >)
-#define LE(x, y)  SAFE_MIXED_SIGN_OP(x, y, <=)
-#define GE(x, y)  SAFE_MIXED_SIGN_OP(x, y, >=)
-#define EQ(x, y)  SAFE_MIXED_SIGN_OP(x, y, ==)
-#define NE(x, y)  SAFE_MIXED_SIGN_OP(x, y, !=)
+#define LT(x, y)  SAFE_MIXED_SIGN_OP(x, y, <,  TRUE,  FALSE)
+#define GT(x, y)  SAFE_MIXED_SIGN_OP(x, y, >,  FALSE, TRUE)
+#define LE(x, y)  SAFE_MIXED_SIGN_OP(x, y, <=, TRUE,  FALSE)
+#define GE(x, y)  SAFE_MIXED_SIGN_OP(x, y, >=, FALSE, TRUE)
+#define EQ(x, y)  SAFE_MIXED_SIGN_OP(x, y, ==, FALSE, FALSE)
+#define NE(x, y)  SAFE_MIXED_SIGN_OP(x, y, !=, TRUE,  TRUE)
 
 /* ----------------------------- String helper's ----------------------------- */
 
