@@ -94,6 +94,12 @@
 # define _CLANG_VER(maj, min)  0
 #endif
 
+#if (defined(__clang__) || _GNUC_VER(2, 5))
+# define _HAVE_GNU_EXTENSION  1
+#else
+# define _HAVE_GNU_EXTENSION  0
+#endif
+
 /* Define _HAS_ATTRIBUTE only once, because on FreeBSD, with gcc < 5, if <config.h> gets
  * included once again after <sys/cdefs.h>, __has_attribute(x) expands to 0 always,
  * and redefining _HAS_ATTRIBUTE would turn off all attributes.  */
