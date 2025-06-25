@@ -387,6 +387,13 @@
 
 #define round_short(x)  ((x) >= 0 ? (short)((x) + 0.5) : (short)((x) - 0.5))
 
+#define SAFE_CLAMP(x, min, max)                                            \
+  DO_WHILE(                                                                \
+    __TYPE(min) __min = (min);                                             \
+    __TYPE(max) __max = (max);                                             \
+    GT(x, __max) ? (x = __max) : (LT(x, __min) ? (x = __min) : ((int)0));  \
+  )
+
 /* Ensure `x` cannot be more then `max`. */
 #define CLAMP_MAX(x, max)  (((x) > (__TYPE_SAME(x, max))(max)) ? ((x) = (__TYPE_SAME(x, max))(max)) : ((int)0))
 
@@ -400,10 +407,10 @@
 #define CLAMP_MAX_INLINE(x, max) (((x) > (__TYPE(x))(max)) ? (__TYPE(x))(max) : (x))
 
 #define CLAMP_INLINE(x, min, max)  \
-  /* Clamp x as an expression and not as an assignment, meaning this                                 \
-   * will never ever change `x` just ensure that the value from this                                 \
-   * expression can never be more then max and never less then min */                                \
-  (((x) > (__TYPE(x))(max)) ? (__TYPE(x))(max) : ((x) < (__TYPE(x))(min)) ? (__TYPE(x))(min) : (x))
+  /* Clamp x as an expression and not as an assignment, meaning this           \
+   * will never ever change `x` just ensure that the value from this           \
+   * expression can never be more then max and never less then min */          \
+  (GT(x, max) ? ((__TYPE(x))(max)) : (LT(x, min) ? ((__TYPE(x))(min)) : (x)))
 
 /* ----------------------------- xterm ----------------------------- */
 
