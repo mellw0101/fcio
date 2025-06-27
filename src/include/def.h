@@ -85,6 +85,9 @@
 #ifdef SWAP
 # undef SWAP
 #endif
+#ifdef PASS_IF_VALID
+# undef PASS_IF_VALID
+#endif
 
 /* Perform actions protected from accidental missuse. */
 #define DO_WHILE(...)                do {__VA_ARGS__} while (0)
@@ -172,6 +175,10 @@
     (x) = (y);                                  \
     (y) = __tmp;                                \
   )
+
+#define PASS_IF_VALID(x, y) \
+  /* Pass `x` if it's valid, otherwise, pass `y`. */ \
+  ((x) ? (x) : (y))
 
 /* ----------------------------- Atomic operation helper's ----------------------------- */
 
@@ -847,10 +854,10 @@
 # undef DLIST_FOR_PREV
 #endif
 #ifdef DLIST_FOR_NEXT_END
-# undef DLIST_ND_FOR_NEXT_END
+# undef DLIST_FOR_NEXT_END
 #endif
 #ifdef DLIST_FOR_PREV_END
-# undef DLIST_ND_FOR_NEXT_END
+# undef DLIST_FOR_PREV_END
 #endif
 #ifdef DLIST_ND_FOR_NEXT
 # undef DLIST_ND_FOR_NEXT
@@ -862,7 +869,7 @@
 # undef DLIST_ND_FOR_NEXT_END
 #endif
 #ifdef DLIST_ND_FOR_PREV_END
-# undef DLIST_ND_FOR_NEXT_END
+# undef DLIST_ND_FOR_PREV_END
 #endif
 #ifdef DLIST_INSERT_AFTER
 # undef DLIST_INSERT_AFTER
