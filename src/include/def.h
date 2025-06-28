@@ -88,6 +88,9 @@
 #ifdef PASS_IF_VALID
 # undef PASS_IF_VALID
 #endif
+#ifdef PASS_FIELD_IF_VALID
+# undef PASS_FIELD_IF_VALID
+#endif
 
 /* Perform actions protected from accidental missuse. */
 #define DO_WHILE(...)                do {__VA_ARGS__} while (0)
@@ -176,9 +179,14 @@
     (y) = __tmp;                                \
   )
 
-#define PASS_IF_VALID(x, y) \
-  /* Pass `x` if it's valid, otherwise, pass `y`. */ \
+#define PASS_IF_VALID(x, y)   \
+  /* Pass `x` if it's valid,  \
+   * otherwise, pass `y`. */  \
   ((x) ? (x) : (y))
+
+#define PASS_FIELD_IF_VALID(x, field, y)                       \
+  /* If `x` is valid, pass `x->field`.  Otherwize pass `y` */  \
+  ((x) ? (x)->field : (y))
 
 /* ----------------------------- Atomic operation helper's ----------------------------- */
 
