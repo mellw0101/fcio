@@ -185,7 +185,9 @@ int directory_get_recurse(const char *const restrict path, directory_t *const ou
   return 0;
 }
 
+
 /* ---------------------------------------------------------- Test's ---------------------------------------------------------- */
+
 
 void test_directory_t(const char *const dirpath) {
   ASSERT(dirpath);

@@ -228,8 +228,7 @@ char *fmtstrncat(char *restrict dst, Ulong dstlen, const char *const restrict fo
   va_start(ap, format);
   src = valstr(format, ap, &srclen);
   va_end(ap);
-  dst = xnstrncat(dst, dstlen, src, srclen);
-  free(src);
+  dst = free_and_assign(src, xnstrncat(dst, dstlen, src, srclen));
   return dst;
 }
 
@@ -243,8 +242,7 @@ char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) {
   va_start(ap, format);
   src = valstr(format, ap, &srclen);
   va_end(ap);
-  dst = xstrncat(dst, src, srclen);
-  free(src);
+  dst = free_and_assign(src, xstrncat(dst, src, srclen));
   return dst;
 }
 
