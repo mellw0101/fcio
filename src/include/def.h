@@ -91,6 +91,9 @@
 #ifdef PASS_FIELD_IF_VALID
 # undef PASS_FIELD_IF_VALID
 #endif
+#ifdef PASS_IF_NON_NEG
+# undef PASS_IF_NON_NEG
+#endif
 
 /* Perform actions protected from accidental missuse. */
 #define DO_WHILE(...)                do {__VA_ARGS__} while (0)
@@ -178,6 +181,11 @@
     (x) = (y);                                  \
     (y) = __tmp;                                \
   )
+
+#define PASS_IF_NON_NEG(x, y)         \
+  /* Pass `x` if it's a non-negative  \
+   * value.  Otherwise, pass `y`. */  \
+  (((x) < 0) ? (y) : (x))
 
 #define PASS_IF_VALID(x, y)   \
   /* Pass `x` if it's valid,  \
