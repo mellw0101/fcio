@@ -748,6 +748,49 @@
 
 /* ----------------------------- ASCII ----------------------------- */
 
+#ifdef NUL
+# undef NUL
+#endif
+#ifdef ETX
+# undef ETX
+#endif
+#ifdef EOT
+# undef EOT
+#endif
+#ifdef BEL
+# undef BEL
+#endif
+#ifdef BS
+# undef BS
+#endif
+#ifdef TAB
+# undef TAB
+#endif
+#ifdef LF
+# undef LF
+#endif
+#ifdef FF
+# undef FF
+#endif
+#ifdef CR
+# undef CR
+#endif
+#ifdef XON
+# undef XON
+#endif
+#ifdef XOFF
+# undef XOFF
+#endif
+#ifdef CAN
+# undef CAN
+#endif
+#ifdef SUB
+# undef SUB
+#endif
+#ifdef SP
+# undef SP
+#endif
+
 #ifdef ASCII_ISDIGIT
 # undef ASCII_ISDIGIT
 #endif
@@ -761,7 +804,7 @@
 # undef ASCII_ISUPPER
 #endif
 #ifdef ASCII_ISLOWER
-# undef ASCII_TOLOWER
+# undef ASCII_ISLOWER
 #endif
 #ifdef ASCII_ISALPHA
 # undef ASCII_ISALPHA
@@ -776,9 +819,66 @@
 # undef ASCII_CTRL
 #endif
 
+#define NUL                                  \
+  /* The hex char value of a c-string null.  \
+   * (0x00 == '\000' == '\0' == 0). */       \
+  0x00
+#define ETX                                 \
+  /* The hex value for a end-of-text (^C).  \
+   * (0x03 == '\003' == ^c == 3). */        \
+  ASCII_CTRL('c')
+#define EOT                                  \
+  /* The hex value for a end-of-input (^D).  \
+   * (0x04 == '\004' == ^d == 4). */         \
+  ASCII_CTRL('d')
+#define BEL                              \
+  /* The hex char value of a bell code.  \
+   * (0x07 == '\007' == 7). */           \
+  0x07
+#define BS                               \
+  /* The hex char value of a backspace.  \
+   * (0x08 == '\010' == '\b' == 8). */   \
+  0x08
+#define TAB                              \
+  /* The hex char value of a tabulator.  \
+   * (0x09 == '\011' == '\t' == 9). */   \
+  0x09
+#define LF                               \
+  /* The hex char value of a new-line.   \
+   * (0x0A == '\012' == '\n' == 10). */  \
+  0x0A
+#define FF                               \
+  /* The hex char value of a form-feed.  \
+   * (0x0C == '\014' == '\f' == 12). */  \
+  0x0C
+#define CR                                     \
+  /* The hex char value of a carriage-return.  \
+   * (0x0D == '\015' == '\r' == 13) */         \
+  0x0D
+#define XON                                     \
+  /* The hex value for a flow-control-on (^Q).  \
+   * (0x11 == '\021' == ^q == 17). */           \
+  ASCII_CTRL('q')
+#define XOFF                                     \
+  /* The hex value for a flow-control-off (^S).  \
+   * (0x13 == '\023' == ^s == 19). */            \
+  ASCII_CTRL('s')
+#define CAN                            \
+  /* The hex value for a cancel (^X).  \
+   * (0x18 == '\030' == ^x == 24). */  \
+  ASCII_CTRL('x')
+#define SUB                             \
+  /* The hex value for a suspend (^Z).  \
+   * (0x1A == '\032' == ^z == 26). */   \
+  ASCII_CTRL('z')
+#define SP                              \
+  /* The hex char value for a space.    \
+   * (0x20 == '\040' == ' ' == 32). */  \
+  0x20
+
 #define ASCII_ISDIGIT(c)  ((c) >= '0' && (c) <= '9')
-#define ASCII_TOUPPER(c)  (((c) < 'a' || (c) > 'z') ? (c) : ((c) - 'A'))
-#define ASCII_TOLOWER(c)  (((c) < 'A' || (c) > 'Z') ? (c) : ((c) + 'a'))
+#define ASCII_TOUPPER(c)  (((c) < 'a' || (c) > 'z') ? (c) : ((c) - ('a' - 'A')))
+#define ASCII_TOLOWER(c)  (((c) < 'A' || (c) > 'Z') ? (c) : ((c) + ('a' - 'A')))
 #define ASCII_ISUPPER(c)  ((Uint)(c) >= 'A' && (Uint)(c) <= 'Z')
 #define ASCII_ISLOWER(c)  ((Uint)(c) >= 'a' && (Uint)(c) <= 'z')
 #define ASCII_ISALPHA(c)  (ASCII_ISUPPER(c) || ASCII_ISLOWER(c))
