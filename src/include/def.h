@@ -883,7 +883,7 @@
 #define ASCII_ISLOWER(c)  ((Uint)(c) >= 'a' && (Uint)(c) <= 'z')
 #define ASCII_ISALPHA(c)  (ASCII_ISUPPER(c) || ASCII_ISLOWER(c))
 #define ASCII_ISALNUM(c)  (ASCII_ISALPHA(c) || ASCII_ISDIGIT(c))
-#define ASCII_ISWHITE(c)  ((c) == ' ' || (c) == '\t')
+#define ASCII_ISWHITE(c)  ((c) == SP || (c) == TAB)
 #define ASCII_CTRL(c)     ((c)&037)
 
 /* ----------------------------- 'dirs.c' Define's ----------------------------- */
