@@ -38,6 +38,8 @@ char *valstr(const char *const restrict format, va_list ap, int *const outlen) {
   return ret;
 }
 
+/* ----------------------------- Strtonum ----------------------------- */
+
 /* Get a integer representation of `string`. */
 long strtonum(const char *const restrict string) {
   ASSERT(string);
@@ -54,6 +56,8 @@ long strtonum(const char *const restrict string) {
   return ret;
 }
 
+/* ----------------------------- Parse num ----------------------------- */
+
 /* Parse a number from a string. */
 bool parse_num(const char *const restrict string, long *const result) {
   long value;
@@ -67,6 +71,8 @@ bool parse_num(const char *const restrict string, long *const result) {
   *result = value;
   return TRUE;
 }
+
+/* ----------------------------- Free and assign ----------------------------- */
 
 /* Free the string at `dest` and return the string at `src`. */
 char *free_and_assign(char *dest, char *src) {
