@@ -232,10 +232,24 @@
 # define PREFETCH(...)  ((void)0)
 #endif
 
+/* Memory builtin shorthands */
+
 #if _HAS_BUILTIN(memcpy)
 # define MEMCPY(dst, src, n)  __builtin_memcpy((dst), (src), (n))
 #else
 # define MEMCPY(dst, src, n)  memcpy((dst), (src), (n))
+#endif
+
+#if _HAS_BUILTIN(memmove)
+# define MEMMOVE(dst, src, n)  __builtin_memmove((dst), (src), (n))
+#else
+# define MEMMOVE(dst, src, n)  memmove((dst), (src), (n))
+#endif
+
+#if _HAS_BUILTIN(memcmp)
+# define MEMCMP(dst, src, n)  __builtin_memcmp((dst), (src), (n))
+#else
+# define MEMCMP(dst, src, n)  memcmp((dst), (src), (n))
 #endif
 
 #if _HAS_BUILTIN(constant_p)
