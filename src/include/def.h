@@ -367,8 +367,17 @@
 #ifdef wchar
 # undef wchar
 #endif
+#ifdef Wchar
+# undef Wchar
+#endif
+#ifdef Wint
+# undef Wint
+#endif
 
 #define wchar  wchar_t
+
+#define Wchar  wchar_t
+#define Wint   wint_t
 
 /* ----------------------------- Constant's ----------------------------- */
 
