@@ -11,7 +11,7 @@
 char *measured_copy(const char *const restrict string, Ulong len) {
   ASSERT(string);
   char *ret = xmalloc(len + 1);
-  memcpy(ret, string, len);
+  MEMCPY(ret, string, len);
   ret[len] = '\0';
   return ret;
 }
@@ -167,7 +167,7 @@ void chararray_append(char ***array, Ulong *const len, char **append, Ulong appe
   /* Reallocate the array ptr so that it can hold the new total length plus a `NULL-TERMINATOR`. */
   *array = xrealloc(*array, (_PTRSIZE * (new_len + 1)));
   /* Append all entries. */
-  memcpy(((*array) + (*len)), append, (_PTRSIZE * append_len));
+  MEMCPY(((*array) + (*len)), append, (_PTRSIZE * append_len));
   /* Set the len ptr to the new total length. */
   *len = new_len;
   /* `NULL-TERMINATE` the array. */
@@ -183,7 +183,7 @@ void chararray_erase(char **const array, Ulong *len, Ulong idx) {
   free(*(array + idx));
   /* When the erased entry was not the last, move the remaining entries in the array. */
   if (idx != (*len - 1)) {
-    memmove((array + idx), (array + (idx + 1)), (_PTRSIZE * ((*len) - idx)));
+    MEMMOVE((array + idx), (array + (idx + 1)), (_PTRSIZE * ((*len) - idx)));
   }
   /* Remove one from length so it accuretly reflects the new length of the array. */
   *len -= 1;
@@ -259,7 +259,7 @@ char *xnstrncat_norealloc(char *restrict dst, Ulong dstlen, const char *const re
   ASSERT(dst);
   ASSERT(src);
   /* Append src to dst. */
-  memcpy((dst + dstlen), src, srclen);
+  MEMCPY((dst + dstlen), src, srclen);
   /* Null terminate the string. */
   dst[dstlen + srclen] = '\0';
   /* Then return dst. */
@@ -290,7 +290,7 @@ char *xnstrncat(char *restrict dst, Ulong dstlen, const char *const restrict src
   /* Reallocate dst to fit all of the text plus a NULL-TERMINATOR. */
   dst = xrealloc(dst, (dstlen + srclen + 1));
   /* Append src to dst. */
-  memcpy((dst + dstlen), src, srclen);
+  MEMCPY((dst + dstlen), src, srclen);
   /* Null terminate the string. */
   dst[dstlen + srclen] = '\0';
   /* Then return dst. */
@@ -321,9 +321,9 @@ char *xnstrninj_norealloc(char *restrict dst, Ulong dstlen, const char *const re
   /* Always assert that idx is valid. */
   ALWAYS_ASSERT(idx <= dstlen);
   /* First move the data at idx by srclen. */
-  memmove((dst + idx + srclen), (dst + idx), (dstlen - idx));
+  MEMMOVE((dst + idx + srclen), (dst + idx), (dstlen - idx));
   /* Then copy src into dst at idx. */
-  memcpy((dst + idx), src, srclen);
+  MEMCPY((dst + idx), src, srclen);
   /* Explicitly set the `null-terminator`, this way it does not matter if `dstlen` is the full length of `dst`. */
   dst[dstlen + srclen] = '\0';
   return dst;
@@ -355,9 +355,9 @@ char *xnstrninj(char *restrict dst, Ulong dstlen, const char *const restrict src
   /* Reallocate dst to fit src and a NULL-TERMINATOR. */
   dst = xrealloc(dst, (dstlen + srclen + 1));
   /* First move the data at idx by srclen. */
-  memmove((dst + idx + srclen), (dst + idx), (dstlen - idx));
+  MEMMOVE((dst + idx + srclen), (dst + idx), (dstlen - idx));
   /* Then copy src into dst at idx. */
-  memcpy((dst + idx), src, srclen);
+  MEMCPY((dst + idx), src, srclen);
   /* Explicitly set the `null-terminator`, this way it does not matter if `dstlen` is the full length of `dst`. */
   dst[dstlen + srclen] = '\0';
   return dst;
@@ -385,7 +385,7 @@ char *xstrn_erase_norealloc(char *restrict dst, Ulong dstlen, Ulong index, Ulong
   ASSERT(dst);
   ALWAYS_ASSERT((index + len) <= dstlen);
   /* Move data from `index + len` to `index` in `dst`. */
-  memmove((dst + index), (dst + index + len), (dstlen - index - len));
+  MEMMOVE((dst + index), (dst + index + len), (dstlen - index - len));
   /* Then explicitly `null-terminate` `dst`. */
   dst[dstlen - len] = '\0';
   return dst;
@@ -403,7 +403,7 @@ char *xstrn_erase(char *restrict dst, Ulong dstlen, Ulong index, Ulong len) {
   ASSERT(dst);
   ALWAYS_ASSERT((index + len) <= dstlen);
   /* Move data from `index + len` to `index` in `dst`. */
-  memmove((dst + index), (dst + index + len), (dstlen - index - len));
+  MEMMOVE((dst + index), (dst + index + len), (dstlen - index - len));
   /* Reallocate `dst` to fit just the new length plus a `null-terminator.` */
   dst = xrealloc(dst, (dstlen - len + 1));
   /* Then explicitly `null-terminate` `dst`. */
@@ -425,7 +425,7 @@ char *xstrncpy(char *restrict dst, const char *const restrict src, Ulong n) {
   /* Reallocate dst so that n bytes plus a null-terminator fits. */
   dst = xrealloc(dst, (n + 1));
   /* Perform the copy. */
-  memcpy(dst, src, n);
+  MEMCPY(dst, src, n);
   /* Always null-terminate the string, this ensures usiform behavior. */
   dst[n] = '\0';
   return dst;
