@@ -252,18 +252,21 @@
 # define MEMCMP(dst, src, n)  memcmp((dst), (src), (n))
 #endif
 
+/* Malloc */
 #if _HAS_BUILTIN(malloc)
 # define MALLOC(size)  __builtin_malloc(size)
 #else
 # define MALLOC(size)  malloc(size)
 #endif
 
+/* Realloc */
 #if _HAS_BUILTIN(realloc)
 # define REALLOC(ptr, size)  __builtin_realloc(ptr, size)
 #else
 # define REALLOC(ptr, size)  realloc(ptr, size)
 #endif
 
+/* Calloc */
 #if _HAS_BUILTIN(calloc)
 # define CALLOC(n, nsize)  __builtin_calloc(n, nsize)
 #else
