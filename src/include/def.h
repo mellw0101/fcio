@@ -145,21 +145,21 @@
 # if SYS_BYTE_ORDER == SYS_LITTLE_ENDIAN
 #   define PACKED_UINT(r, g, b, a)                                                              \
       /* When using little endian memory layout, we place the least significant byte first. */  \
-      (((Uchar)(a) << 24) | ((Uchar)(b) << 16) | ((Uchar)(g) << 8) | (Uchar)(r))
+      ((Uint)(((Uchar)(a) << 24) | ((Uchar)(b) << 16) | ((Uchar)(g) << 8) | (Uchar)(r)))
 #   define UNPACK_UINT(x, index)                                        \
       /* Unpack a packed int and get the Uchar of the given `index`.    \
        * Note that this correctly parses the `index` so to get the `r`  \
        * value from a packed int use `index` zero. */                   \
-      (((x) >> ((index) * 8)) & 0xFF)
+      ((Uchar)(((x) >> ((index) * 8)) & 0xFF))
 # else
 #   define PACKED_UINT(r, g, b, a)                                                          \
       /* When using big endian memory layout, we place the most significant byte first. */  \
-      (((Uchar)(r) << 24) | ((Uchar)(g) << 16) | ((Uchar)(b) << 8) | (Uchar)(a))
+      ((Uint)(((Uchar)(r) << 24) | ((Uchar)(g) << 16) | ((Uchar)(b) << 8) | (Uchar)(a)))
 #   define UNPACK_UINT(x, index)                                        \
       /* Unpack a packed int and get the Uchar of the given `index`.    \
        * Note that this correctly parses the `index` so to get the `r`  \
        * value from a packed int use `index` zero. */                   \
-      (((x) >> (labs((index) - 3) * 8)) & 0xFF)
+      ((Uchar)(((x) >> (labs((index) - 3) * 8)) & 0xFF))
 # endif
 #endif
 
