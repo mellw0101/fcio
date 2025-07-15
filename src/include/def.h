@@ -591,6 +591,21 @@
 #define ALWAYS_ASSERT(expr)           FCIO_DO_ASSERT(expr)
 #define ALWAYS_ASSERT_MSG(expr, msg)  FCIO_DO_ASSERT_MSG(expr, msg)
 
+/* ----------------------------- Time ----------------------------- */
+
+#define RDTSC(low, high)            \
+    __asm__ __volatile__("rdtsc"    \
+        : "=a" (low),               \
+          "=d" (high)               \
+    )
+
+#define RDTSCL(low)                 \
+    __asm__ __volatile__("rdtsc"    \
+        : "=a" (low)                \
+        : /* no inputs */           \
+        : "edx"                     \
+    )
+
 /* ----------------------------- Threads ----------------------------- */
 
 #ifdef thread_t
