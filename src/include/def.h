@@ -606,6 +606,13 @@
         : "edx"                     \
     )
 
+#define TIMESPEC_ELAPSED_SEC(s, e)  (((e)->tv_sec - (s)->tv_sec) + ((double)((e)->tv_nsec - (s)->tv_nsec) / 1e9))
+#define TIMESPEC_ELAPSED_MS(s, e)   ((((e)->tv_sec - (s)->tv_sec) * 1e3) + ((double)((e)->tv_nsec - (s)->tv_nsec) / 1e6))
+#define TIMESPEC_ELAPSED_NS(s, e)   ((((e)->tv_sec - (s)->tv_sec) * 1000000000ULL) + ((e)->tv_nsec - (s)->tv_nsec))
+
+#define MILLI_TO_NANO(x)  ((Ulong)(((double)(x) * 1000000.0) + 0.5))
+#define NANO_TO_MILLI(x)  ((double)(x) / 1000000.0)
+
 /* ----------------------------- Threads ----------------------------- */
 
 #ifdef thread_t

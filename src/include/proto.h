@@ -318,4 +318,15 @@ bool blkdev_exists(const char *const restrict path);
 int digits(long n);
 
 
+/* ---------------------------------------------------------- hiactime.c ---------------------------------------------------------- */
+
+
+/* ----------------------------- Hiactime sleep total duration ----------------------------- */
+void hiactime_sleep_total_duration(const struct timespec *const s, struct timespec *const e, Ulong nanoseconds);
+/* ----------------------------- Hiactime nsleep ----------------------------- */
+void hiactime_nsleep(Ulong nanoseconds);
+/* ----------------------------- Hiactime nsleep ----------------------------- */
+void hiactime_msleep(double milliseconds);
+
+
 _END_C_LINKAGE
