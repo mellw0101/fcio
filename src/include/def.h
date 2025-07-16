@@ -165,6 +165,25 @@
 
 #define PACKED_UINT_FLOAT(r, g, b, a)  PACKED_UINT((255.0f * (r)), (255.0f * (g)), (255.0f * (b)), (255.0f * (a)))
 #define UNPACK_UINT_FLOAT(x, index)    ((float)UNPACK_UINT(x, index) / 255.0f)
+#define UNPACK_FUINT(x, index)         ((float)UNPACK_UINT(x, index) / 255.0f)
+
+#define UNPACK_FUINT_VARS(x, f0, f1, f2, f3)  \
+  /* Unpack a packed uint into 4              \
+   * floats, with values between 0-1. */      \
+  float f0 = UNPACK_FUINT(x, 0);              \
+  float f1 = UNPACK_FUINT(x, 1);              \
+  float f2 = UNPACK_FUINT(x, 2);              \
+  float f3 = UNPACK_FUINT(x, 3)
+
+#define UNPACK_ND_FUINT_VARS(x, f0, f1, f2, f3)     \
+  /* Unpack a packed uint into 4 already declared.  \
+   * floats, with values between 0-1. */            \
+  DO_WHILE(                                         \
+    f0 = UNPACK_FUINT(x, 0);                        \
+    f1 = UNPACK_FUINT(x, 1);                        \
+    f2 = UNPACK_FUINT(x, 2);                        \
+    f3 = UNPACK_FUINT(x, 3);                        \
+  )
 
 #define _UNUSED_ARG(x) \
   /* Can be used instead of __attribute__((__unused__)) for a function argument. */ \
