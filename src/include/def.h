@@ -656,11 +656,14 @@
 #ifdef TIMESPEC_ELAPSED_NS
 # undef TIMESPEC_ELAPSED_NS
 #endif
-#ifdef FRAMERATE_FROM_MS
-# undef FRAMERATE_FROM_MS
+#ifdef FRAME_SWAP_RATE_TIME_MS
+# undef FRAME_SWAP_RATE_TIME_MS
 #endif
-#ifdef FRAMERATE_FROM_NS
-# undef FRAMERATE_FROM_NS
+#ifdef FRAME_SWAP_RATE_TIME_NS
+# undef FRAME_SWAP_RATE_TIME_NS
+#endif
+#ifdef FRAME_SWAP_RATE_TIME_NS_INT
+# undef FRAME_SWAP_RATE_TIME_NS_INT
 #endif
 
 #define RDTSC(low, high)            \
@@ -683,8 +686,10 @@
 #define MILLI_TO_NANO(x)  ((Ulong)(((double)(x) * 1000000.0) + 0.5))
 #define NANO_TO_MILLI(x)  ((double)(x) / 1000000.0)
 
-#define FRAMERATE_FROM_MS(x)  (1000.0 / (x))
-#define FRAMERATE_FROM_NS(x)  (1000000000.0 / (x))
+#define FRAME_SWAP_RATE_TIME_MS(x) (1000.0 / (x))
+#define FRAME_SWAP_RATE_TIME_NS(x) (1000000000.0 / (x))
+
+#define FRAME_SWAP_RATE_TIME_NS_INT(x)  ((Llong)((1000000000.0 / (x)) + 0.5))
 
 /* ----------------------------- Threads ----------------------------- */
 
