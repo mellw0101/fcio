@@ -641,6 +641,28 @@
 
 /* ----------------------------- Time ----------------------------- */
 
+#ifdef RDTSC
+# undef RDTSC
+#endif
+#ifdef RDTSCL
+# undef RDTSCL
+#endif
+#ifdef TIMESPEC_ELAPSED_SEC
+# undef TIMESPEC_ELAPSED_SEC
+#endif
+#ifdef TIMESPEC_ELAPSED_MS
+# undef TIMESPEC_ELAPSED_MS
+#endif
+#ifdef TIMESPEC_ELAPSED_NS
+# undef TIMESPEC_ELAPSED_NS
+#endif
+#ifdef FRAMERATE_FROM_MS
+# undef FRAMERATE_FROM_MS
+#endif
+#ifdef FRAMERATE_FROM_NS
+# undef FRAMERATE_FROM_NS
+#endif
+
 #define RDTSC(low, high)            \
     __asm__ __volatile__("rdtsc"    \
         : "=a" (low),               \
@@ -660,6 +682,9 @@
 
 #define MILLI_TO_NANO(x)  ((Ulong)(((double)(x) * 1000000.0) + 0.5))
 #define NANO_TO_MILLI(x)  ((double)(x) / 1000000.0)
+
+#define FRAMERATE_FROM_MS(x)  (1000.0 / (x))
+#define FRAMERATE_FROM_NS(x)  (1000000000.0 / (x))
 
 /* ----------------------------- Threads ----------------------------- */
 
