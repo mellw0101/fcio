@@ -351,6 +351,9 @@
 #ifdef UlongMAX
 # undef UlongMAX
 #endif
+#ifdef Llong
+# undef Llong
+#endif
 
 /* When `__WORDSIZE` is not defined, define it. */
 #ifndef __WORDSIZE
@@ -379,6 +382,32 @@
 # define Ulong     unsigned long long int
 # define UlongMIN  (0ULL)
 # define UlongMAX  (18446744073709551615ULL)
+#endif
+
+#if (defined(__LONG_LONG_WIDTH__))
+# if (__LONG_LONG_WIDTH__ == 64)
+#   if (__LONG_WIDTH__ == __LONG_LONG_WIDTH__)
+#     define Llong  long int
+#   else
+#     define Llong  long long int
+#   endif
+# elif (__LONG_WIDTH__ == 64)
+#   define Llong  long int
+# else
+#   error "This system cannot represent an interger with the width of 64 bits"
+# endif
+#elif (defined(__LLONG_WIDTH__))
+# if (__LLONG_WIDTH__ == 64)
+#   if (__LONG_WIDTH__ == __LLONG_WIDTH__)
+#     define Llong  long int
+#   else
+#     define Llong  long long int
+#   endif
+# elif (__LONG_WIDTH__ == 64)
+#   define Llong  long int
+# else
+#   error "This system cannot represent an interger with the width of 64 bits"
+# endif
 #endif
 
 /* ----------------------------- Char define's ----------------------------- */
