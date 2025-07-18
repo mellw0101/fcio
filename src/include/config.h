@@ -364,15 +364,15 @@
 #endif
 
 #if _HAS_BUILTIN(fmaxf)
-# define FMAXF(x)  __builtin_fmaxf(x)
+# define FMAXF(x, y)  __builtin_fmaxf(x, y)
 #else
-# define FMAXF(x)  fmaxf(x)
+# define FMAXF(x, y)  fmaxf(x, y)
 #endif
 
 #if _HAS_BUILTIN(fminf)
-# define FMINF(x)  __builtin_fminf(x)
+# define FMINF(x, y)  __builtin_fminf(x, y)
 #else
-# define FMINF(x)  fminf(x)
+# define FMINF(x, y)  fminf(x, y)
 #endif
 
 #if _HAS_BUILTIN(sqrtf)
