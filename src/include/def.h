@@ -27,6 +27,7 @@
 #include <wctype.h>
 #include <langinfo.h>
 #include <locale.h>
+#include <math.h>
 
 /* ----------------------------- linux ----------------------------- */
 
@@ -151,6 +152,10 @@
        * Note that this correctly parses the `index` so to get the `r`  \
        * value from a packed int use `index` zero. */                   \
       ((Uchar)(((x) >> ((index) * 8)) & 0xFF))
+#   define PACK_UCHAR(x, value, byte) \
+      DO_WHILE(\
+        (x) = (((x) & ~(__TYPE(x)(0xFF) << (byte * 8))) | (__TYPE(x)((Uchar)(value) << (byte * 8))));  \
+      )
 # else
 #   define PACKED_UINT(r, g, b, a)                                                          \
       /* When using big endian memory layout, we place the most significant byte first. */  \
@@ -160,6 +165,10 @@
        * Note that this correctly parses the `index` so to get the `r`  \
        * value from a packed int use `index` zero. */                   \
       ((Uchar)(((x) >> (labs((index) - 3) * 8)) & 0xFF))
+#   define PACK_UCHAR(x, value, byte) \
+      DO_WHILE(\
+        (x) = (((x) & ~((__TYPE(x))(0xFF) << (labs((byte) - (sizeof(__TYPE(x)) - 1)) * 8))) | (__TYPE(x)((Uchar)(value) << (labs((byte) - (sizeof(__TYPE(x)) - 1)) * 8))));  \
+      )
 # endif
 #endif
 
@@ -435,11 +444,17 @@
 #ifdef _PTRSIZE
 # undef _PTRSIZE
 #endif
+#ifdef M_PIf
+# undef M_PIf
+#endif
 
 /* Size of a ptr in bits. */
 #define _PTR_BITSIZE  __WORDSIZE
 /* Size of a ptr in bytes. */
 #define _PTRSIZE  (sizeof(void *))
+
+/* Ripped from <math.h>. */
+#define M_PIf	3.14159265358979323846f	/* pi */
 
 /* ----------------------------- Math ----------------------------- */
 
@@ -681,7 +696,7 @@
 
 #define TIMESPEC_ELAPSED_SEC(s, e)  (((e)->tv_sec - (s)->tv_sec) + ((double)((e)->tv_nsec - (s)->tv_nsec) / 1e9))
 #define TIMESPEC_ELAPSED_MS(s, e)   ((((e)->tv_sec - (s)->tv_sec) * 1e3) + ((double)((e)->tv_nsec - (s)->tv_nsec) / 1e6))
-#define TIMESPEC_ELAPSED_NS(s, e)   ((((e)->tv_sec - (s)->tv_sec) * 1000000000ULL) + ((e)->tv_nsec - (s)->tv_nsec))
+#define TIMESPEC_ELAPSED_NS(s, e)   ((((e)->tv_sec - (s)->tv_sec) * 1000000000LL) + ((e)->tv_nsec - (s)->tv_nsec))
 
 #define MILLI_TO_NANO(x)  ((Llong)(((double)(x) * 1000000.0) + 0.5))
 #define NANO_TO_MILLI(x)  ((double)(x) / 1000000.0)
@@ -797,6 +812,9 @@
 #ifdef ARRAY_SIZE
 # undef ARRAY_SIZE
 #endif
+#ifdef ARRAY__LEN
+# undef ARRAY__LEN
+#endif
 
 #ifdef __cplusplus
   /* Useful when adding something to a ptr array and checking the size each time. */
@@ -845,6 +863,9 @@
 
 /* Get the size of a stack based array. */
 #define ARRAY_SIZE(array)  (sizeof((array)) / sizeof((array)[0]))
+
+/* Pass a stack-based array and its size. */
+#define ARRAY__LEN(array)  (array), ARRAY_SIZE(array)
 
 /* ----------------------------- Fd ----------------------------- */
 
@@ -1364,4 +1385,3 @@ typedef struct atomicbool  atomicbool;
 /* ----------------------------- queue.c ----------------------------- */
 
 typedef struct Queue  Queue;
-

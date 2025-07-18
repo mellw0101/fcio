@@ -322,9 +322,9 @@ int digits(long n);
 
 
 /* ----------------------------- Hiactime sleep total duration ----------------------------- */
-void hiactime_sleep_total_duration(const struct timespec *const s, struct timespec *const e, Ulong nanoseconds);
+void hiactime_sleep_total_duration(const struct timespec *const s, struct timespec *const e, Llong nanoseconds);
 /* ----------------------------- Hiactime nsleep ----------------------------- */
-void hiactime_nsleep(Ulong nanoseconds);
+void hiactime_nsleep(Llong nanoseconds);
 /* ----------------------------- Hiactime nsleep ----------------------------- */
 void hiactime_msleep(double milliseconds);
 

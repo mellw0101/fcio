@@ -341,6 +341,77 @@
 # define DUMP_STRUCT(...)  ((void)0)
 #endif
 
+
+/* ---------------------------------------------------------- Math builtins ---------------------------------------------------------- */
+
+
+#if _HAS_BUILTIN(atan2f)
+# define ATAN2F(x, y)  __builtin_atan2f(x, y)
+#else
+# define ATAN2F(x, y)  atan2f(x, y)
+#endif
+
+#if _HAS_BUILTIN(powf)
+# define POWF(x, y)  __builtin_powf(x, y)
+#else
+# define POWF(x, y)  powf(x, y)
+#endif
+
+#if _HAS_BUILTIN(roundf)
+# define ROUNDF(x)  __builtin_roundf(x)
+#else
+# define ROUNDF(x)  roundf(x)
+#endif
+
+#if _HAS_BUILTIN(fmaxf)
+# define FMAXF(x)  __builtin_fmaxf(x)
+#else
+# define FMAXF(x)  fmaxf(x)
+#endif
+
+#if _HAS_BUILTIN(fminf)
+# define FMINF(x)  __builtin_fminf(x)
+#else
+# define FMINF(x)  fminf(x)
+#endif
+
+#if _HAS_BUILTIN(sqrtf)
+# define SQRTF(x)  __builtin_sqrtf(x)
+#else
+# define SQRTF(x)  sqrtf(x)
+#endif
+
+#if _HAS_BUILTIN(cosf)
+# define COSF(x)  __builtin_cosf(x)
+#else
+# define COSF(x)  cosf(x)
+#endif
+
+#if _HAS_BUILTIN(sinf)
+# define SINF(x)  __builtin_sinf(x)
+#else
+# define SINF(x)  sinf(x)
+#endif
+
+#if _HAS_BUILTIN(tanf)
+# define TANF(x)  __builtin_tanf(x)
+#else
+# define TANF(x)  tanf(x)
+#endif
+
+#if _HAS_BUILTIN(fabsf)
+# define FABSF(x)  __builtin_fabsf(x)
+#else
+# define FABSF(x)  fabsf(x)
+#endif
+
+#if _HAS_BUILTIN(hypotf)
+# define HYPOTF(x, y)  __builtin_hypotf(x, y)
+#else
+# define HYPOTF(x, y)  hypotf(x, y)
+#endif
+
+
 /* Unless the user declares NO_ATOMIC_OPERATIONS, make some handy helpers. */
 #ifndef NO_ATOMIC_OPERATIONS
   /* Define an atomic swap that should be compatible on almost all hardware. */
