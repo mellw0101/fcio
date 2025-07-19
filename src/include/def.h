@@ -107,6 +107,8 @@
 # define __TYPE(x)  __typeof__((x))
 #endif
 
+#define FCLAMPF(x, min, max)  (FMAXF((min), FMINF((max), (x))))
+
 #define __TYPE_SAME(x, y)                       \
   /* Deduses the *common* type for `x` and `y`  \
    * (using usual arithmetic conversion).  */   \
@@ -152,10 +154,22 @@
        * Note that this correctly parses the `index` so to get the `r`  \
        * value from a packed int use `index` zero. */                   \
       ((Uchar)(((x) >> ((index) * 8)) & 0xFF))
-#   define PACK_UCHAR(x, value, byte) \
-      DO_WHILE(\
-        (x) = (((x) & ~(__TYPE(x)(0xFF) << (byte * 8))) | (__TYPE(x)((Uchar)(value) << (byte * 8))));  \
+#   define PACK_INT_DATA(x, value, byte_offset)                                            \
+      /* This thing is nice, and will allow packing data into int's in nice ways. */       \
+      DO_WHILE(                                                                            \
+        (x) = (                                                                            \
+          ((x) & ~(                                                                        \
+            ((__TYPE(x))(1ULL << ((sizeof(__TYPE(value)) * 8) - 1)) << ((byte_offset) * 8))  \
+          ))                                                                                 \
+          |                                                                                  \
+          ((__TYPE(x))((value) << ((byte_offset) * 8)))                                      \
+        );                                                                                 \
       )
+#   define UNPACK_INT_DATA(x, index, type)                                      \
+      /* Unpack a packed int and get the Uchar of the given `index`.            \
+        * Note that this correctly parses the `index` so to get the `r`         \
+        * value from a packed int use `index` zero. */                          \
+      ((type)(((x) >> ((index) * 8)) & (((type)1 << (sizeof(type) * 8)) - 1)))
 # else
 #   define PACKED_UINT(r, g, b, a)                                                          \
       /* When using big endian memory layout, we place the most significant byte first. */  \
@@ -164,11 +178,23 @@
       /* Unpack a packed int and get the Uchar of the given `index`.    \
        * Note that this correctly parses the `index` so to get the `r`  \
        * value from a packed int use `index` zero. */                   \
-      ((Uchar)(((x) >> (labs((index) - 3) * 8)) & 0xFF))
-#   define PACK_UCHAR(x, value, byte) \
-      DO_WHILE(\
-        (x) = (((x) & ~((__TYPE(x))(0xFF) << (labs((byte) - (sizeof(__TYPE(x)) - 1)) * 8))) | (__TYPE(x)((Uchar)(value) << (labs((byte) - (sizeof(__TYPE(x)) - 1)) * 8))));  \
+      ((Uchar)(((x) >> (LABS((index) - 3) * 8)) & 0xFF))
+#   define PACK_INT_DATA(x, value, byte)                                                                                             \
+      /* This thing is nice, and will allow packing data into int's in nice ways. */                                                 \
+      DO_WHILE(                                                                                                                      \
+        (x) = (                                                                                                                      \
+          ((x) & ~(                                                                                                                  \
+            ((__TYPE(x))(1ULL << ((LABS((byte) - (sizeof(__TYPE(x)) - 1)) * 8) - 1)) << (LABS((byte) - (sizeof(__TYPE(x)) - 1)) * 8))  \
+          ))                                                                                                                         \
+          |                                                                                                                          \
+          ((__TYPE(x))((value) << (LABS((byte) - (sizeof(__TYPE(x)) - 1)) * 8)))                                                      \
+        );                                                                                                                           \
       )
+#   define UNPACK_INT_DATA(x, index, type)                              \
+      /* Unpack a packed int and get the Uchar of the given `index`.    \
+       * Note that this correctly parses the `index` so to get the `r`  \
+       * value from a packed int use `index` zero. */                   \
+      ((type)(((x) >> (LABS((index) - (sizeof(__TYPE(x)) - 1)) * 8)) & (((type)1 << (sizeof(type) * 8)) - 1)))
 # endif
 #endif
 
@@ -176,13 +202,19 @@
 #define UNPACK_UINT_FLOAT(x, index)    ((float)UNPACK_UINT(x, index) / 255.0f)
 #define UNPACK_FUINT(x, index)         ((float)UNPACK_UINT(x, index) / 255.0f)
 
-#define UNPACK_FUINT_VARS(x, f0, f1, f2, f3)  \
-  /* Unpack a packed uint into 4              \
-   * floats, with values between 0-1. */      \
-  float f0 = UNPACK_FUINT(x, 0);              \
-  float f1 = UNPACK_FUINT(x, 1);              \
-  float f2 = UNPACK_FUINT(x, 2);              \
-  float f3 = UNPACK_FUINT(x, 3)
+#define FLOAT_TO_UCHAR(x)  ((Uchar)(255.f * FCLAMPF(x, 0, 1)))
+#define UCHAR_TO_FLOAT(x)  ((float)((x) / 255.f))
+
+#define FLOAT_BITS(x)  ({ union { float f; uint32_t u; } _tmp = { .f = (x) }; _tmp.u; })
+#define BITS_FLOAT(x)  ({ union { float f; uint32_t u; } _tmp = { .u = (x) }; _tmp.f; })
+
+#define PACK_SIGNED_PRECENT(x)  \
+  /* Pack any precentage from -100 to 100 with a resolution of `1.f`. */  \
+  ((Uchar)((((x) < 0) << 7) | ((int)(FMINF(100.f, FABSF(x))) & 0x7F)))
+#define UNPACK_SIGNED_PRECENT(x)                                          \
+  /* Unpack a precentage from -100 to 100 with a resolution of `1.f`. */  \
+  ((((x) & 0x80) ? -1 : 1) * ((x) & 0x7F))
+
 
 #define UNPACK_ND_FUINT_VARS(x, f0, f1, f2, f3)     \
   /* Unpack a packed uint into 4 already declared.  \
@@ -193,6 +225,15 @@
     f2 = UNPACK_FUINT(x, 2);                        \
     f3 = UNPACK_FUINT(x, 3);                        \
   )
+
+#define UNPACK_FUINT_VARS(x, f0, f1, f2, f3)  \
+  /* Unpack a packed uint into 4              \
+   * floats, with values between 0-1. */      \
+  float f0; \
+  float f1; \
+  float f2; \
+  float f3; \
+  UNPACK_ND_FUINT_VARS(x, f0, f1, f2, f3)
 
 #define _UNUSED_ARG(x) \
   /* Can be used instead of __attribute__((__unused__)) for a function argument. */ \

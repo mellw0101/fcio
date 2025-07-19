@@ -405,6 +405,18 @@
 # define FABSF(x)  fabsf(x)
 #endif
 
+#if _HAS_BUILTIN(labs)
+# define LABS(x)  __builtin_labs(x)
+#else
+# define LABS(x)  labs(x)
+#endif
+
+#if _HAS_BUILTIN(llabs)
+# define LLABS(x)  __builtin_llabs(x)
+#else
+# define LLABS(x)  llabs(x)
+#endif
+
 #if _HAS_BUILTIN(hypotf)
 # define HYPOTF(x, y)  __builtin_hypotf(x, y)
 #else
