@@ -359,6 +359,12 @@
 
 /* ----------------------------- Rounding ----------------------------- */
 
+#if _HAS_BUILTIN(round)
+# define ROUND(x)  __builtin_round(x)
+#else
+# define ROUND(x)  round(x)
+#endif
+
 #if _HAS_BUILTIN(roundf)
 # define ROUNDF(x)  __builtin_roundf(x)
 #else
