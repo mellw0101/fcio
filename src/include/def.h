@@ -823,7 +823,7 @@
 #define mutex_destroy             pthread_mutex_destroy
 #define mutex_lock                pthread_mutex_lock
 #define mutex_unlock              pthread_mutex_unlock
-#define mutex_action(mutex, ...)  DO_WHILE(mutex_lock(mutex); DO_WHILE(__VA_ARGS__); mutex_unlock(mutex);)
+#define mutex_action(mutex, ...)  DO_WHILE(mutex_lock((mutex)); DO_WHILE(__VA_ARGS__); mutex_unlock((mutex));)
 #define mutex_init_static         PTHREAD_MUTEX_INITIALIZER
 
 /* Condition helper shorthand's. */
@@ -913,9 +913,31 @@
 #ifdef fdlock_action
 # undef fdlock_action
 #endif
+#ifdef mutex_fdlock_action
+# undef mutex_fdlock_action
+#endif
 
 /* Perform `action` while under the protection of a file-descriptor lock. */
-#define fdlock_action(fd, type, ...)  DO_WHILE(fdlock(fd, type); DO_WHILE(__VA_ARGS__); fdunlock(fd);)
+#define fdlock_action(fd, type, ...)  DO_WHILE(fdlock((fd), (type)); DO_WHILE(__VA_ARGS__); fdunlock((fd));)
+
+#define fd_full_wr(fd, tot, wrlen, data, datalen, term_on_error)                                       \
+  DO_WHILE(                                                                                            \
+    (tot) = 0;                                                                                         \
+    while ((tot) < (datalen) && ((wrlen) = write((fd), ((data) + (tot)), ((datalen) - (tot)))) > 0) {  \
+      (tot) += (wrlen);                                                                                \
+    }                                                                                                  \
+    if ((term_on_error)) {                                                                             \
+      ALWAYS_ASSERT((wrlen) != -1 && (tot) == (datalen));                                              \
+    }                                                                                                  \
+  )
+
+#define mutex_fdlock_action(mutex, fd, type, ...)                  \
+  /* Perform some `action` while under mutex and true fd-lock. */  \
+  mutex_action(mutex, fdlock_action(fd, type, __VA_ARGS__);)
+
+#define mutex_fdlock_full_wr(mutex, fd, total_written, written_len, data, datalen, term_on_error) \
+  /* Perform a full write of all data, while under mutex and full fd-lock. */ \
+  mutex_fdlock_action(mutex, fd, F_WRLCK, fd_full_wr(fd, total_written, written_len, data, datalen, term_on_error);)
 
 /* ----------------------------- ASCII ----------------------------- */
 
@@ -1366,6 +1388,26 @@
 #endif
 
 #define STRUCT_FIELD_PTR(struct, field)  ((const char *)(struct) + offsetof(__TYPE(*struct), field))
+
+/* ----------------------------- log.c ----------------------------- */
+
+#define __fcio_log(type, ...)  fcio_log((type), __LINE__, __func__, __VA_ARGS__)
+
+#define log_I_0(...)                            \
+  /* Low prio info log. */                      \
+  __fcio_log(0, __VA_ARGS__)
+
+#define log_W_0(...)                            \
+  /* Low prio warning log. */                   \
+  __fcio_log(1, __VA_ARGS__)
+
+#define log_ENF(...)                            \
+  /* Non-Fatal error-log. */                    \
+  __fcio_log(2, __VA_ARGS__)
+
+#define log_EFA(...)                                      \
+  /* FATAL error-log.  Note that this will terminate. */  \
+  __fcio_log(3, __VA_ARGS__)
 
 
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */

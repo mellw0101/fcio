@@ -329,4 +329,13 @@ void hiactime_nsleep(Llong nanoseconds);
 void hiactime_msleep(double milliseconds);
 
 
+/* ---------------------------------------------------------- log.c ---------------------------------------------------------- */
+
+
+/* ----------------------------- Fcio log set file ----------------------------- */
+void fcio_log_set_file(const char *const restrict path);
+/* ----------------------------- Fcio log ----------------------------- */
+void fcio_log(int type, Ulong lineno, const char *const restrict function, const char *const restrict format, ...);
+
+
 _END_C_LINKAGE

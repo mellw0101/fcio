@@ -34,17 +34,23 @@ void fcio_set_die_callback(void (*callback)(const char *format, ...) _NO_RETURN)
 /* Write `len` of `data` to stdout in a fully thread and process safe manner. */
 void stdoutwrite(const char *const restrict data, Ulong len) {
   ASSERT(data);
-  mutex_action(&stdout_mutex, fdlock_action(STDOUT_FILENO, F_WRLCK,
-    ALWAYS_ASSERT(write(STDOUT_FILENO, data, len) != -1);  
-  ););
+  long written;
+  Ulong total_written;
+  mutex_fdlock_full_wr(&stdout_mutex, STDOUT_FILENO, total_written, written, data, len, TRUE);
 }
 
 /* Write `len` of `data` to stderr in a fully thread and process safe manner. */
 void stderrwrite(const char *const restrict data, Ulong len) {
   ASSERT(data);
-  mutex_action(&stderr_mutex, fdlock_action(STDERR_FILENO, F_WRLCK,
-    ALWAYS_ASSERT(write(STDERR_FILENO, data, len) != -1);
-  ););
+  long written;
+  Ulong total_written;
+  mutex_fdlock_full_wr(&stderr_mutex, STDERR_FILENO, total_written, written, data, len, TRUE);
+  // mutex_action(&stderr_mutex, fdlock_action(STDERR_FILENO, F_WRLCK,
+  //   while (total_written < len && (written = write(STDERR_FILENO, (data + total_written), (len - total_written))) > 0) {
+  //     total_written += written;
+  //   }
+  //   ALWAYS_ASSERT(written != -1 && total_written == len);
+  // ););
 }
 
 /* Write a formated string to stdout in a thread and process safe manner. */
