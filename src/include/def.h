@@ -205,8 +205,8 @@
 #define FLOAT_TO_UCHAR(x)  ((Uchar)(255.f * FCLAMPF(x, 0, 1)))
 #define UCHAR_TO_FLOAT(x)  ((float)((x) / 255.f))
 
-#define FLOAT_BITS(x)  ({ union { float f; uint32_t u; } _tmp = { .f = (x) }; _tmp.u; })
-#define BITS_FLOAT(x)  ({ union { float f; uint32_t u; } _tmp = { .u = (x) }; _tmp.f; })
+#define FLOAT_BITS(x)  __extension__({ union { float f; uint32_t u; } _tmp = { .f = (x) }; _tmp.u; })
+#define BITS_FLOAT(x)  __extension__({ union { float f; uint32_t u; } _tmp = { .u = (x) }; _tmp.f; })
 
 #define PACK_SIGNED_PRECENT(x)  \
   /* Pack any precentage from -100 to 100 with a resolution of `1.f`. */  \
