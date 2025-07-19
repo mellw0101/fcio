@@ -357,10 +357,24 @@
 # define POWF(x, y)  powf(x, y)
 #endif
 
+/* ----------------------------- Rounding ----------------------------- */
+
 #if _HAS_BUILTIN(roundf)
 # define ROUNDF(x)  __builtin_roundf(x)
 #else
 # define ROUNDF(x)  roundf(x)
+#endif
+
+#if _HAS_BUILTIN(lround)
+# define LROUND(x)  __builtin_lround(x)
+#else
+# define LROUND(x)  lround(x)
+#endif
+
+#if _HAS_BUILTIN(llround)
+# define LLROUND(x)  __builtin_llround(x)
+#else
+# define LLROUND(x)  llround(x)
 #endif
 
 #if _HAS_BUILTIN(fmaxf)
@@ -398,6 +412,8 @@
 #else
 # define TANF(x)  tanf(x)
 #endif
+
+/* ----------------------------- Absolute values ----------------------------- */
 
 #if _HAS_BUILTIN(fabsf)
 # define FABSF(x)  __builtin_fabsf(x)

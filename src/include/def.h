@@ -739,11 +739,11 @@
 #define TIMESPEC_ELAPSED_MS(s, e)   ((((e)->tv_sec - (s)->tv_sec) * 1e3) + ((double)((e)->tv_nsec - (s)->tv_nsec) / 1e6))
 #define TIMESPEC_ELAPSED_NS(s, e)   ((((e)->tv_sec - (s)->tv_sec) * 1000000000LL) + ((e)->tv_nsec - (s)->tv_nsec))
 
-#define MILLI_TO_NANO(x)  ((Llong)(((double)(x) * 1000000.0) + 0.5))
-#define NANO_TO_MILLI(x)  ((double)(x) / 1000000.0)
+#define MILLI_TO_NANO(x)  ((Llong)(((double)(x) * 1e6) + 0.5))
+#define NANO_TO_MILLI(x)  ((double)(x) / 1e6)
 
-#define FRAME_SWAP_RATE_TIME_MS(x) (1e3 / (x))
-#define FRAME_SWAP_RATE_TIME_NS(x) (1e9 / (x))
+#define FRAME_SWAP_RATE_TIME_MS(x)  (1e3 / (x))
+#define FRAME_SWAP_RATE_TIME_NS(x)  (1e9 / (x))
 
 #define FRAME_SWAP_RATE_TIME_NS_INT(x)  ((Llong)((1e9 / (x)) + 0.5))
 
