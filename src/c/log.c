@@ -7,18 +7,29 @@
 #include "../include/proto.h"
 
 
+/* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
+
+
+#define LOG_TAG(x)          fcio_log_type_tag[(x)]
+#define LOG_COLOR_START(x)  fcio_log_type_color_start[(x)]
+#define LOG_COLOR_END(x)    fcio_log_type_color_end[(x)]
+
 /* ---------------------------------------------------------- Enum's ---------------------------------------------------------- */
 
 
 /* Logging type.  Note that these are not in any perticular order. */
 typedef enum {
   FCIO_LOG_INFO_0,
+  FCIO_LOG_INFO_1,
   FCIO_LOG_WARN_0,
   FCIO_LOG_ERR_NF,
   FCIO_LOG_ERR_FA
 # define FCIO_LOG_INFO_0    \
   /* Low prio info log. */  \
   FCIO_LOG_INFO_0
+# define FCIO_LOG_INFO_1    \
+  /* Medium prio info log. */  \
+  FCIO_LOG_INFO_1
 # define FCIO_LOG_WARN_0  \
   /* Low prio warning log */ \
   FCIO_LOG_WARN_0
@@ -37,11 +48,28 @@ typedef enum {
 /* ---------------------------------------------------------- Variable's ---------------------------------------------------------- */
 
 
-static const char *const fcio_log_type_tag[] = {
+static const char *const fcio_log_type_tag[FCIO_LOG_TYPE_LAST + 1] = {
   "INFO_0",
+  "INFO_1",
   "WARN_0",
   "ERR_NF",
   "ERR_FA"
+};
+
+static const char *const fcio_log_type_color_start[FCIO_LOG_TYPE_LAST + 1] = {
+  "\033[90m",         /* INFO_0 */
+  "\033[1m\033[94m",  /* INFO_1 */
+  "\033[33m",         /* WARN_0 */
+  "\033[31m",         /* ERR_NF */
+  "\033[1m\033[31m",  /* ERR_FA */
+};
+
+static const char *const fcio_log_type_color_end[FCIO_LOG_TYPE_LAST + 1] = {
+  "\033[0m",  /* INFO_0 */
+  "\033[0m",  /* INFO_1 */
+  "\033[0m",  /* WARN_0 */
+  "\033[0m",  /* ERR_NF */
+  "\033[0m",  /* ERR_FA */
 };
 
 static mutex_t fcio_log_mutex = mutex_init_static;
@@ -71,14 +99,15 @@ static void fcio_log_va(int type, Ulong lineno, const char *const restrict funct
       log_to_std = FALSE;
     }
   );
-  data = fmtstr_len(&datalen, "%s: %lu: %s: %s\n", PASS_IF_VALID(function, "GLOBAL"), lineno, fcio_log_type_tag[type], log);
+  data = fmtstr_len(&datalen, "%s: %lu: %s: %s\n", PASS_IF_VALID(function, "GLOBAL"), lineno, LOG_TAG(type), log);
   free(log);
+  /* Only when logging to std out/err do we color the text using ascii esc codes. */
   if (log_to_std) {
     if (type >= FCIO_LOG_ERR_NF) {
-      writeferr("%s", data);
+      writeferr("%s%s%s", LOG_COLOR_START(type), data, LOG_COLOR_END(type));
     }
     else {
-      writef("%s", data);
+      writef("%s%s%s", LOG_COLOR_START(type), data, LOG_COLOR_END(type));
     }
   }
   else {

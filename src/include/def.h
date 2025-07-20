@@ -1403,17 +1403,21 @@
   /* Low prio info log. */                      \
   __fcio_log(0, __VA_ARGS__)
 
+#define log_INFO_1(...)                         \
+  /* Low prio info log. */                      \
+  __fcio_log(1, __VA_ARGS__)
+
 #define log_WARN_0(...)                         \
   /* Low prio warning log. */                   \
-  __fcio_log(1, __VA_ARGS__)
+  __fcio_log(2, __VA_ARGS__)
 
 #define log_ERR_NF(...)                         \
   /* Non-Fatal error-log. */                    \
-  __fcio_log(2, __VA_ARGS__)
+  __fcio_log(3, __VA_ARGS__)
 
 #define log_ERR_FA(...)                                   \
   /* FATAL error-log.  Note that this will terminate. */  \
-  __fcio_log(3, __VA_ARGS__)
+  __fcio_log(4, __VA_ARGS__)
 
 
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
