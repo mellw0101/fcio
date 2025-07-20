@@ -449,10 +449,10 @@
 /* Unless the user declares NO_ATOMIC_OPERATIONS, make some handy helpers. */
 #ifndef NO_ATOMIC_OPERATIONS
   /* Define an atomic swap that should be compatible on almost all hardware. */
-# if (defined __has_builtin && __has_builtin(__sync_swap))
-#   define __ATOMIC_SWAP(x, y)  __sync_swap(x, y)
-# elif (_GNUC_VER(4, 7) || (defined __has_builtin && __has_builtin(__atomic_exchange_n)))
+# if (_GNUC_VER(4, 7) || (defined __has_builtin && __has_builtin(__atomic_exchange_n)))
 #   define __ATOMIC_SWAP(x, y)  __atomic_exchange_n(x, y, __ATOMIC_SEQ_CST)
+# elif (defined __has_builtin && __has_builtin(__sync_swap))
+#   define __ATOMIC_SWAP(x, y)  __sync_swap(x, y)
 # elif (_GNUC_VER(4, 1) || (defined __has_builtin && __has_builtin(__sync_lock_test_and_set)))
 #   define __ATOMIC_SWAP(x, y)  __sync_lock_test_and_set(x, y)
 # elif _HAS_ATTRIBUTE(error)

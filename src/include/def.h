@@ -273,6 +273,12 @@
 #ifdef ATOMIC_STORE
 # undef ATOMIC_STORE
 #endif
+#ifdef ATOMIC_FETCH
+# undef ATOMIC_FETCH
+#endif
+#ifdef ATOMIC_CAS
+# undef ATOMIC_CAS
+#endif
 
 #ifndef NO_ATOMIC_OPERATIONS
   /* Swap */
@@ -1393,19 +1399,19 @@
 
 #define __fcio_log(type, ...)  fcio_log((type), __LINE__, __func__, __VA_ARGS__)
 
-#define log_I_0(...)                            \
+#define log_INFO_0(...)                         \
   /* Low prio info log. */                      \
   __fcio_log(0, __VA_ARGS__)
 
-#define log_W_0(...)                            \
+#define log_WARN_0(...)                         \
   /* Low prio warning log. */                   \
   __fcio_log(1, __VA_ARGS__)
 
-#define log_ENF(...)                            \
+#define log_ERR_NF(...)                         \
   /* Non-Fatal error-log. */                    \
   __fcio_log(2, __VA_ARGS__)
 
-#define log_EFA(...)                                      \
+#define log_ERR_FA(...)                                   \
   /* FATAL error-log.  Note that this will terminate. */  \
   __fcio_log(3, __VA_ARGS__)
 
