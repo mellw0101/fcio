@@ -806,20 +806,26 @@
 #ifdef cond_wait
 # undef cond_wait
 #endif
-#ifdef rwlock_init
-# undef rwlock_init
+#ifdef RWLOCK_INIT
+# undef RWLOCK_INIT
 #endif
-#ifdef rwlock_destroy
-# undef rwlock_destroy
+#ifdef RWLOCK_DESTROY
+# undef RWLOCK_DESTROY
 #endif
-#ifdef rwlock_rdlock
-# undef rwlock_rdlock
+#ifdef RWLOCK_RDLOCK
+# undef RWLOCK_RDLOCK
 #endif
-#ifdef rwlock_wrlock
-# undef rwlock_wrlock
+#ifdef RWLOCK_RWLOCK
+# undef RWLOCK_RWLOCK
 #endif
-#ifdef rwlock_unlock
-# undef rwlock_unlock
+#ifdef RWLOCK_UNLOCK
+# undef RWLOCK_UNLOCK
+#endif
+#ifdef RWLOCK_WRLOCK_ACTION
+# undef RWLOCK_WRLOCK_ACTION
+#endif
+#ifdef RWLOCK_RDLOCK_ACTION
+# undef RWLOCK_RDLOCK_ACTION
 #endif
 
 /* Thread shorthand. */
@@ -854,11 +860,25 @@
 #define cond_wait     pthread_cond_wait
 
 /* Read-Write lock helper shorthand's. */
-#define rwlock_init     pthread_rwlock_init
-#define rwlock_destroy  pthread_rwlock_destroy
-#define rwlock_rdlock   pthread_rwlock_rdlock
-#define rwlock_wrlock   pthread_rwlock_wrlock
-#define rwlock_unlock   pthread_rwlock_unlock
+#define RWLOCK_INIT     pthread_rwlock_init
+#define RWLOCK_DESTROY  pthread_rwlock_destroy
+#define RWLOCK_RDLOCK   pthread_rwlock_rdlock
+#define RWLOCK_RWLOCK   pthread_rwlock_wrlock
+#define RWLOCK_UNLOCK   pthread_rwlock_unlock
+
+#define RWLOCK_WRLOCK_ACTION(rwlock, ...)  \
+  DO_WHILE(                                \
+    RWLOCK_RWLOCK((rwlock));               \
+    DO_WHILE(__VA_ARGS__);                 \
+    RWLOCK_UNLOCK((rwlock));               \
+  )
+
+#define RWLOCK_RDLOCK_ACTION(rwlock, ...)  \
+  DO_WHILE(                                \
+    RWLOCK_RDLOCK((rwlock));               \
+    DO_WHILE(__VA_ARGS__);                 \
+    RWLOCK_UNLOCK((rwlock));               \
+  )
 
 /* ----------------------------- Ptr array's ----------------------------- */
 
