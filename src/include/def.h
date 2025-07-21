@@ -764,6 +764,9 @@
 #ifdef cond_t
 # undef cond_t
 #endif
+#ifdef rwlock_t
+# undef rwlock_t
+#endif
 #ifdef thread_create
 # undef thread_create
 #endif
@@ -809,6 +812,15 @@
 #ifdef rwlock_destroy
 # undef rwlock_destroy
 #endif
+#ifdef rwlock_rdlock
+# undef rwlock_rdlock
+#endif
+#ifdef rwlock_wrlock
+# undef rwlock_wrlock
+#endif
+#ifdef rwlock_unlock
+# undef rwlock_unlock
+#endif
 
 /* Thread shorthand. */
 #define thread_t  pthread_t
@@ -818,6 +830,9 @@
 
 /* Condition shorthand. */
 #define cond_t  pthread_cond_t
+
+/* Read-Write shorthand. */
+#define rwlock_t  pthread_rwlock_t
 
 /* Thread helper shorthand's. */
 #define thread_create  pthread_create
@@ -841,6 +856,9 @@
 /* Read-Write lock helper shorthand's. */
 #define rwlock_init     pthread_rwlock_init
 #define rwlock_destroy  pthread_rwlock_destroy
+#define rwlock_rdlock   pthread_rwlock_rdlock
+#define rwlock_wrlock   pthread_rwlock_wrlock
+#define rwlock_unlock   pthread_rwlock_unlock
 
 /* ----------------------------- Ptr array's ----------------------------- */
 
