@@ -410,6 +410,18 @@
 #ifdef Llong
 # undef Llong
 #endif
+#ifdef _LLD_FORMAT_PREFIX
+# undef _LLD_FORMAT_PREFIX
+#endif
+#ifdef _LLU_FORMAT_PREFIX
+# undef _LLU_FORMAT_PREFIX
+#endif
+#ifdef D64_FMT
+# undef D64_FMT
+#endif
+#ifdef U64_FMT
+# undef U64_FMT
+#endif
 
 /* When `__WORDSIZE` is not defined, define it. */
 #ifndef __WORDSIZE
@@ -429,26 +441,32 @@
 #   define Ulong     unsigned long int
 #   define UlongMIN  (0UL)
 #   define UlongMAX  (18446744073709551615UL)
+#   define _LLU_FORMAT_PREFIX  "l"
 # else
 #   define Ulong     unsigned long long int
 #   define UlongMIN  (0ULL)
 #   define UlongMAX  (18446744073709551615ULL)
+#   define _LLU_FORMAT_PREFIX  "ll"
 # endif
 #else
 # define Ulong     unsigned long long int
 # define UlongMIN  (0ULL)
 # define UlongMAX  (18446744073709551615ULL)
+#   define _LLU_FORMAT_PREFIX  "ll"
 #endif
 
 #if (defined(__LONG_LONG_WIDTH__))
 # if (__LONG_LONG_WIDTH__ == 64)
 #   if (__LONG_WIDTH__ == __LONG_LONG_WIDTH__)
 #     define Llong  long int
+#     define _LLD_FORMAT_PREFIX  "l"
 #   else
 #     define Llong  long long int
+#     define _LLD_FORMAT_PREFIX  "ll"
 #   endif
 # elif (__LONG_WIDTH__ == 64)
 #   define Llong  long int
+#   define _LLD_FORMAT_PREFIX  "l"
 # else
 #   error "This system cannot represent an interger with the width of 64 bits"
 # endif
@@ -456,15 +474,21 @@
 # if (__LLONG_WIDTH__ == 64)
 #   if (__LONG_WIDTH__ == __LLONG_WIDTH__)
 #     define Llong  long int
+#     define _LLD_FORMAT_PREFIX  "l"
 #   else
 #     define Llong  long long int
+#     define _LLD_FORMAT_PREFIX  "ll"
 #   endif
 # elif (__LONG_WIDTH__ == 64)
 #   define Llong  long int
+#   define _LLD_FORMAT_PREFIX  "l"
 # else
 #   error "This system cannot represent an interger with the width of 64 bits"
 # endif
 #endif
+
+#define D64_FMT  _LLD_FORMAT_PREFIX "d"
+#define U64_FMT  _LLU_FORMAT_PREFIX "u"
 
 /* ----------------------------- Char define's ----------------------------- */
 
