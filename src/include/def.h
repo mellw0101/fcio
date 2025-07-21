@@ -1455,7 +1455,7 @@
 
 #define log_ERR_FA(...)                                   \
   /* FATAL error-log.  Note that this will terminate. */  \
-  __fcio_log(4, __VA_ARGS__)
+  fcio_log_error_fatal(__LINE__, __func__, __VA_ARGS__)
 
 
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */

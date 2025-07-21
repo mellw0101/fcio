@@ -114,10 +114,6 @@ static void fcio_log_va(int type, Ulong lineno, const char *const restrict funct
     mutex_fdlock_full_wr(&fcio_log_mutex, fcio_log_fd, written, len, data, datalen, TRUE);
   }
   free(data);
-  /* If this was a fatal error. */
-  if (type == FCIO_LOG_ERR_FA) {
-    die_callback("\nTERMINATING: The last log was a fatal error.\n");
-  }
 }
 
 
@@ -169,4 +165,15 @@ void fcio_log(int type, Ulong lineno, const char *const restrict function, const
   va_start(ap, format);
   fcio_log_va(type, lineno, function, format, ap);
   va_end(ap);
+}
+
+/* ----------------------------- Fcio log error fatal ----------------------------- */
+
+void fcio_log_error_fatal(Ulong lineno, const char *const restrict function, const char *const restrict format, ...) {
+  ASSERT(format);
+  va_list ap;
+  va_start(ap, format);
+  fcio_log_va(FCIO_LOG_ERR_FA, lineno, function, format, ap);
+  va_end(ap);
+  die_callback("\nTERMINATING: The last log was a fatal error.\n");
 }

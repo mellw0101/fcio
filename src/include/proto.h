@@ -333,9 +333,11 @@ void hiactime_msleep(double milliseconds);
 
 
 /* ----------------------------- Fcio log set file ----------------------------- */
-void fcio_log_set_file(const char *const restrict path);
+void fcio_log_set_file(const char *const restrict path) _NONNULL(1);
 /* ----------------------------- Fcio log ----------------------------- */
-void fcio_log(int type, Ulong lineno, const char *const restrict function, const char *const restrict format, ...);
+void fcio_log(int type, Ulong lineno, const char *const restrict function, const char *const restrict format, ...) _PRINTFLIKE(4, 5);
+/* ----------------------------- Fcio log error fatal ----------------------------- */
+void fcio_log_error_fatal(Ulong lineno, const char *const restrict function, const char *const restrict format, ...) _NO_RETURN _PRINTFLIKE(3, 4);
 
 
 _END_C_LINKAGE
