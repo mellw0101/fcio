@@ -5,6 +5,7 @@
 
  */
 #include "../include/proto.h"
+#include "../include/statics.h"
 
 
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
@@ -112,15 +113,15 @@ struct HashMapNum {
 /* ----------------------------- HashMap ----------------------------- */
 
 /* `INTERNAL`  Create a `djb2` hash from `str`. */
-static inline Ulong hash_djb2(const char *str) {
-  ASSERT(str);
-  Ulong hash = 5381;
-  int c;
-  while ((c = *str++)) {
-    hash = (((hash << 5) + hash) + c);
-  }
-  return hash;
-}
+// static inline Ulong hash_djb2(const char *str) {
+//   ASSERT(str);
+//   Ulong hash = 5381;
+//   int c;
+//   while ((c = *str++)) {
+//     hash = (((hash << 5) + hash) + c);
+//   }
+//   return hash;
+// }
 
 /* `INTERNAL`  Get the current `cap` or `size` of `map`, or both, NULL can be passed to one, but not both at the same time. */
 static inline void hashmap_get_data(HashMap *const map, int *const cap, int *const size) {

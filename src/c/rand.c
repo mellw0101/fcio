@@ -15,7 +15,7 @@ char *randstr(Ulong length) {
   /* Allocate the return string to the length plus space for the `NULL-TERMINATOR`. */
   char *ret = xmalloc(length + 1);
   for (Ulong i=0; i<length; ++i) {
-    ret[i] = charset[rand() % STRLEN(charset)];
+    ret[i] = charset[rand() % SLTLEN(charset)];
   }
   /* `NULL-TERMINATE` the return string. */
   ret[length] = '\0';

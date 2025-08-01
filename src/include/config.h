@@ -232,7 +232,73 @@
 # define PREFETCH(...)  ((void)0)
 #endif
 
+/* ----------------------------- String shorthands ----------------------------- */
+
+#if _HAS_BUILTIN(strlen)
+# define STRLEN(s)  __builtin_strlen(s)
+#else
+# define STRLEN(s)  strlen(s)
+#endif
+
+#if _HAS_BUILTIN(strcpy)
+# define STRCPY(dst, src)  __builtin_strcpy(dst, src)
+#else
+# define STRCPY(dst, src)  strcpy(dst, src)
+#endif
+
+#if _HAS_BUILTIN(strncpy)
+# define STRNCPY(dst, src, n)  __builtin_strncpy(dst, src, n)
+#else
+# define STRNCPY(dst, src, n)  strncpy(dst, src, n)
+#endif
+
+#if _HAS_BUILTIN(strcmp)
+# define STRCMP(dst, src)  __builtin_strcmp(dst, src)
+#else
+# define STRCMP(dst, src)  strcmp(dst, src)
+#endif
+
+#if _HAS_BUILTIN(strncmp)
+# define STRNCMP(dst, src, n)  __builtin_strncmp(dst, src, n)
+#else
+# define STRNCMP(dst, src, n)  strncmp(dst, src, n)
+#endif
+
+#if _HAS_BUILTIN(strchr)
+# define STRCHR(s, ch)  __builtin_strchr(s, ch)
+#else
+# define STRCHR(s, ch)  strchr(s, ch)
+#endif
+
+#if _HAS_BUILTIN(strrchr)
+# define STRRCHR(s, ch)  __builtin_strrchr(s, ch)
+#else
+# define STRRCHR(s, ch)  strrchr(s, ch)
+#endif
+
+#if _HAS_BUILTIN(strcasecmp)
+# define STRCASECMP(s0, s1)  __builtin_strcasecmp(s0, s1)
+#else
+# define STRCASECMP(s0, s1)  strcasecmp(s0, s1)
+#endif
+
 /* Memory builtin shorthands */
+
+#if _HAS_BUILTIN(memset)
+# define MEMSET(s, c, n)             \
+    /* Set N bytes of S to C. */     \
+    __builtin_memset((s), (c), (n))
+#else
+# define MEMSET(s, c, n)          \
+    /* Set N bytes of S to C. */  \
+    memset((s), (c), (n))
+#endif
+
+#if _HAS_BUILTIN(free)
+# define FREE(x)  __builtin_free(x)
+#else
+# define FREE(x)  free(x)
+#endif
 
 #if _HAS_BUILTIN(memcpy)
 # define MEMCPY(dst, src, n)  __builtin_memcpy((dst), (src), (n))

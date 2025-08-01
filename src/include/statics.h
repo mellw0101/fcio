@@ -20,6 +20,21 @@
   HYPOTF(x, y)
 
 
+/* ---------------------------------------------------------- Hashing functions ---------------------------------------------------------- */
+
+
+/* Create a `djb2` hash from `str`. */
+static inline Ulong hash_djb2(const char *restrict str) {
+  ASSERT(str);
+  Ulong hash = 5381;
+  int c;
+  while ((c = *str++)) {
+    hash = (((hash << 5) + hash) + c);
+  }
+  return hash;
+}
+
+
 /* ---------------------------------------------------------- Cpu function's ---------------------------------------------------------- */
 
 
