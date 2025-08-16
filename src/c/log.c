@@ -14,6 +14,7 @@
 #define LOG_COLOR_START(x)  fcio_log_type_color_start[(x)]
 #define LOG_COLOR_END(x)    fcio_log_type_color_end[(x)]
 
+
 /* ---------------------------------------------------------- Enum's ---------------------------------------------------------- */
 
 
@@ -81,7 +82,9 @@ static int fcio_log_fd = -1;
 
 /* ----------------------------- Fcio log va ----------------------------- */
 
-static void fcio_log_va(int type, Ulong lineno, const char *const restrict function, const char *const restrict format, va_list ap) {
+static void fcio_log_va(int type, Ulong lineno,
+  const char *const restrict function, const char *const restrict format, va_list ap)
+{
   ASSERT(format);
   ASSERT(type >= FCIO_LOG_TYPE_FIRST && type <= FCIO_LOG_TYPE_LAST);
   bool log_to_std = TRUE;
@@ -94,12 +97,21 @@ static void fcio_log_va(int type, Ulong lineno, const char *const restrict funct
   va_copy(copy, ap);
   log = valstr(format, copy, NULL);
   va_end(copy);
-  mutex_action(&fcio_log_mutex,
+  MUTEX_ACTION(&fcio_log_mutex,
     if (fcio_log_fd != -1) {
       log_to_std = FALSE;
     }
   );
-  data = fmtstr_len(&datalen, "%s: %lu: %s: %s\n", PASS_IF_VALID(function, "GLOBAL"), lineno, LOG_TAG(type), log);
+  data = fmtstr_len(
+    &datalen,
+    "[%s]:[LINE]:[%lu]%*s:[FUNC]:[%s]: %s\n",
+    LOG_TAG(type),
+    lineno,
+    ((digits(lineno) < 5) ? (5 - digits(lineno)) : 0),
+    " ",
+    PASS_IF_VALID(function, "GLOBAL"),
+    log
+  );
   free(log);
   /* Only when logging to std out/err do we color the text using ascii esc codes. */
   if (log_to_std) {

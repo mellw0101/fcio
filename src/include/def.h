@@ -880,6 +880,9 @@
 #ifdef mutex_action
 # undef mutex_action
 #endif
+#ifdef MUTEX_ACTION
+# undef MUTEX_ACTION
+#endif
 #ifdef mutex_init_static
 # undef mutex_init_static
 #endif
@@ -940,6 +943,7 @@
 #define mutex_lock                pthread_mutex_lock
 #define mutex_unlock              pthread_mutex_unlock
 #define mutex_action(mutex, ...)  DO_WHILE(mutex_lock((mutex)); DO_WHILE(__VA_ARGS__); mutex_unlock((mutex));)
+#define MUTEX_ACTION(mutex, ...)  DO_WHILE(mutex_lock((mutex)); DO_WHILE(__VA_ARGS__); mutex_unlock((mutex));)
 #define mutex_init_static         PTHREAD_MUTEX_INITIALIZER
 
 /* Condition helper shorthand's. */
