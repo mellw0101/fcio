@@ -252,6 +252,20 @@ char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) {
   return dst;
 }
 
+/* ----------------------------- fmtstrcpy ----------------------------- */
+
+char *fmtstrcpy(char *restrict dst, const char *const restrict format, ...) {
+  ASSERT(dst);
+  ASSERT(format);
+  char *src;
+  va_list ap;
+  va_start(ap, format);
+  src = valstr(format, ap, NULL);
+  va_end(ap);
+  free(dst);
+  return src;
+}
+
 /* ----------------------------- xstrcat_norealloc ----------------------------- */
 
 /* Append `src` to the end of `dst`. */
@@ -261,7 +275,7 @@ char *xnstrncat_norealloc(char *restrict dst, Ulong dstlen, const char *const re
   /* Append src to dst. */
   MEMCPY((dst + dstlen), src, srclen);
   /* Null terminate the string. */
-  dst[dstlen + srclen] = '\0';
+  dst[dstlen + srclen] = NUL;
   /* Then return dst. */
   return dst;
 }
@@ -359,7 +373,7 @@ char *xnstrninj(char *restrict dst, Ulong dstlen, const char *const restrict src
   /* Then copy src into dst at idx. */
   MEMCPY((dst + idx), src, srclen);
   /* Explicitly set the `null-terminator`, this way it does not matter if `dstlen` is the full length of `dst`. */
-  dst[dstlen + srclen] = '\0';
+  dst[dstlen + srclen] = NUL;
   return dst;
 }
 
@@ -387,7 +401,7 @@ char *xstrn_erase_norealloc(char *restrict dst, Ulong dstlen, Ulong index, Ulong
   /* Move data from `index + len` to `index` in `dst`. */
   MEMMOVE((dst + index), (dst + index + len), (dstlen - index - len));
   /* Then explicitly `null-terminate` `dst`. */
-  dst[dstlen - len] = '\0';
+  dst[dstlen - len] = NUL;
   return dst;
 }
 
@@ -407,7 +421,7 @@ char *xstrn_erase(char *restrict dst, Ulong dstlen, Ulong index, Ulong len) {
   /* Reallocate `dst` to fit just the new length plus a `null-terminator.` */
   dst = xrealloc(dst, (dstlen - len + 1));
   /* Then explicitly `null-terminate` `dst`. */
-  dst[dstlen - len] = '\0';
+  dst[dstlen - len] = NUL;
   return dst;
 }
 
@@ -427,7 +441,7 @@ char *xstrncpy(char *restrict dst, const char *const restrict src, Ulong n) {
   /* Perform the copy. */
   MEMCPY(dst, src, n);
   /* Always null-terminate the string, this ensures usiform behavior. */
-  dst[n] = '\0';
+  dst[n] = NUL;
   return dst;
 }
 

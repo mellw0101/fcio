@@ -98,6 +98,10 @@ char *fmtstr_len(int *const fmtlen, const char *const restrict format, ...) __TH
 char *fmtstrncat(char *restrict dst, Ulong dstlen, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 3) _PRINTFLIKE(3, 4);
 char *fmtstrcat(char *restrict dst, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2) _PRINTFLIKE(2, 3);
 
+/* ----------------------------- fmtstrcpy ----------------------------- */
+
+char *fmtstrcpy(char *restrict dst, const char *const restrict format, ...) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2) _PRINTFLIKE(2, 3);
+
 /* ----------------------------- xstrcat_norealloc ----------------------------- */
 
 char *xnstrncat_norealloc(char *restrict dst, Ulong dstlen, const char *const restrict src, Ulong srclen) __THROW _RETURNS_NONNULL _NONNULL(1, 3);
