@@ -142,8 +142,8 @@ char *xstr_erase(char *restrict dst, Ulong index, Ulong len) __THROW _RETURNS_NO
 
 /* ----------------------------- xstrcpy ----------------------------- */
 
-char *xstrncpy(char *restrict dst, const char *const restrict src, Ulong n) __THROW _RETURNS_NONNULL _NONNULL(1, 2);
-char *xstrcpy(char *restrict dst, const char *const restrict src) __THROW _RETURNS_NONNULL _NONNULL(1, 2);
+char *xstrncpy(char *restrict dst, const char *const restrict src, Ulong n) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
+char *xstrcpy(char *restrict dst, const char *const restrict src) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 
 
 /* ---------------------------------------------------------- path.c ---------------------------------------------------------- */
