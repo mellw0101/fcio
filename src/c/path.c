@@ -58,6 +58,8 @@ void statalloc(const char *const restrict path, struct stat **ptr) {
   ALWAYS_ASSERT(stat(path, *ptr) != -1);
 }
 
+/* ----------------------------- Getpwd ----------------------------- */
+
 /* Return's an allocated string containg the current working directory based of the env var `PWD`. */
 char *getpwd(void) {
   const char *pwd = getenv("PWD");
@@ -65,4 +67,13 @@ char *getpwd(void) {
     return COPY_OF("");
   }
   return copy_of(pwd);
+}
+
+/* Return's an allocated string containg the current working directory based of the env
+ * var `PWD`.  Note that this also assigns the length of the allocated string to `*len`. */
+char *getpwd_len(Ulong *const len) {
+  ASSERT_MSG(len, "'len' cannot be NULL, if this is intended, call 'getpwd()'");
+  char *ret = getpwd();
+  *len = STRLEN(ret);
+  return ret;
 }

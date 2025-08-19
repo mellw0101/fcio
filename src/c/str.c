@@ -12,14 +12,14 @@ char *measured_copy(const char *const restrict string, Ulong len) {
   ASSERT(string);
   char *ret = xmalloc(len + 1);
   MEMCPY(ret, string, len);
-  ret[len] = '\0';
+  ret[len] = NUL;
   return ret;
 }
 
 /* Return's a allocated copy of `string`.  Note that this function cannot return an invalid ptr. */
 char *copy_of(const char *const restrict string) {
   ASSERT(string);
-  return measured_copy(string, strlen(string));
+  return measured_copy(string, STRLEN(string));
 }
 
 /* Create a allocated string from veriatic arguments, and assign the length to `*outlen`. */
@@ -29,10 +29,10 @@ char *valstr(const char *const restrict format, va_list ap, int *const outlen) {
   int len;
   va_list copy;
   va_copy(copy, ap);
-  ALWAYS_ASSERT((len = vsnprintf(NULL, 0, format, copy)) != -1);
+  ALWAYS_ASSERT((len = VSNPRINTF(NULL, 0, format, copy)) != -1);
   va_end(copy);
   ret = xmalloc(len + 1);
-  ALWAYS_ASSERT(vsnprintf(ret, (len + 1), format, ap) != -1);
+  ALWAYS_ASSERT(VSNPRINTF(ret, (len + 1), format, ap) != -1);
   /* If the user wants the total length of the formated string, then assign it to `*outlen`. */
   ASSIGN_IF_VALID(outlen, len);
   return ret;
@@ -50,9 +50,9 @@ long strtonum(const char *const restrict string) {
   errno = 0;
   ret = strtol(string, &endptr, 10);
   /* Check for range errors. */
-  ALWAYS_ASSERT_MSG((errno != ERANGE), "Return'ed value is out of range");
+  ALWAYS_ASSERT_MSG((errno != ERANGE), "Returned value is out of range");
   /* Check that the string was read correctly. */
-  ALWAYS_ASSERT_MSG(!*endptr, "Passed string included somthing other then numbers");
+  ALWAYS_ASSERT_MSG(!*endptr, "Passed string included something other then numbers");
   return ret;
 }
 
@@ -76,7 +76,7 @@ bool parse_num(const char *const restrict string, long *const result) {
 
 /* Free the string at `dest` and return the string at `src`. */
 char *free_and_assign(char *dest, char *src) {
-  free(dest);
+  FREE(dest);
   return src;
 }
 
@@ -262,7 +262,7 @@ char *fmtstrcpy(char *restrict dst, const char *const restrict format, ...) {
   va_start(ap, format);
   src = valstr(format, ap, NULL);
   va_end(ap);
-  free(dst);
+  FREE(dst);
   return src;
 }
 
@@ -306,7 +306,7 @@ char *xnstrncat(char *restrict dst, Ulong dstlen, const char *const restrict src
   /* Append src to dst. */
   MEMCPY((dst + dstlen), src, srclen);
   /* Null terminate the string. */
-  dst[dstlen + srclen] = '\0';
+  dst[dstlen + srclen] = NUL;
   /* Then return dst. */
   return dst;
 }
@@ -339,7 +339,7 @@ char *xnstrninj_norealloc(char *restrict dst, Ulong dstlen, const char *const re
   /* Then copy src into dst at idx. */
   MEMCPY((dst + idx), src, srclen);
   /* Explicitly set the `null-terminator`, this way it does not matter if `dstlen` is the full length of `dst`. */
-  dst[dstlen + srclen] = '\0';
+  dst[dstlen + srclen] = NUL;
   return dst;
 }
 

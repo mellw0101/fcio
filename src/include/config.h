@@ -282,6 +282,12 @@
 # define STRCASECMP(s0, s1)  strcasecmp(s0, s1)
 #endif
 
+#if _HAS_BUILTIN(vsnprintf)
+# define VSNPRINTF(buf, maxlen, format, va)  __builtin_vsnprintf(buf, maxlen, format, va)
+#else
+# define VSNPRINTF(buf, maxlen, format, va)  vsnprintf(buf, maxlen, format, va)
+#endif
+
 /* Memory builtin shorthands */
 
 #if _HAS_BUILTIN(memset)
