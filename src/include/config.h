@@ -246,6 +246,12 @@
 # define STRCPY(dst, src)  strcpy(dst, src)
 #endif
 
+#if _HAS_BUILTIN(strcat)
+# define STRCAT(dst, src)  __builtin_strcat(dst, src)
+#else
+# define STRCAT(dst, src)  strcat(dst, src)
+#endif
+
 #if _HAS_BUILTIN(strncpy)
 # define STRNCPY(dst, src, n)  __builtin_strncpy(dst, src, n)
 #else

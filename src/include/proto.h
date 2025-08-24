@@ -154,8 +154,8 @@ const char *ext(const char *const restrict path) __THROW _NODISCARD _NONNULL(1);
 char       *concatpath(const char *const restrict s1, const char *const restrict s2) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 void        statalloc(const char *const restrict path, struct stat **ptr) __THROW _NONNULL(1, 2);
 /* ----------------------------- Getpwd ----------------------------- */
-char *getpwd(void) _NODISCARD;
-char *getpwd_len(Ulong *const len) _NODISCARD _NONNULL(1);
+char *getpwd(void) _NODISCARD _RETURNS_NONNULL;
+char *getpwd_len(Ulong *const len) _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 
 
 /* ---------------------------------------------------------- cvec.c ---------------------------------------------------------- */
