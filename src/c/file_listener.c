@@ -39,7 +39,7 @@ struct FileListenerNode {
 
 struct FcioFileListener {
   HashMap *files;
-  Queue *queue;
+  QUEUE queue;
   mutex_t mutex;
   cond_t cond;
   thread_t thread;
@@ -78,7 +78,7 @@ _UNUSED static void *filelistener_node_task(void *arg) {
     for (long i=0; i<len;) {
       event = (struct inotify_event *)&buffer[i];
       mutex_action(&node->listener->mutex,
-        queue_enqueue(node->listener->queue, queue_event_create(node->callback, event->mask));
+        queue_push(node->listener->queue, queue_event_create(node->callback, event->mask));
         cond_signal(&node->listener->cond);
       );
       i += (EVENT_SIZE + event->len);
@@ -113,7 +113,8 @@ _UNUSED static void *filelistener_task(void *arg) {
         mutex_unlock(&listener->mutex);
         break;
       }
-      event = queue_pop(listener->queue);
+      event = queue_front(listener->queue);
+      queue_pop(listener->queue);
     );
     if (event) {
       event->callback(event->mask);

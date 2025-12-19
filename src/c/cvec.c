@@ -7,6 +7,115 @@
 #include "../include/proto.h"
 
 
+/*---------------------------------------- Define's ----------------------------------------*/
+
+
+#define CVEC_START_CAP  (8)
+
+#define ASSERT_CV(x)  \
+  DO_WHILE(           \
+    ASSERT(x);        \
+    ASSERT(x->data);  \
+  )
+
+
+/*---------------------------------------- Typedef's ----------------------------------------*/
+
+
+struct CVEC_T {
+  size_t size;
+  size_t cap;
+  void **data;
+  void (*free_func)(void *);
+};
+
+
+/*---------------------------------------- Static function's ----------------------------------------*/
+
+
+static void new_cvec_free_data(CVEC cv) {
+  ASSERT_CV(cv);
+  if (!cv->free_func) {
+    return;
+  }
+  for (size_t i=0; i<cv->size; ++i) {
+    cv->free_func(cv->data[i]);
+  }
+}
+
+
+/*---------------------------------------- Global function's ----------------------------------------*/
+
+
+CVEC new_cvec_create(void) {
+  CVEC cv = xmalloc(sizeof(*cv));
+  cv->size      = 0;
+  cv->cap       = CVEC_START_CAP;
+  cv->data      = xmalloc(cv->cap * _PTRSIZE);
+  cv->free_func = NULL;
+  return cv;
+}
+
+void new_cvec_free(CVEC cv) {
+  if (!cv) {
+    return;
+  }
+  new_cvec_free_data(cv);
+  FREE(cv->data);
+  FREE(cv);
+}
+
+void new_cvec_set_free_func(CVEC cv, void (*free_func)(void *)) {
+  ASSERT_CV(cv);
+  cv->free_func = free_func; 
+}
+
+size_t new_cvec_size(CVEC cv) {
+  ASSERT_CV(cv);
+  return cv->size;
+}
+
+void new_cvec_push_back(CVEC cv, void *p) {
+  ASSERT_CV(cv);
+  ASSERT(p);
+  ENSURE_PTR_ARRAY_SIZE(cv->data, cv->cap, cv->size);
+  cv->data[cv->size++] = p;
+}
+
+void *new_cvec_get(CVEC cv, size_t idx) {
+  ASSERT_CV(cv);
+  ALWAYS_ASSERT(idx < cv->size);
+  return cv->data[idx];
+}
+
+void new_cvec_erase_swap_back(CVEC cv, size_t idx) {
+  ASSERT_CV(cv);
+  ALWAYS_ASSERT(idx < cv->size);
+  CALL_IF_VALID(cv->free_func, cv->data[idx]);
+  /* If erasing the last element. */
+  if (idx == (cv->size - 1)) {
+    --cv->size;
+  }
+  else {
+    cv->data[idx] = cv->data[--cv->size];
+  }
+}
+
+void new_cvec_erase_shift(CVEC cv, size_t idx) {
+  ASSERT_CV(cv);
+  ALWAYS_ASSERT(idx < cv->size);
+  CALL_IF_VALID(cv->free_func, cv->data[idx]);
+  MEMMOVE((cv->data + idx), (cv->data + idx + 1), (_PTRSIZE * ((cv->size - idx) - 1)));
+  --cv->size;
+}
+
+void new_cvec_clear(CVEC cv) {
+  ASSERT_CV(cv);
+  new_cvec_free_data(cv);
+  cv->size = 0;
+}
+
+
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
 
 

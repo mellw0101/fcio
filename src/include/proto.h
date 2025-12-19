@@ -161,6 +161,16 @@ char *getpwd_len(Ulong *const len) _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 /* ---------------------------------------------------------- cvec.c ---------------------------------------------------------- */
 
 
+CVEC new_cvec_create(void);
+void new_cvec_free(CVEC cv);
+void new_cvec_set_free_func(CVEC cv, void (*free_func)(void *));
+size_t new_cvec_size(CVEC cv);
+void new_cvec_push_back(CVEC cv, void *p);
+void *new_cvec_get(CVEC cv, size_t idx);
+void new_cvec_erase_swap_back(CVEC cv, size_t idx);
+void new_cvec_erase_shift(CVEC cv, size_t idx);
+void new_cvec_clear(CVEC cv);
+
 CVec *cvec_create(void) __THROW _NODISCARD _RETURNS_NONNULL;
 CVec *cvec_create_setfree(FreeFuncPtr free) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 void  cvec_free(CVec *const v);
@@ -179,6 +189,18 @@ void  cvec_qsort(CVec *const v, CmpFuncPtr cmp);
 
 /* ---------------------------------------------------------- hashmap.c ---------------------------------------------------------- */
 
+
+/* ----------------------------- HNMAP ----------------------------- */
+
+HNMAP hnmap_create(void);
+void hnmap_free(HNMAP nm);
+void hnmap_set_free_func(HNMAP nm, void (*free_func)(void *));
+void hnmap_insert(HNMAP nm, HMAP_UINT key, void *value);
+void *hnmap_get(HNMAP nm, HMAP_UINT key);
+bool hnmap_contains(HNMAP nm, HMAP_UINT key);
+void hnmap_remove(HNMAP nm, HMAP_UINT key);
+void hnmap_clear(HNMAP nm);
+void hnmap_forall_wdata(HNMAP nm, void (*action)(HMAP_UINT key, void *value, void *data), void *data);
 
 /* ----------------------------- HashMap ----------------------------- */
 
@@ -303,13 +325,21 @@ void atomicbool_set_false(atomicbool *ab);
 /* ---------------------------------------------------------- queue.c ---------------------------------------------------------- */
 
 
-Queue *queue_create(void);
-void queue_free(Queue *q);
-void queue_set_free_func(Queue *q, FreeFuncPtr free_func);
-void queue_enqueue(Queue *q, void *data);
-void *queue_pop(Queue *q);
-void *queue_peak(Queue *q);
-Ulong queue_size(Queue *q);
+QUEUE queue_create(void);
+void  queue_free(QUEUE q);
+void  queue_set_free_func(QUEUE q, void (*free_func)(void *));
+Ulong queue_size(QUEUE q);
+void  queue_pop(QUEUE q);
+void  queue_push(QUEUE q, void *data);
+void *queue_front(QUEUE q);
+
+// Queue *queue_create(void);
+// void queue_free(Queue *q);
+// void queue_set_free_func(Queue *q, FreeFuncPtr free_func);
+// void queue_enqueue(Queue *q, void *data);
+// void *queue_pop(Queue *q);
+// void *queue_peak(Queue *q);
+// Ulong queue_size(Queue *q);
 
 
 /* ---------------------------------------------------------- blkdev.c ---------------------------------------------------------- */

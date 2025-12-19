@@ -1551,6 +1551,11 @@
   fcio_log_error_fatal(__LINE__, __func__, __VA_ARGS__)
 
 
+/* ----------------------------- hashmap.c ----------------------------- */
+
+#define HMAP_UINT  PP_CAT(PP_CAT(uint, __WORDSIZE), _t)
+
+
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
 
 
@@ -1582,9 +1587,12 @@ typedef struct {
 
 /* ----------------------------- cvec.c ----------------------------- */
 
+typedef struct CVEC_T *CVEC;
 typedef struct CVec  CVec;
 
 /* ----------------------------- hashmap.c ----------------------------- */
+
+typedef struct HNMAP_T *  HNMAP;
 
 typedef struct HashNode  HashNode;
 typedef struct HashMap   HashMap;
@@ -1608,4 +1616,5 @@ typedef struct atomicbool  atomicbool;
 
 /* ----------------------------- queue.c ----------------------------- */
 
-typedef struct Queue  Queue;
+// typedef struct Queue  Queue;
+typedef struct QUEUE_T *  QUEUE;

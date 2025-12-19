@@ -6,6 +6,7 @@
  */
 #include "../include/proto.h"
 #include "../include/statics.h"
+#include <stdint.h>
 
 
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
@@ -59,7 +60,64 @@
     }                                                                 \
   )
 
+
+#define ASSERT_HMAP(x)   \
+  DO_WHILE(              \
+    ASSERT(x);           \
+    ASSERT(x->buckets);  \
+  )
+
+#define ASSERT_HMAP_NODE(x)  \
+  DO_WHILE(                  \
+    ASSERT(x);               \
+    ASSERT(x->key);          \
+  )
+
+#define ASSERT_HNMAP(x)       ASSERT_HMAP(x)
+#define ASSERT_HNMAP_NODE(x)  ASSERT(x)
+
+#define HMAP_ITER(map, iter, entry, ...)            \
+  DO_WHILE(                                         \
+    for (size_t iter=0; iter<(map)->cap; ++iter) {  \
+      CVEC entry = (map)->buckets[iter];            \
+      if (entry) {                                  \
+        DO_WHILE(__VA_ARGS__);                      \
+      }                                             \
+    }                                               \
+  )
+
+#define HNMAP_BUCKET_ITER(bucket, iter, entry, ...)           \
+  DO_WHILE(                                                  \
+    for (size_t iter=0; iter<new_cvec_size((bucket)); ++iter) {  \
+      HNMAP_NODE entry = new_cvec_get((bucket), iter);            \
+      DO_WHILE(__VA_ARGS__);                                 \
+    }                                                        \
+  )
+
+
+#define HMAP_UINT  PP_CAT(PP_CAT(uint, __WORDSIZE), _t)
+
+
+/* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
+
+
+typedef struct HNMAP_NODE_T *  HNMAP_NODE;
+
+
 /* ---------------------------------------------------------- Struct's ---------------------------------------------------------- */
+
+
+struct HNMAP_NODE_T {
+  HMAP_UINT key;
+  void *value;
+};
+
+struct HNMAP_T {
+  CVEC *buckets;
+  HMAP_UINT cap;
+  HMAP_UINT size;
+  void (*free_func)(void *);
+};
 
 
 /* ----------------------------- HashMap ----------------------------- */
@@ -105,6 +163,165 @@ struct HashMapNum {
   
   mutex_t mutex;
 };
+
+
+/* ---------------------------------------------------------- Static function's ---------------------------------------------------------- */
+
+
+// static __always_inline HMAP_UINT djb2_hash(const char *str) {
+//   HMAP_UINT hash = 5381;
+//   int c;
+//   while ((c = *str++)) {
+//     hash = (((hash << 5) + hash) + c);
+//   }
+//   return hash;
+// }
+
+static __always_inline void hnmap_free_node(HNMAP nm, HNMAP_NODE node) {
+  ASSERT_HNMAP(nm);
+  ASSERT_HNMAP_NODE(node);
+  CALL_IF_VALID(nm->free_func, node->value);
+  FREE(node);
+}
+
+static void hnmap_resize(HNMAP nm) {
+  ASSERT_HNMAP(nm);
+  HMAP_UINT new_cap = (nm->cap * 2);
+  HMAP_UINT index;
+  CVEC *new_buckets = xcalloc(new_cap, _PTRSIZE);
+  HMAP_ITER(nm, i, bucket,
+    HNMAP_BUCKET_ITER(bucket, b, node,
+      index = (node->key & (new_cap - 1));
+      if (!new_buckets[index]) {
+        new_buckets[index] = new_cvec_create();
+      }
+      new_cvec_push_back(new_buckets[index], node);
+    );
+    new_cvec_free(bucket);
+  );
+  FREE(nm->buckets);
+  nm->buckets = new_buckets;
+  nm->cap     = new_cap; 
+}
+
+
+/* ---------------------------------------------------------- Global function's ---------------------------------------------------------- */
+
+
+HNMAP hnmap_create(void) {
+  HNMAP nm = xmalloc(sizeof *nm);
+  nm->cap       = INITIAL_CAP;
+  nm->size      = 0;
+  nm->buckets   = xcalloc(nm->cap, _PTRSIZE);
+  nm->free_func = NULL;
+  return nm;
+}
+
+void hnmap_free(HNMAP nm) {
+  if (!nm) {
+    return;
+  }
+  HMAP_ITER(nm, i, bucket,
+    HNMAP_BUCKET_ITER(bucket, b, node,
+      hnmap_free_node(nm, node);
+    );
+    new_cvec_free(bucket);
+  );
+  FREE(nm->buckets);
+  FREE(nm);
+}
+
+void hnmap_set_free_func(HNMAP nm, void (*free_func)(void *)) {
+  ASSERT_HNMAP(nm);
+  nm->free_func = free_func;
+}
+
+void hnmap_insert(HNMAP nm, HMAP_UINT key, void *value) {
+  ASSERT_HNMAP(nm);
+  HNMAP_NODE new_node;
+  HMAP_UINT index;
+  if (((float)(nm->size + 1) / nm->cap) > LOAD_FACTOR) {
+    hnmap_resize(nm);
+  }
+  index = (key & (nm->cap - 1));
+  if (!nm->buckets[index]) {
+    nm->buckets[index] = new_cvec_create();
+  }
+  HNMAP_BUCKET_ITER(nm->buckets[index], b, node,
+    if (node->key == key) {
+      CALL_IF_VALID(nm->free_func, node->value);
+      node->value = value;
+      return;
+    }
+  );
+  new_node = xmalloc(sizeof *new_node);
+  new_node->key   = key;
+  new_node->value = value;
+  new_cvec_push_back(nm->buckets[index], new_node);
+  ++nm->size;
+}
+
+void *hnmap_get(HNMAP nm, HMAP_UINT key) {
+  ASSERT_HNMAP(nm);
+  HMAP_UINT index = (key & (nm->cap - 1));
+  if (nm->buckets[index]) {
+    HNMAP_BUCKET_ITER(nm->buckets[index], i, node,
+      if (node->key == key) {
+        return node->value;
+      }
+    );
+  }
+  return NULL;
+}
+
+bool hnmap_contains(HNMAP nm, HMAP_UINT key) {
+  ASSERT_HNMAP(nm);
+  HMAP_UINT index = (key & (nm->cap - 1));
+  if (nm->buckets[index]) {
+    HNMAP_BUCKET_ITER(nm->buckets[index], i, node,
+      if (node->key == key) {
+        return TRUE;
+      }
+    );
+  }
+  return FALSE;
+}
+
+void hnmap_remove(HNMAP nm, HMAP_UINT key) {
+  ASSERT_HNMAP(nm);
+  HMAP_UINT index = (key & (nm->cap - 1));
+  if (nm->buckets[index]) {
+    HNMAP_BUCKET_ITER(nm->buckets[index], i, node,
+      if (node->key == key) {
+        hnmap_free_node(nm, node);
+        new_cvec_erase_swap_back(nm->buckets[index], i);
+        --nm->size;
+        break;
+      }
+    );
+  }
+}
+
+void hnmap_clear(HNMAP nm) {
+  ASSERT_HNMAP(nm);
+  HMAP_ITER(nm, i, bucket,
+    HNMAP_BUCKET_ITER(bucket, b, node,
+      hnmap_free_node(nm, node);
+    );
+    new_cvec_clear(bucket);
+  );
+  nm->size = 0;
+}
+
+void hnmap_forall_wdata(HNMAP nm, void (*action)(HMAP_UINT key, void *value, void *data), void *data) {
+  ASSERT_HNMAP(nm);
+  ASSERT(action);
+  HMAP_ITER(nm, i, bucket,
+    HNMAP_BUCKET_ITER(bucket, b, node,
+      action(node->key, node->value, data);
+    );
+  );
+}
 
 
 /* ---------------------------------------------------------- Function's ---------------------------------------------------------- */
