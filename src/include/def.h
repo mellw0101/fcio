@@ -1064,7 +1064,7 @@
       (tot) += (wrlen);                                                                                \
     }                                                                                                  \
     if ((term_on_error)) {                                                                             \
-      ALWAYS_ASSERT((wrlen) != -1 && (tot) == (datalen));                                              \
+      ALWAYS_ASSERT((tot) == (datalen));                                                               \
     }                                                                                                  \
   )
 
