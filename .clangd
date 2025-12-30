@@ -1,2 +1,7 @@
 Diagnostics:
   UnusedIncludes: None
+Index:
+  External:
+    File: /home/mellw/source/NanoX/clangd.dex
+    MountPoint: /home/mellw/source/NanoX
+  Background: Build
