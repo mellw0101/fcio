@@ -1592,6 +1592,7 @@ typedef struct CVec  CVec;
 
 /* ----------------------------- hashmap.c ----------------------------- */
 
+typedef struct HMAP_T *   HMAP;
 typedef struct HNMAP_T *  HNMAP;
 
 typedef struct HashNode  HashNode;

@@ -190,17 +190,32 @@ void  cvec_qsort(CVec *const v, CmpFuncPtr cmp);
 /* ---------------------------------------------------------- hashmap.c ---------------------------------------------------------- */
 
 
+/* ----------------------------- HMAP ----------------------------- */
+
+/*
+ * Create a string hashmap, where the key is a `char *`.
+ */
+HMAP hmap_create(void);
+void  hmap_free(HMAP m);
+void  hmap_set_free_func(HMAP m, void (*free_func)(void *));
+void  hmap_insert(HMAP m, const char *const restrict key, void *value);
+void *hmap_get(HMAP m, const char *const restrict key);
+bool  hmap_contains(HMAP m, const char *const restrict key);
+void  hmap_remove(HMAP m, const char *const restrict key);
+void  hmap_clear(HMAP m);
+void  hmap_forall_wdata(HMAP m, void (*action)(const char *key, void *value, void *data), void *data);
+
 /* ----------------------------- HNMAP ----------------------------- */
 
 HNMAP hnmap_create(void);
-void hnmap_free(HNMAP nm);
-void hnmap_set_free_func(HNMAP nm, void (*free_func)(void *));
-void hnmap_insert(HNMAP nm, HMAP_UINT key, void *value);
+void  hnmap_free(HNMAP nm);
+void  hnmap_set_free_func(HNMAP nm, void (*free_func)(void *));
+void  hnmap_insert(HNMAP nm, HMAP_UINT key, void *value);
 void *hnmap_get(HNMAP nm, HMAP_UINT key);
-bool hnmap_contains(HNMAP nm, HMAP_UINT key);
-void hnmap_remove(HNMAP nm, HMAP_UINT key);
-void hnmap_clear(HNMAP nm);
-void hnmap_forall_wdata(HNMAP nm, void (*action)(HMAP_UINT key, void *value, void *data), void *data);
+bool  hnmap_contains(HNMAP nm, HMAP_UINT key);
+void  hnmap_remove(HNMAP nm, HMAP_UINT key);
+void  hnmap_clear(HNMAP nm);
+void  hnmap_forall_wdata(HNMAP nm, void (*action)(HMAP_UINT key, void *value, void *data), void *data);
 
 /* ----------------------------- HashMap ----------------------------- */
 
