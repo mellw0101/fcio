@@ -200,7 +200,8 @@ struct HashMapNum {
 
 /* ----------------------------- HMAP ----------------------------- */
 
-static __always_inline HMAP_UINT djb2_hash(const char *str) {
+static __always_inline HMAP_UINT
+djb2_hash(const char *str) {
   HMAP_UINT hash = 5381;
   int c;
   while ((c = *str++)) {
@@ -209,7 +210,8 @@ static __always_inline HMAP_UINT djb2_hash(const char *str) {
   return hash;
 }
 
-static __always_inline void hmap_free_node(HMAP m, HMAP_NODE node) {
+static __always_inline void
+hmap_free_node(HMAP m, HMAP_NODE node) {
   ASSERT_HMAP(m);
   ASSERT_HMAP_NODE(node);
   CALL_IF_VALID(m->free_func, node->value);
@@ -217,7 +219,8 @@ static __always_inline void hmap_free_node(HMAP m, HMAP_NODE node) {
   FREE(node);
 }
 
-static void hmap_resize(HMAP m) {
+static void
+hmap_resize(HMAP m) {
   ASSERT_HMAP(m);
   HMAP_UINT new_cap = (m->cap * 2);
   HMAP_UINT index;
@@ -239,14 +242,16 @@ static void hmap_resize(HMAP m) {
 
 /* ----------------------------- HNMAP ----------------------------- */
 
-static __always_inline void hnmap_free_node(HNMAP nm, HNMAP_NODE node) {
+static __always_inline void
+hnmap_free_node(HNMAP nm, HNMAP_NODE node) {
   ASSERT_HNMAP(nm);
   ASSERT_HNMAP_NODE(node);
   CALL_IF_VALID(nm->free_func, node->value);
   FREE(node);
 }
 
-static void hnmap_resize(HNMAP nm) {
+static void
+hnmap_resize(HNMAP nm) {
   ASSERT_HNMAP(nm);
   HMAP_UINT new_cap = (nm->cap * 2);
   HMAP_UINT index;
