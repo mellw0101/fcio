@@ -7,6 +7,16 @@
 #pragma once
 
 
+#ifdef __WIN__
+# undef __WIN__
+#endif
+
+#if (defined(_WIN32) || defined(_WIN64))
+# define __WIN__ 1
+# define uint64_t  unsigned long long int
+#endif
+
+
 #ifdef _BEGIN_C_LINKAGE
 # undef _BEGIN_C_LINKAGE
 #endif
@@ -306,11 +316,6 @@
     memset((s), (c), (n))
 #endif
 
-#if _HAS_BUILTIN(free)
-# define FREE(x)  __builtin_free(x)
-#else
-# define FREE(x)  free(x)
-#endif
 
 #if _HAS_BUILTIN(memcpy)
 # define MEMCPY(dst, src, n)  __builtin_memcpy((dst), (src), (n))
@@ -328,6 +333,14 @@
 # define MEMCMP(dst, src, n)  __builtin_memcmp((dst), (src), (n))
 #else
 # define MEMCMP(dst, src, n)  memcmp((dst), (src), (n))
+#endif
+
+#if !__WIN__
+
+#if _HAS_BUILTIN(free)
+# define FREE(x)  __builtin_free(x)
+#else
+# define FREE(x)  free(x)
 #endif
 
 /* Malloc */
@@ -349,6 +362,13 @@
 # define CALLOC(n, nsize)  __builtin_calloc(n, nsize)
 #else
 # define CALLOC(n, nsize)  calloc(n, nsize)
+#endif
+
+#else
+#define MALLOC(howmush)        HeapAlloc(GetProcessHeap(), 0, (howmush))
+#define REALLOC(ptr, newsize)  HeapReAlloc(GetProcessHeap(), 0, (ptr), (newsize))
+#define CALLOC(n, size)        HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ((n) * (size)))
+#define FREE(p)                HeapFree(GetProcessHeap(), 0, (p))
 #endif
 
 #if _HAS_BUILTIN(constant_p)

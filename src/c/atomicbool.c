@@ -6,6 +6,7 @@
  */
 #include "../include/proto.h"
 
+#if !__WIN__
 
 struct atomicbool {
   mutex_t mutex;
@@ -50,3 +51,5 @@ void atomicbool_set_false(atomicbool *ab) {
     ab->value = FALSE;
   );
 }
+
+#endif

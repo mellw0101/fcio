@@ -6,7 +6,6 @@
  */
 #include "../include/proto.h"
 #include "../include/statics.h"
-#include <stdint.h>
 
 
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
@@ -103,7 +102,7 @@
   )
 
 
-#define HMAP_UINT  PP_CAT(PP_CAT(uint, __WORDSIZE), _t)
+// #define HMAP_UINT  PP_CAT(PP_CAT(uint, __WORDSIZE), _t)
 
 
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
@@ -150,6 +149,8 @@ struct HNMAP_T {
   void (*free_func)(void *);
 };
 
+#if !__WIN__
+
 /* ----------------------------- HashMap ----------------------------- */
 
 struct HashNode {
@@ -193,6 +194,8 @@ struct HashMapNum {
   
   mutex_t mutex;
 };
+
+#endif
 
 
 /* ---------------------------------------------------------- Static function's ---------------------------------------------------------- */
@@ -514,6 +517,7 @@ void hnmap_forall_wdata(HNMAP nm, void (*action)(HMAP_UINT key, void *value, voi
   );
 }
 
+#if !__WIN__
 
 /* ---------------------------------------------------------- Function's ---------------------------------------------------------- */
 
@@ -1278,3 +1282,4 @@ void hashmap_thread_test(void) {
 #undef OPS_PER_THREAD
 #undef NUM_THREADS
 
+#endif

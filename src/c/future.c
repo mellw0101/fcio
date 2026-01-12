@@ -7,6 +7,8 @@
 #include "../include/proto.h"
 
 
+#if !__WIN__
+
 
 /* ---------------------------------------------------------- Struct's ---------------------------------------------------------- */
 
@@ -97,3 +99,5 @@ Future *future_submit(void *(*task)(void *), void *arg) {
   thread_detach(thread);
   return data->future;
 }
+
+#endif

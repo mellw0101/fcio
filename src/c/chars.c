@@ -9,12 +9,13 @@
 
 static bool using_utf8 = FALSE;
 
-
 void initcheck_utf8(void) {
+#if !__WIN__
   /* If setting the locale is successful and it uses UTF-8, we will need to use the multibyte functions for text processing. */
   if (setlocale(LC_ALL, "") && strcmp(nl_langinfo(CODESET), "UTF-8") == 0) {
     using_utf8 = TRUE;
   }
+#endif
 }
 
 /* Return the length of a utf8 multibyte char. */

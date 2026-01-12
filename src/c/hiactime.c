@@ -8,6 +8,8 @@
  */
 #include "../include/proto.h"
 
+#if !__WIN__
+
 
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
 
@@ -79,3 +81,5 @@ void hiactime_nsleep(Llong nanoseconds) {
 void hiactime_msleep(double milliseconds) {
   hiactime_nsleep(MILLI_TO_NANO(milliseconds));
 }
+
+#endif

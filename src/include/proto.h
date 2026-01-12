@@ -10,6 +10,15 @@
 #include "config.h"
 #include "def.h"
 
+#if __WIN__
+# define __THROW
+# define __always_inline
+#ifdef _NODISCARD
+# undef _NODISCARD
+#endif
+# define _NODISCARD
+#endif
+
 
 _BEGIN_C_LINKAGE
 
@@ -41,7 +50,7 @@ bool non_exec_file_exists(const char *const restrict path) __THROW _NODISCARD _N
 
 /* ---------------------------------------------------------- dirs.c ---------------------------------------------------------- */
 
-
+#if !__WIN__
 bool               dir_exists(const char *const restrict path);
 directory_entry_t *directory_entry_make(void);
 directory_entry_t *directory_entry_extract(directory_t *const dir, Ulong idx);
@@ -52,6 +61,7 @@ void               directory_data_init(directory_t *const dir);
 void               directory_data_free(directory_t *const dir);
 int                directory_get(const char *const restrict path, directory_t *const output);
 int                directory_get_recurse(const char *const restrict path, directory_t *const output);
+#endif
 
 /* ----------------------------- Test's ----------------------------- */
 
@@ -146,16 +156,39 @@ char *xstrncpy(char *restrict dst, const char *const restrict src, Ulong n) __TH
 char *xstrcpy(char *restrict dst, const char *const restrict src) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
 
 
+#if __WIN__
+wchar_t *wfree_and_assign(wchar_t *dest, wchar_t *src);
+
+wchar_t *measured_wcopy(const wchar_t *string, size_t len);
+wchar_t *wcopy_of(const wchar_t *string);
+wchar_t *wvalstr(const wchar_t *const restrict format, va_list ap, int *const outlen);
+wchar_t *wfmtstr(const wchar_t *const restrict format, ...);
+wchar_t *wfmtstrcat(wchar_t *restrict dst, const wchar_t *const restrict format, ...);
+
+wchar_t *xwnstrncat(wchar_t *restrict dst, size_t dstlen, const wchar_t *const restrict src, size_t srclen);
+wchar_t *xwnstrcat(wchar_t *restrict dst, size_t dstlen, const wchar_t *const restrict src);
+wchar_t *xwstrncat(wchar_t *restrict dst, const wchar_t *const restrict src, size_t srclen);
+wchar_t *xwstrcat(wchar_t *restrict dst, const wchar_t *const restrict src);
+#endif
+
+
 /* ---------------------------------------------------------- path.c ---------------------------------------------------------- */
 
 
 const char *tail(const char *const restrict path) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 const char *ext(const char *const restrict path) __THROW _NODISCARD _NONNULL(1);
 char       *concatpath(const char *const restrict s1, const char *const restrict s2) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1, 2);
+
+#if __WIN__
+wchar_t *wconcatpath(const wchar_t *const restrict s1, const wchar_t *const restrict s2);
+#endif
+
+#if !__WIN__
 void        statalloc(const char *const restrict path, struct stat **ptr) __THROW _NONNULL(1, 2);
 /* ----------------------------- Getpwd ----------------------------- */
 char *getpwd(void) _NODISCARD _RETURNS_NONNULL;
 char *getpwd_len(Ulong *const len) _NODISCARD _RETURNS_NONNULL _NONNULL(1);
+#endif
 
 
 /* ---------------------------------------------------------- cvec.c ---------------------------------------------------------- */
@@ -259,12 +292,14 @@ void hashmap_thread_test(void);
 /* ---------------------------------------------------------- fd.c ---------------------------------------------------------- */
 
 
+#if !__WIN__
 void fdlock(int fd, short type);
 void fdunlock(int fd);
 void disable_canonecho(int fd, struct termios *const oldt);
 void restore_termios(int fd, struct termios *const t);
 void setfdflags(int fd, int *oldf, int flags);
 void restfdflags(int fd, int *f);
+#endif
 
 
 /* ---------------------------------------------------------- term.c ---------------------------------------------------------- */
@@ -372,12 +407,14 @@ int digits(long n);
 /* ---------------------------------------------------------- hiactime.c ---------------------------------------------------------- */
 
 
+#if !__WIN__
 /* ----------------------------- Hiactime sleep total duration ----------------------------- */
 void hiactime_sleep_total_duration(const struct timespec *const s, struct timespec *const e, Llong nanoseconds);
 /* ----------------------------- Hiactime nsleep ----------------------------- */
 void hiactime_nsleep(Llong nanoseconds);
 /* ----------------------------- Hiactime nsleep ----------------------------- */
 void hiactime_msleep(double milliseconds);
+#endif
 
 
 /* ---------------------------------------------------------- log.c ---------------------------------------------------------- */

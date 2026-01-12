@@ -6,6 +6,8 @@
  */
 #include "../include/proto.h"
 
+#if !__WIN__
+
 
 #define EVENT_SIZE    			(sizeof(struct inotify_event))
 #define EVENT_BUF_LEN 			(1024 * (EVENT_SIZE + 16))
@@ -147,3 +149,5 @@ _UNUSED static void *filelistener_task(void *arg) {
 //   node = filelistener_node_create(file, mask, callback, listener);
 //   hashmap_insert(listener->files, file, node);
 // }
+
+#endif

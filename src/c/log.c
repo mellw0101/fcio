@@ -6,6 +6,7 @@
  */
 #include "../include/proto.h"
 
+#if !__WIN__
 
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
 
@@ -189,3 +190,5 @@ void fcio_log_error_fatal(Ulong lineno, const char *const restrict function, con
   va_end(ap);
   die_callback("\nTERMINATING: The last log was a fatal error.\n");
 }
+
+#endif

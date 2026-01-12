@@ -6,6 +6,7 @@
  */
 #include "../include/proto.h" 
 
+#if !__WIN__
 
 /* Return's 'TRUE' if the block device at path exists and is a block device. */
 bool blkdev_exists(const char *const restrict path) {
@@ -16,3 +17,5 @@ bool blkdev_exists(const char *const restrict path) {
   }
   return (stat(path, &st) != -1 && S_ISBLK(st.st_mode));
 }
+
+#endif

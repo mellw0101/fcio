@@ -45,6 +45,35 @@ char *concatpath(const char *const restrict s1, const char *const restrict s2) {
   }
 }
 
+#if __WIN__
+
+static bool wcdirdelim(wchar_t wc) {
+  return (wc == L'\\' || wc == L'/');
+}
+
+/* Concatate a path, taking into account trailing and leading '/' for a proper path. */
+wchar_t *wconcatpath(const wchar_t *const restrict s1, const wchar_t *const restrict s2) {
+  ASSERT(s1);
+  ASSERT(s2);
+  size_t s1len = lstrlenW(s1);
+  /* If either s1 end with '/' or s2 starts with '/'. */
+  if ((wcdirdelim(s1[s1len-1]) && !wcdirdelim(*s2)) || (!wcdirdelim(s1[s1len-1]) && wcdirdelim(*s2))) {
+    return wfmtstr(L"%ls%ls", s1, s2);
+  }
+  /* When both s1 and s2 starts with '/'. */
+  else if (wcdirdelim(s1[s1len - 1]) && wcdirdelim(*s2)) {
+    return wfmtstr(L"%ls%ls", s1, (s2 + 1));
+  }
+  /* And when niether s1 end with '/' or s2 starts with '/'. */
+  else {
+    return wfmtstr(L"%ls\\%ls", s1, s2);
+  }
+}
+
+#endif/* __WIN__ */
+
+#if !__WIN__
+
 /* Allocate a given stat struct if not already allocated. */
 void statalloc(const char *const restrict path, struct stat **ptr) {
   ASSERT(path);
@@ -77,3 +106,5 @@ char *getpwd_len(Ulong *const len) {
   *len = STRLEN(ret);
   return ret;
 }
+
+#endif/* !__WIN__ */

@@ -9,8 +9,10 @@
 
 /* ----------------------------- Variable decl's ----------------------------- */
 
+#if !__WIN__
 static mutex_t stdout_mutex = mutex_init_static;
 static mutex_t stderr_mutex = mutex_init_static;
+#endif
 
 /* ----------------------------- Die callback ----------------------------- */
 
@@ -31,6 +33,7 @@ void fcio_set_die_callback(void (*callback)(const char *format, ...) _NO_RETURN)
 
 /* ----------------------------- Thread safe stdout ----------------------------- */
 
+#if !__WIN__
 /* Write `len` of `data` to stdout in a fully thread and process safe manner. */
 void stdoutwrite(const char *const restrict data, Ulong len) {
   ASSERT(data);
@@ -152,3 +155,5 @@ bool ynanswer(const char *const restrict format, ...) {
   ALWAYS_ASSERT(fcntl(STDIN_FILENO, F_SETFL, oldf) != -1);
   return ret;
 }
+
+#endif

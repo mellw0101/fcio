@@ -38,6 +38,54 @@ char *valstr(const char *const restrict format, va_list ap, int *const outlen) {
   return ret;
 }
 
+#if __WIN__
+wchar_t *measured_wcopy(const wchar_t *string, size_t len) {
+  wchar_t *ret = xmalloc((len + 1) * sizeof(wchar_t));
+  memcpy(ret, string, (len * sizeof(wchar_t)));
+  ret[len] = L'\0';
+  return ret;
+}
+wchar_t *wcopy_of(const wchar_t *string) {
+  ASSERT(string);
+  return measured_wcopy(string, lstrlenW(string));
+}
+wchar_t *wvalstr(const wchar_t *const restrict format, va_list ap, int *const outlen) {
+  wchar_t *ret;
+  int len;
+  va_list copy;
+  va_copy(copy, ap);
+  ALWAYS_ASSERT((len = _vscwprintf(format, copy)) != -1);
+  va_end(copy);
+  ret = xmalloc((len + 1) * sizeof(wchar_t));
+  vswprintf(ret, (len + 1), format, ap);
+  ASSIGN_IF_VALID(outlen, len);
+  return ret;
+}
+wchar_t *wfmtstr(const wchar_t *const restrict format, ...) {
+  /* The ptr we will allocate and return. */
+  wchar_t *ret;
+  /* Veriatic arguments list we will use to format the string. */
+  va_list ap;
+  /* Now form the return string. */
+  va_start(ap, format);
+  ret = wvalstr(format, ap, NULL);
+  va_end(ap);
+  return ret;
+}
+wchar_t *wfmtstrcat(wchar_t *restrict dst, const wchar_t *const restrict format, ...) {
+  ASSERT(dst);
+  ASSERT(format);
+  int srclen;
+  wchar_t *src;
+  va_list ap;
+  va_start(ap, format);
+  src = wvalstr(format, ap, &srclen);
+  va_end(ap);
+  dst = wfree_and_assign(src, xwstrncat(dst, src, srclen));
+  return dst;
+}
+#endif
+
 /* ----------------------------- Strtonum ----------------------------- */
 
 /* Get a integer representation of `string`. */
@@ -79,6 +127,12 @@ char *free_and_assign(char *dest, char *src) {
   FREE(dest);
   return src;
 }
+#if __WIN__
+wchar_t *wfree_and_assign(wchar_t *dest, wchar_t *src) {
+  FREE(dest);
+  return src;
+}
+#endif
 
 /* ----------------------------- split_string ----------------------------- */
 
@@ -129,7 +183,8 @@ char **split_string(const char *const restrict string, const char delim) {
 /* ----------------------------- chararray ----------------------------- */
 
 /* Free the memory of the given array, which should contain len elements. */
-void chararray_free(char **const restrict array, Ulong len) {
+void
+chararray_free(char **const restrict array, Ulong len) {
   /* Make this function a 'no-op' function. */
   if (!array) {
     return;
@@ -325,6 +380,30 @@ char *xstrncat(char *restrict dst, const char *const restrict src, Ulong srclen)
 char *xstrcat(char *restrict dst, const char *const restrict src) {
   return xnstrncat(dst, strlen(dst), src, strlen(src));
 }
+
+#if __WIN__
+wchar_t *
+xwnstrncat(wchar_t *restrict dst, size_t dstlen, const wchar_t *const restrict src, size_t srclen) {
+  ASSERT(dst);
+  ASSERT(src);
+  dst = xrealloc(dst, ((dstlen + srclen + 1) * sizeof(wchar_t)));
+  memcpy((dst + dstlen), src, (srclen * sizeof(wchar_t)));
+  dst[dstlen + srclen] = L'\0';
+  return dst;
+}
+wchar_t *
+xwnstrcat(wchar_t *restrict dst, size_t dstlen, const wchar_t *const restrict src) {
+  return xwnstrncat(dst, dstlen, src, lstrlenW(src));
+}
+wchar_t *
+xwstrncat(wchar_t *restrict dst, const wchar_t *const restrict src, size_t srclen) {
+  return xwnstrncat(dst, lstrlenW(dst), src, srclen);
+}
+wchar_t *
+xwstrcat(wchar_t *restrict dst, const wchar_t *const restrict src) {
+  return xwnstrncat(dst, lstrlenW(dst), src, lstrlenW(src));
+}
+#endif
 
 /* ----------------------------- xstrinj_norealloc ----------------------------- */
 

@@ -6,6 +6,8 @@
  */
 #include "../include/proto.h"
 
+#if !__WIN__
+
 
 /* Return's `TRUE` when `path` exists, is a dir and we have correct permissions to it. */
 bool dir_exists(const char *const restrict path) {
@@ -209,3 +211,5 @@ void test_directory_t(const char *const dirpath) {
   directory_data_free(&dir);
   printf("%s: Time: %.5f ms\n", __func__, (double)ms);
 }
+
+#endif

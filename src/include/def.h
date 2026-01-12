@@ -6,6 +6,21 @@
  */
 #pragma once
 
+# define int8   signed char
+# define int16  short int
+#if __WIN__
+# define int32   long int
+# define int64   long long int
+#else
+# define int32   int
+# define int64   long int
+#endif
+
+#define uint8   unsigned char
+#define uint16  unsigned int16
+#define uint32  unsigned int32
+#define uint64  unsigned int64
+
 
 /* ---------------------------------------------------------- Includes ---------------------------------------------------------- */
 
@@ -17,22 +32,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <dirent.h>
+#ifndef __WIN__
+# include <unistd.h>
+# include <pthread.h>
+# include <dirent.h>
+# include <termios.h>
+# include <langinfo.h>
+#else
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+#endif
 #include <errno.h>
 #include <string.h>
-#include <termios.h>
 #include <wchar.h>
 #include <wctype.h>
-#include <langinfo.h>
 #include <locale.h>
 #include <math.h>
 
 /* ----------------------------- linux ----------------------------- */
 
-#include <sys/stat.h>
-#include <sys/inotify.h>
+#ifndef __WIN__
+# include <sys/stat.h>
+# include <sys/inotify.h>
+#endif
 
 /* ----------------------------- fcio ----------------------------- */
 
@@ -1553,7 +1575,7 @@
 
 /* ----------------------------- hashmap.c ----------------------------- */
 
-#define HMAP_UINT  PP_CAT(PP_CAT(uint, __WORDSIZE), _t)
+#define HMAP_UINT  PP_CAT(uint, __WORDSIZE)  /* PP_CAT(PP_CAT(uint, __WORDSIZE), _t) */
 
 
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
@@ -1578,12 +1600,14 @@ typedef struct {
   Ulong namelen;      /* The length of the entry name. */
 } directory_entry_t;
 
+#if !__WIN__
 typedef struct {
   directory_entry_t **entries;
   Ulong   cap;
   Ulong   len;
   mutex_t mutex;
 } directory_t;
+#endif
 
 /* ----------------------------- cvec.c ----------------------------- */
 
