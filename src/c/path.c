@@ -78,7 +78,7 @@ wchar_t *wconcatpath(const wchar_t *const restrict s1, const wchar_t *const rest
 void statalloc(const char *const restrict path, struct stat **ptr) {
   ASSERT(path);
   ASSERT(ptr);
-  /* If path does not exist, or is something other the a file, free it if its valid and return. */
+  /* If path does not exist, or is something other the a file, free it if valid, then return. */
   if (!file_exists(path)) {
     *ptr ? (free(*ptr), *ptr = NULL) : 0;
     return;

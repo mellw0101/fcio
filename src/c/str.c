@@ -4,6 +4,7 @@
   @date    3-3-2025.
 
  */
+#define _USE_ALL_BUILTINS
 #include "../include/proto.h"
 
 
@@ -11,7 +12,7 @@
 char *measured_copy(const char *const restrict string, Ulong len) {
   ASSERT(string);
   char *ret = xmalloc(len + 1);
-  MEMCPY(ret, string, len);
+  memcpy(ret, string, len);
   ret[len] = NUL;
   return ret;
 }
@@ -222,7 +223,7 @@ void chararray_append(char ***array, Ulong *const len, char **append, Ulong appe
   /* Reallocate the array ptr so that it can hold the new total length plus a `NULL-TERMINATOR`. */
   *array = xrealloc(*array, (_PTRSIZE * (new_len + 1)));
   /* Append all entries. */
-  MEMCPY(((*array) + (*len)), append, (_PTRSIZE * append_len));
+  memcpy(((*array) + (*len)), append, (_PTRSIZE * append_len));
   /* Set the len ptr to the new total length. */
   *len = new_len;
   /* `NULL-TERMINATE` the array. */
@@ -328,7 +329,7 @@ char *xnstrncat_norealloc(char *restrict dst, Ulong dstlen, const char *const re
   ASSERT(dst);
   ASSERT(src);
   /* Append src to dst. */
-  MEMCPY((dst + dstlen), src, srclen);
+  memcpy((dst + dstlen), src, srclen);
   /* Null terminate the string. */
   dst[dstlen + srclen] = NUL;
   /* Then return dst. */
@@ -359,7 +360,7 @@ char *xnstrncat(char *restrict dst, Ulong dstlen, const char *const restrict src
   /* Reallocate dst to fit all of the text plus a NULL-TERMINATOR. */
   dst = xrealloc(dst, (dstlen + srclen + 1));
   /* Append src to dst. */
-  MEMCPY((dst + dstlen), src, srclen);
+  memcpy((dst + dstlen), src, srclen);
   /* Null terminate the string. */
   dst[dstlen + srclen] = NUL;
   /* Then return dst. */
@@ -416,7 +417,7 @@ char *xnstrninj_norealloc(char *restrict dst, Ulong dstlen, const char *const re
   /* First move the data at idx by srclen. */
   MEMMOVE((dst + idx + srclen), (dst + idx), (dstlen - idx));
   /* Then copy src into dst at idx. */
-  MEMCPY((dst + idx), src, srclen);
+  memcpy((dst + idx), src, srclen);
   /* Explicitly set the `null-terminator`, this way it does not matter if `dstlen` is the full length of `dst`. */
   dst[dstlen + srclen] = NUL;
   return dst;
@@ -450,7 +451,7 @@ char *xnstrninj(char *restrict dst, Ulong dstlen, const char *const restrict src
   /* First move the data at idx by srclen. */
   MEMMOVE((dst + idx + srclen), (dst + idx), (dstlen - idx));
   /* Then copy src into dst at idx. */
-  MEMCPY((dst + idx), src, srclen);
+  memcpy((dst + idx), src, srclen);
   /* Explicitly set the `null-terminator`, this way it does not matter if `dstlen` is the full length of `dst`. */
   dst[dstlen + srclen] = NUL;
   return dst;
@@ -518,7 +519,7 @@ char *xstrncpy(char *restrict dst, const char *const restrict src, Ulong n) {
   /* Reallocate dst so that n bytes plus a null-terminator fits. */
   dst = xrealloc(dst, (n + 1));
   /* Perform the copy. */
-  MEMCPY(dst, src, n);
+  memcpy(dst, src, n);
   /* Always null-terminate the string, this ensures usiform behavior. */
   dst[n] = NUL;
   return dst;

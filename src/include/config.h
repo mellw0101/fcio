@@ -543,6 +543,189 @@
 # define HYPOTF(x, y)  hypotf(x, y)
 #endif
 
+#ifdef _USE_ALL_BUILTINS
+# ifdef prefetch
+#   undef prefetch
+# endif
+# ifdef strlen
+#   undef strlen
+# endif
+# ifdef strcpy
+#   undef strcpy
+# endif
+# ifdef strcat
+#   undef strcat
+# endif
+# ifdef strncpy
+#   undef strncpy
+# endif
+# ifdef strcmp
+#   undef strcmp
+# endif
+# ifdef strncmp
+#   undef strncmp
+# endif
+# ifdef strchr
+#   undef strchr
+# endif
+# ifdef strrchr
+#   undef strrchr
+# endif
+# ifdef strcasecmp
+#   undef strcasecmp
+# endif
+# ifdef vsnprintf
+#   undef vsnprintf
+# endif
+# ifdef memset
+#   undef memset
+# endif
+# ifdef memcpy
+#   undef memcpy
+# endif
+# ifdef memmove
+#   undef memmove
+# endif
+# ifdef memcmp
+#   undef memcmp
+# endif
+# ifdef free
+#   undef free
+# endif
+# ifdef malloc
+#   undef malloc
+# endif
+# ifdef realloc
+#   undef realloc
+# endif
+# ifdef calloc
+#   undef calloc
+# endif
+# ifdef constant_p
+#   undef constant_p
+# endif
+# ifdef expect
+#   undef expect
+# endif
+# ifdef classify_type
+#   undef classify_type
+# endif
+# ifdef counted_by_ref
+#   undef counted_by_ref
+# endif
+# ifdef alloca
+#   undef alloca
+# endif
+# ifdef alloca_with_align
+#   undef alloca_with_align
+# endif
+# ifdef readcyclecounter
+#   undef readcyclecounter
+# endif
+# ifdef readsteadycounter
+#   undef readsteadycounter
+# endif
+# ifdef cpu_supports
+#   undef cpu_supports
+# endif
+# ifdef dump_struct
+#   undef dump_struct
+# endif
+# ifdef atan2f
+#   undef atan2f
+# endif
+# ifdef powf
+#   undef powf
+# endif
+# ifdef round
+#   undef round
+# endif
+# ifdef roundf
+#   undef roundf
+# endif
+# ifdef lround
+#   undef lround
+# endif
+# ifdef llround
+#   undef llround
+# endif
+# ifdef fmaxf
+#   undef fmaxf
+# endif
+# ifdef fminf
+#   undef fminf
+# endif
+# ifdef sqrtf
+#   undef sqrtf
+# endif
+# ifdef cosf
+#   undef cosf
+# endif
+# ifdef sinf
+#   undef sinf
+# endif
+# ifdef tanf
+#   undef tanf
+# endif
+# ifdef fabsf
+#   undef fabsf
+# endif
+# ifdef labs
+#   undef labs
+# endif
+# ifdef llabs
+#   undef llabs
+# endif
+# ifdef hypotf
+#   undef hypotf
+# endif
+
+# define prefetch(...)           PREFETCH(__VA_ARGS__)
+# define strlen(...)             STRLEN(__VA_ARGS__)
+# define strcpy(...)             STRCPY(__VA_ARGS__)
+# define strcat(...)             STRCAT(__VA_ARGS__)
+# define strncpy(...)            STRNCPY(__VA_ARGS__)
+# define strcmp(...)             STRCMP(__VA_ARGS__)
+# define strncmp(...)            STRNCMP(__VA_ARGS__)
+# define strchr(...)             STRCHR(__VA_ARGS__)
+# define strrchr(...)            STRRCHR(__VA_ARGS__)
+# define strcasecmp(...)         STRCASECMP(__VA_ARGS__)
+# define vsnprintf(...)          VSNPRINTF(__VA_ARGS__)
+# define memset(...)             MEMSET(__VA_ARGS__)
+# define memcpy(...)             MEMCPY(__VA_ARGS__)
+# define memmove(...)            MEMMOVE(__VA_ARGS__)
+# define memcmp(...)             MEMCPY(__VA_ARGS__)
+# define free(x)                 FREE(x)
+# define malloc(...)             MALLOC(__VA_ARGS__)
+# define realloc(...)            REALLOC(__VA_ARGS__)
+# define calloc(...)             CALLOC(__VA_ARGS__)
+# define constant_p(...)         CONSTANT_P(__VA_ARGS__)
+# define expect(...)             EXPECT(__VA_ARGS__)
+# define classify_type(...)      CLASSIFY_TYPE(__VA_ARGS__)
+# define counted_by_ref(...)     COUNTED_BY_REF(__VA_ARGS__)
+# define alloca(...)             ALLOCA(__VA_ARGS__)
+# define alloca_with_align(...)  ALLOCA_WITH_ALIGN(__VA_ARGS__)
+# define readcyclecounter(...)   READCYCLECOUNTER(__VA_ARGS__)
+# define readsteadycounter(...)  READSTEADYCOUNTER(__VA_ARGS__)
+# define cpu_supports(...)       CPU_SUPPORTS(__VA_ARGS__)
+# define dump_struct(...)        DUMP_STRUCT(__VA_ARGS__)
+# define atan2f(...)             ATAN2F(__VA_ARGS__)
+# define powf(...)               POWF(__VA_ARGS__)
+# define round(...)              ROUND(__VA_ARGS__)
+# define roundf(...)             ROUNDF(__VA_ARGS__)
+# define lround(...)             LROUND(__VA_ARGS__)
+# define llround(...)            LLROUND(__VA_ARGS__)
+# define fmaxf(...)              FMAXF(__VA_ARGS__)
+# define fminf(...)              FMINF(__VA_ARGS__)
+# define sqrtf(...)              SQRTF(__VA_ARGS__)
+# define cosf(...)               COSF(__VA_ARGS__)
+# define sinf(...)               SINF(__VA_ARGS__)
+# define tanf(...)               TANF(__VA_ARGS__)
+# define fabsf(...)              FABSF(__VA_ARGS__)
+# define labs(...)               LABS(__VA_ARGS__)
+# define llabs(...)              LLABS(__VA_ARGS__)
+# define hypotf(...)             HYPOTF(__VA_ARGS__)
+#endif
 
 /* Unless the user declares NO_ATOMIC_OPERATIONS, make some handy helpers. */
 #ifndef NO_ATOMIC_OPERATIONS

@@ -7,8 +7,8 @@
 #pragma once
 
 
-#include "config.h"
 #include "def.h"
+
 
 #if __WIN__
 # define __THROW
