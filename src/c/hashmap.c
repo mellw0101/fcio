@@ -4,6 +4,7 @@
   @date    3-3-2025.
 
  */
+#define _USE_ALL_BUILTINS
 #include "../include/proto.h"
 #include "../include/statics.h"
 
@@ -284,7 +285,7 @@ HMAP hmap_create(void) {
   HMAP m = xmalloc(sizeof(*m));
   m->cap = INITIAL_CAP;
   m->size = 0;
-  m->buckets = xcalloc(m->buckets, _PTRSIZE);
+  m->buckets = xcalloc(m->cap, _PTRSIZE);
   return m;
 }
 
@@ -317,16 +318,18 @@ void hmap_insert(HMAP m, const char *const restrict key, void *value) {
     hmap_resize(m);
   }
   index = (hash & (m->cap - 1));
-  if (m->buckets[index]) {
+  if (!m->buckets[index]) {
     m->buckets[index] = new_cvec_create();
   }
-  HMAP_BUCKET_ITER(m->buckets[index], b, node,
-    if (STRCMP(node->key, key) == 0) {
-      CALL_IF_VALID(m->free_func, node->value);
-      node->value = value;
-      return;
-    }
-  );
+  else {
+    HMAP_BUCKET_ITER(m->buckets[index], b, node,
+      if (strcmp(node->key, key) == 0) {
+        CALL_IF_VALID(m->free_func, node->value);
+        node->value = value;
+        return;
+      }
+    );
+  }
   new_node = xmalloc(sizeof *new_node);
   new_node->hash  = hash;
   new_node->key   = copy_of(key);
