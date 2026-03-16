@@ -4,6 +4,7 @@
   @date    19-7-2025.
 
  */
+#define _USE_ALL_BUILTINS
 #include "../include/proto.h"
 
 #if !__WIN__

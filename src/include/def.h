@@ -287,6 +287,17 @@
   /* If `x` is valid, pass `x->field`.  Otherwize pass `y` */  \
   ((x) ? (x)->field : (y))
 
+/* Macros for flags, indexing each bit in a small array. */
+#define TFLAGS(x, flag)        x[((flag) / (sizeof(__TYPE(x[0])) * 8))]
+#define TFLAGMASK(x, flag)     ((__TYPE(x[0]))1 << ((flag) % (sizeof(__TYPE(x[0])) * 8)))
+#define TFLAG_SET(x, flag)     TFLAGS(x, flag) |= TFLAGMASK(x, flag)
+#define TFLAG_UNSET(x, flag)   TFLAGS(x, flag) &= ~TFLAGMASK(x, flag)
+#define TFLAG_ISSET(x, flag)   ((TFLAGS(x, flag) & TFLAGMASK(x, flag)) != 0)
+#define TFLAG_TOGGLE(x, flag)  TFLAGS(x, flag) ^= TFLAGMASK(x, flag)
+
+#define memset_stuc_zero(x)  \
+  memset((x), 0, sizeof((x)))
+
 /* ----------------------------- Veriatic macro helpers ----------------------------- */
 
 #ifdef PP_RSEQ_N
@@ -1315,6 +1326,9 @@
 
 /* ----------------------------- Double linked list helper's ----------------------------- */
 
+#ifdef DLIST_SINGLE
+# undef DLIST_SINGLE
+#endif
 #ifdef DLIST_FOR_NEXT
 # undef DLIST_FOR_NEXT
 #endif
@@ -1379,6 +1393,9 @@
 # undef DLIST_SAFE_ATOMIC_SWAP_FIELD
 #endif
 
+#define DLIST_SINGLE(x) \
+  (!(x)->next && !(x)->prev)
+
 #define DLIST_FOR_NEXT(start, name)                                                  \
   /* Iterate over a double linked list starting at `start` and iterating using       \
    * `(name) = (name)->next` until we reach a `NULL`.  Note that this can take       \
@@ -1426,6 +1443,20 @@
    * using `(name) = (name)->prev` until we reach `end`.  Note that       \
    * this does not declare `name` rather uses an existing ptr. */         \
   for ((name)=(start); (name) && (name)!=(end); (name)=(name)->prev)
+
+#define DLIST_APPEND(head, tail, node) \
+  /* Add `node` to a double liked list. */ \
+  DO_WHILE(                         \
+    if (!(head)) {                  \
+      (head) = (node);              \
+      (tail) = (node);              \
+    }                               \
+    else {                          \
+      (tail)->next       = (node);  \
+      (tail)->next->prev = (tail);  \
+      DLIST_ADV_NEXT(tail);         \
+    }                               \
+  )
 
 #define DLIST_INSERT_AFTER(after, node)                       \
   /* Insert `node` after `after` in a double linked list. */  \

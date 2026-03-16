@@ -298,6 +298,12 @@
 # define STRCASECMP(s0, s1)  strcasecmp(s0, s1)
 #endif
 
+#if _HAS_BUILTIN(printf)
+# define PRINTF(...)  __builtin_printf(__VA_ARGS__)
+#else
+# define PRINTF(...)  printf(__VA_ARGS__)
+#endif
+
 #if _HAS_BUILTIN(vsnprintf)
 # define VSNPRINTF(buf, maxlen, format, va)  __builtin_vsnprintf(buf, maxlen, format, va)
 #else
@@ -574,6 +580,9 @@
 # ifdef strcasecmp
 #   undef strcasecmp
 # endif
+# ifdef printf
+#   undef printf
+# endif
 # ifdef vsnprintf
 #   undef vsnprintf
 # endif
@@ -690,6 +699,7 @@
 # define strchr(...)             STRCHR(__VA_ARGS__)
 # define strrchr(...)            STRRCHR(__VA_ARGS__)
 # define strcasecmp(...)         STRCASECMP(__VA_ARGS__)
+# define printf(...)             PRINTF(__VA_ARGS__)
 # define vsnprintf(...)          VSNPRINTF(__VA_ARGS__)
 # define memset(...)             MEMSET(__VA_ARGS__)
 # define memcpy(...)             MEMCPY(__VA_ARGS__)

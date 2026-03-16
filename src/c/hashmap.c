@@ -4,6 +4,7 @@
   @date    3-3-2025.
 
  */
+#include <pthread.h>
 #define _USE_ALL_BUILTINS
 #include "../include/proto.h"
 #include "../include/statics.h"
@@ -17,6 +18,15 @@
 /* This MUST be a power of 2. */
 #define INITIAL_CAP  16
 #define LOAD_FACTOR  0.7f
+
+#if (__WORDSIZE == 64)
+# define FNV1A_BASE   (14695981039346656037ULL)
+# define FNV1A_PRIME  (1099511628211ULL)
+#elif (__WORDSIZE == 32)
+# define FNV1A_BASE   (2166136261U)
+# define FNV1A_PRIME  (16777619U)
+#endif
+
 
 /* ----------------------------- HashMap ----------------------------- */
 
@@ -86,6 +96,16 @@
     }                                               \
   )
 
+#define HMAP_PH_ITER(map, iter, entry, ...)            \
+  DO_WHILE(                                            \
+    for (HMAP_UINT iter=0; iter<(map)->cap; ++iter) {  \
+      HNMAP entry = (map)->buckets[iter];              \
+      if (entry) {                                     \
+        DO_WHILE(__VA_ARGS__);                         \
+      }                                                \
+    }                                                  \
+  )
+
 #define HMAP_BUCKET_ITER(bucket, iter, entry, ...)               \
   DO_WHILE(                                                      \
     for (size_t iter=0; iter<new_cvec_size((bucket)); ++iter) {  \
@@ -102,12 +122,22 @@
     }                                                            \
   )
 
-
-// #define HMAP_UINT  PP_CAT(PP_CAT(uint, __WORDSIZE), _t)
+// #define HMAP_PH_BUCKET_ITER(bucket, iter, entry, ...)            \
+//   DO_WHILE(                                                      \
+//     for (size_t iter=0; iter<new_cvec_size((bucket)); ++iter) {  \
+//       HMAP_PH_NODE entry = new_cvec_get((bucket), iter);         \
+//       DO_WHILE(__VA_ARGS__);                                     \
+//     }                                                            \
+//   )
 
 
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
 
+
+/* ----------------------------- HMAP_PH ----------------------------- */
+
+typedef struct HMAP_PH_NODE_T *HMAP_PH_NODE;
+typedef struct HMAP_PH_T      *HMAP_PH;
 
 /* ----------------------------- HMAP ----------------------------- */
 
@@ -120,6 +150,23 @@ typedef struct HNMAP_NODE_T *  HNMAP_NODE;
 
 /* ---------------------------------------------------------- Struct's ---------------------------------------------------------- */
 
+
+/* ----------------------------- HMAP_PH ----------------------------- */
+
+struct HMAP_PH_NODE_T {
+  HMAP_UINT hash;
+  HMAP_UINT collision_hash;
+  char *key;
+  void *value;
+};
+
+struct HMAP_PH_T {
+  /* CVEC */
+  HNMAP *buckets;
+  HMAP_UINT cap;
+  HMAP_UINT size;
+  void (*free_fn)(void *);
+};
 
 /* ----------------------------- HMAP ----------------------------- */
 
@@ -149,6 +196,27 @@ struct HNMAP_T {
   HMAP_UINT size;
   void (*free_func)(void *);
 };
+
+
+typedef struct MUT_T *MUT;
+struct MUT_T {
+  volatile HMAP_UINT gate;
+  volatile HMAP_UINT prof;
+  HNMAP map;
+} __attribute__((aligned(8)));
+
+void mut_lock(MUT mutex) {
+  if (!hnmap_get(mutex->map, pthread_self())) {
+    hnmap_insert(mutex->map, pthread_self(), pthread_self());
+  }
+  if (!mutex->gate) {
+    mutex->gate = pthread_self();
+    mutex->prof = hnmap_get(mutex->map, mutex->gate);
+    if (mutex->gate == pthread_self() && mutex->prof == pthread_self()) {
+      /* We won. */
+    }
+  }
+}
 
 #if !__WIN__
 
@@ -202,20 +270,28 @@ struct HashMapNum {
 /* ---------------------------------------------------------- Static function's ---------------------------------------------------------- */
 
 
-/* ----------------------------- HMAP ----------------------------- */
-
-static __always_inline HMAP_UINT
-djb2_hash(const char *str) {
+static __always_inline HMAP_UINT djb2_hash(const char *restrict str) {
   HMAP_UINT hash = 5381;
-  int c;
+  uint8 c;
   while ((c = *str++)) {
     hash = (((hash << 5) + hash) + c);
   }
   return hash;
 }
 
-static __always_inline void
-hmap_free_node(HMAP m, HMAP_NODE node) {
+_UNUSED
+static __always_inline HMAP_UINT fnv1a_hash(const char *restrict str) {
+  HMAP_UINT hash = FNV1A_BASE;
+  uint8 c;
+  while ((c = *str++)) {
+    hash = ((hash ^ c) * FNV1A_PRIME);
+  }
+  return hash;
+}
+
+/* ----------------------------- HMAP ----------------------------- */
+
+static __always_inline void hmap_free_node(HMAP m, HMAP_NODE node) {
   ASSERT_HMAP(m);
   ASSERT_HMAP_NODE(node);
   CALL_IF_VALID(m->free_func, node->value);
@@ -223,8 +299,7 @@ hmap_free_node(HMAP m, HMAP_NODE node) {
   FREE(node);
 }
 
-static void
-hmap_resize(HMAP m) {
+static void hmap_resize(HMAP m) {
   ASSERT_HMAP(m);
   HMAP_UINT new_cap = (m->cap * 2);
   HMAP_UINT index;
@@ -246,16 +321,14 @@ hmap_resize(HMAP m) {
 
 /* ----------------------------- HNMAP ----------------------------- */
 
-static __always_inline void
-hnmap_free_node(HNMAP nm, HNMAP_NODE node) {
+static __always_inline void hnmap_free_node(HNMAP nm, HNMAP_NODE node) {
   ASSERT_HNMAP(nm);
   ASSERT_HNMAP_NODE(node);
   CALL_IF_VALID(nm->free_func, node->value);
   FREE(node);
 }
 
-static void
-hnmap_resize(HNMAP nm) {
+static void hnmap_resize(HNMAP nm) {
   ASSERT_HNMAP(nm);
   HMAP_UINT new_cap = (nm->cap * 2);
   HMAP_UINT index;
@@ -275,9 +348,164 @@ hnmap_resize(HNMAP nm) {
   nm->cap     = new_cap; 
 }
 
+/* ----------------------------- HMAP_PH ----------------------------- */
+
+static __always_inline void hmap_ph_free_node(HMAP_PH m, HMAP_PH_NODE node) {
+  ASSERT_HMAP(m);
+  ASSERT_HMAP_NODE(node);
+  CALL_IF_VALID(m->free_fn, node->value);
+  free(node->key);
+  free(node);
+}
+
+static void hmap_ph_resize(HMAP_PH m) {
+  ASSERT_HMAP(m);
+  HMAP_PH_NODE ph_node;
+  HMAP_UINT new_cap = (m->cap * 2);
+  HMAP_UINT index;
+  HNMAP *new_buckets = xcalloc(new_cap, _PTRSIZE);
+  HMAP_PH_ITER(m, i, nm,
+    HMAP_ITER(nm, ni, bucket,
+      HNMAP_BUCKET_ITER(bucket, b, node,
+        ph_node = node->value;
+        index = (ph_node->hash & (new_cap - 1));
+        if (!new_buckets[index]) {
+          new_buckets[index] = hnmap_create();
+        }
+        hnmap_insert(new_buckets[index], ph_node->collision_hash, ph_node);
+        hnmap_free_node(nm, node);
+      );
+      new_cvec_free(bucket);
+    );
+    hnmap_free(nm);
+  );
+  free(m->buckets);
+  m->buckets = new_buckets;
+  m->cap     = new_cap;
+}
+
 
 /* ---------------------------------------------------------- Global function's ---------------------------------------------------------- */
 
+
+/* ----------------------------- HMAP_PH ----------------------------- */
+
+HMAP_PH hmap_ph_create(void) {
+  HMAP_PH m = xmalloc(sizeof(*m));
+  m->cap     = INITIAL_CAP;
+  m->size    = 0;
+  m->buckets = xcalloc(m->cap, _PTRSIZE);
+  return m;
+}
+
+void hmap_ph_free(HMAP_PH m) {
+  /* Make this act as free, and just become nop on passed `NULL`. */
+  if (!m) {
+    return;
+  }
+  /* Rather then calling hnmap_free and causing us to iterate the num-hashmap again, we simply free it ourself's. */
+  HMAP_PH_ITER(m, i, nm,
+    HMAP_ITER(nm, ni, bucket,
+      HNMAP_BUCKET_ITER(bucket, b, node,
+        hmap_ph_free_node(m, node->value);
+        hnmap_free_node(nm, node);
+      );
+      new_cvec_free(bucket);
+    );
+    free(nm->buckets);
+    free(nm);
+  );
+  free(m->buckets);
+  free(m);
+}
+
+void hmap_ph_set_free_func(HMAP_PH m, void (*free_fn)(void *)) {
+  ASSERT_HMAP(m);
+  m->free_fn = free_fn;
+}
+
+void hmap_ph_insert(HMAP_PH m, const char *const restrict key, void *value) {
+  ASSERT_HMAP(m);
+  ASSERT(key);
+  HMAP_PH_NODE node;
+  HMAP_PH_NODE new_node;
+  HMAP_UINT index;
+  HMAP_UINT hash           = djb2_hash(key);
+  HMAP_UINT collision_hash = fnv1a_hash(key);
+  if (((float)(m->size + 1) / m->cap) > LOAD_FACTOR) {
+    hmap_ph_resize(m);
+  }
+  index = (hash & (m->cap - 1));
+  /* Not a colliding insert. */
+  if (!m->buckets[index]) {
+    m->buckets[index] = hnmap_create(); /* new_cvec_create(); */
+  }
+  /* Check for a colliding entry, and if one exists, simply assign the value to the entry. */
+  else if ((node = hnmap_get(m->buckets[index], collision_hash))) {
+    CALL_IF_VALID(m->free_fn, node->value);
+    node->value = value;
+    return;
+  }
+  new_node = xmalloc(sizeof(*new_node));
+  new_node->hash           = hash;
+  new_node->collision_hash = collision_hash;
+  new_node->key            = copy_of(key);
+  new_node->value          = value;
+  hnmap_insert(m->buckets[index], collision_hash, new_node);
+  ++m->size;
+}
+
+void *hmap_ph_get(HMAP_PH m, const char *const restrict key) {
+  ASSERT_HMAP(m);
+  ASSERT(key);
+  HMAP_PH_NODE node;
+  HMAP_UINT index = (djb2_hash(key) & (m->cap - 1));
+  if (m->buckets[index] && (node = hnmap_get(m->buckets[index], fnv1a_hash(key)))) {
+    return node->value;
+  }
+  return NULL;
+}
+
+bool hmap_ph_contains(HMAP_PH m, const char *const restrict key) {
+  ASSERT_HMAP(m);
+  ASSERT(key);
+  HMAP_UINT index = (djb2_hash(key) & (m->cap - 1));
+  if (m->buckets[index]) {
+    return hnmap_contains(m->buckets[index], fnv1a_hash(key));
+  }
+  return FALSE;
+}
+
+void hmap_ph_remove(HMAP_PH m, const char *const restrict key) {
+  ASSERT_HMAP(m);
+  ASSERT(key);
+  HMAP_PH_NODE node;
+  HMAP_UINT index = (djb2_hash(key) & (m->cap - 1));
+  HMAP_UINT collision_hash;
+  if (m->buckets[index]) {
+    collision_hash = fnv1a_hash(key);
+    if ((node = hnmap_get(m->buckets[index], collision_hash))) {
+      hmap_ph_free_node(m, node);
+      hnmap_remove(m->buckets[index], collision_hash);
+      --m->size;
+    }
+  }
+}
+
+void hmap_ph_clear(HMAP_PH m) {
+  ASSERT_HMAP(m);
+  HMAP_PH_ITER(m, i, nm,
+    HMAP_ITER(nm, ni, bucket,
+      HNMAP_BUCKET_ITER(bucket, b, node,
+        hmap_ph_free_node(m, node->value);
+        hnmap_free_node(nm, node);
+      );
+      new_cvec_clear(bucket);
+    );
+    nm->size = 0;
+  );
+  m->size = 0;
+}
 
 /* ----------------------------- HMAP ----------------------------- */
 
@@ -344,7 +572,7 @@ void *hmap_get(HMAP m, const char *const restrict key) {
   HMAP_UINT index = (djb2_hash(key) & (m->cap - 1));
   if (m->buckets[index]) {
     HMAP_BUCKET_ITER(m->buckets[index], b, node,
-      if (STRCMP(node->key, key) == 0) {
+      if (strcmp(node->key, key) == 0) {
         return node->value;
       }
     );
@@ -831,7 +1059,9 @@ void hashmap_append(HashMap *const dst, HashMap *const src) {
 }
 
 /* Same as `hashmap_append()` but performs `existing_action()` if a node's key already exists in the dst map. */
-void hashmap_append_waction(HashMap *const dst, HashMap *const src, void (*existing_action)(void *dstnodevalue, void *srcnodevalue)) {
+void hashmap_append_waction(HashMap *const dst, HashMap *const src,
+  void (*existing_action)(void *dstnodevalue, void *srcnodevalue))
+{
   ASSERT(dst);
   ASSERT(src);
   HashNode *dstnode;
@@ -859,7 +1089,8 @@ void hashmap_append_waction(HashMap *const dst, HashMap *const src, void (*exist
 
 /* ----------------------------- HashMapNum ----------------------------- */
 
-/* `INTERNAL`  Get the current `cap` or `size` of `map`, or both, NULL can be passed to one, but not both at the same time. */
+/* `INTERNAL`  Get the current `cap` or `size` of `map`, or both,
+ * NULL can be passed to one, but not both at the same time. */
 static inline void hashmapnum_get_data(HashMapNum *const map, int *const cap, int *const size) {
   /* Ensure at least one of the params are valid. */
   ASSERT(cap || size);
