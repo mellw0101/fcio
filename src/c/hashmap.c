@@ -27,6 +27,13 @@
 # define FNV1A_PRIME  (16777619U)
 #endif
 
+#define MUT_ACTION(mutex, ...) \
+  DO_WHILE(  \
+    mut_lock((mutex)); \
+    DO_WHILE(__VA_ARGS__);  \
+    mut_unlock((mutex));  \
+  )
+
 
 /* ----------------------------- HashMap ----------------------------- */
 
@@ -34,7 +41,7 @@
 #define HASHMAP_MUTEX_ACTION(...)  \
   DO_WHILE(                        \
     ASSERT(map);                   \
-    mutex_action(&map->globmutex,  \
+      MUT_ACTION(map->mutex,  \
       ASSERT(map->cap);            \
       ASSERT(map->buckets);        \
       DO_WHILE(__VA_ARGS__);       \
@@ -202,20 +209,71 @@ typedef struct MUT_T *MUT;
 struct MUT_T {
   volatile HMAP_UINT gate;
   volatile HMAP_UINT prof;
-  HNMAP map;
+  volatile pthread_t holder;
 } __attribute__((aligned(8)));
+#define MUT_LOCK_WORKING_SPIN_DELAY  (10000000)
 
-void mut_lock(MUT mutex) {
-  if (!hnmap_get(mutex->map, pthread_self())) {
-    hnmap_insert(mutex->map, pthread_self(), pthread_self());
+static MUT mut_create(void) {
+  MUT mutex = xmalloc(sizeof(*mutex));
+  mutex->gate = 0;
+  mutex->prof = 0;
+  // mutex->map  = hnmap_create();
+  return mutex;
+}
+
+_UNUSED
+static void mut_free(MUT mutex) {
+  if (!mutex) {
+    return;
+  }
+  free(mutex);
+}
+
+static void mut_lock(MUT mutex) {
+  ASSERT(mutex);
+  pthread_t self = pthread_self();
+gate:
+  while (mutex->gate) {
+    hiactime_nsleep(10000000);
   }
   if (!mutex->gate) {
-    mutex->gate = pthread_self();
-    mutex->prof = hnmap_get(mutex->map, mutex->gate);
-    if (mutex->gate == pthread_self() && mutex->prof == pthread_self()) {
-      /* We won. */
+    mutex->gate = self;
+    mutex->prof = mutex->gate;
+    if (mutex->gate == self && mutex->prof == self) {
+      return;
     }
   }
+  goto gate;
+}
+
+static void mut_unlock(MUT mutex) {
+  ASSERT(mutex);
+  volatile pthread_t self = pthread_self();
+  volatile HMAP_UINT gate;
+  if (mutex->gate) {
+    gate = self;
+    mutex->prof = gate;
+    if (gate == self && mutex->prof == self) {
+      mutex->prof = 0;
+      mutex->gate = 0;
+    }
+  }
+// redo:
+  // if (self == mutex->gate && self && mutex->prof) {
+  //   // printf("%lu: unlocked\n", self);
+  //   mutex->prof = 0;
+  //   mutex->gate = 0;
+  // }
+  // hiactime_nsleep(self % 100000);
+  // goto redo;
+  // while (mutex->gate) {
+  //   if (mutex->gate == pthread_self() && mutex->prof == pthread_self()) {
+  //     return;
+  //   }
+  //   else {
+  //     hiactime_msleep(100);
+  //   }
+  // }
 }
 
 #if !__WIN__
@@ -243,7 +301,9 @@ struct HashMap {
   FreeFuncPtr free_value;
 
   /* This is locked when we resize the hashmap, so that we ensure singular thread resizeing. */
-  mutex_t globmutex;
+  // mutex_t globmutex;
+  __attribute__((aligned(8)))
+  MUT mutex;
 };
 
 /* ----------------------------- HashMapNum ----------------------------- */
@@ -390,7 +450,8 @@ static void hmap_ph_resize(HMAP_PH m) {
 
 /* ----------------------------- HMAP_PH ----------------------------- */
 
-HMAP_PH hmap_ph_create(void) {
+_UNUSED
+static HMAP_PH hmap_ph_create(void) {
   HMAP_PH m = xmalloc(sizeof(*m));
   m->cap     = INITIAL_CAP;
   m->size    = 0;
@@ -398,7 +459,8 @@ HMAP_PH hmap_ph_create(void) {
   return m;
 }
 
-void hmap_ph_free(HMAP_PH m) {
+_UNUSED
+static void hmap_ph_free(HMAP_PH m) {
   /* Make this act as free, and just become nop on passed `NULL`. */
   if (!m) {
     return;
@@ -419,12 +481,14 @@ void hmap_ph_free(HMAP_PH m) {
   free(m);
 }
 
-void hmap_ph_set_free_func(HMAP_PH m, void (*free_fn)(void *)) {
+_UNUSED
+static void hmap_ph_set_free_func(HMAP_PH m, void (*free_fn)(void *)) {
   ASSERT_HMAP(m);
   m->free_fn = free_fn;
 }
 
-void hmap_ph_insert(HMAP_PH m, const char *const restrict key, void *value) {
+_UNUSED
+static void hmap_ph_insert(HMAP_PH m, const char *const restrict key, void *value) {
   ASSERT_HMAP(m);
   ASSERT(key);
   HMAP_PH_NODE node;
@@ -455,7 +519,8 @@ void hmap_ph_insert(HMAP_PH m, const char *const restrict key, void *value) {
   ++m->size;
 }
 
-void *hmap_ph_get(HMAP_PH m, const char *const restrict key) {
+_UNUSED
+static void *hmap_ph_get(HMAP_PH m, const char *const restrict key) {
   ASSERT_HMAP(m);
   ASSERT(key);
   HMAP_PH_NODE node;
@@ -466,7 +531,8 @@ void *hmap_ph_get(HMAP_PH m, const char *const restrict key) {
   return NULL;
 }
 
-bool hmap_ph_contains(HMAP_PH m, const char *const restrict key) {
+_UNUSED
+static bool hmap_ph_contains(HMAP_PH m, const char *const restrict key) {
   ASSERT_HMAP(m);
   ASSERT(key);
   HMAP_UINT index = (djb2_hash(key) & (m->cap - 1));
@@ -476,7 +542,8 @@ bool hmap_ph_contains(HMAP_PH m, const char *const restrict key) {
   return FALSE;
 }
 
-void hmap_ph_remove(HMAP_PH m, const char *const restrict key) {
+_UNUSED
+static void hmap_ph_remove(HMAP_PH m, const char *const restrict key) {
   ASSERT_HMAP(m);
   ASSERT(key);
   HMAP_PH_NODE node;
@@ -492,7 +559,8 @@ void hmap_ph_remove(HMAP_PH m, const char *const restrict key) {
   }
 }
 
-void hmap_ph_clear(HMAP_PH m) {
+_UNUSED
+static void hmap_ph_clear(HMAP_PH m) {
   ASSERT_HMAP(m);
   HMAP_PH_ITER(m, i, nm,
     HMAP_ITER(nm, ni, bucket,
@@ -797,7 +865,8 @@ HashMap *hashmap_create(void) {
   map->size       = 0;
   map->buckets    = xcalloc(map->cap, sizeof(HashNode *));
   map->free_value = NULL;
-  mutex_init(&map->globmutex, NULL);
+  map->mutex      = mut_create();
+  // mutex_init(&map->globmutex, NULL);
   return map;
 }
 
@@ -814,7 +883,8 @@ void hashmap_free(HashMap *const map) {
       }
     );
   );
-  mutex_destroy(&map->globmutex);
+  mut_free(map->mutex);
+  // mutex_destroy(&map->globmutex);
   free(map->buckets);
   free(map);
 }
@@ -1042,7 +1112,8 @@ void hashmap_clear(HashMap *const map) {
 void hashmap_append(HashMap *const dst, HashMap *const src) {
   ASSERT(dst);
   ASSERT(src);
-  mutex_action(&dst->globmutex, mutex_action(&src->globmutex,
+  MUT_ACTION(dst->mutex, MUT_ACTION(src->mutex,
+  // mutex_action(&dst->globmutex, mutex_action(&src->globmutex,
     /* Ensure both maps are in a valid state. */
     ASSERT(dst->cap);
     ASSERT(dst->buckets);
@@ -1065,7 +1136,8 @@ void hashmap_append_waction(HashMap *const dst, HashMap *const src,
   ASSERT(dst);
   ASSERT(src);
   HashNode *dstnode;
-  mutex_action(&dst->globmutex, mutex_action(&src->globmutex,
+  MUT_ACTION(dst->mutex, MUT_ACTION(src->mutex,
+  // mutex_action(&dst->globmutex, mutex_action(&src->globmutex,
     /* Ensure both maps are in a valid state. */
     ASSERT(dst->cap);
     ASSERT(dst->buckets);
@@ -1435,8 +1507,8 @@ void hashmapnum_append_waction(HashMapNum *const dst, HashMapNum *const src, voi
 
 
 /* The concurency test will be ran by doing 1000 requsts from 100 threads concurently. */
-#define OPS_PER_THREAD  4000
-#define NUM_THREADS     20
+#define OPS_PER_THREAD  1000
+#define NUM_THREADS     256
 
 _UNUSED static const char *strarray[] = {
   "billy-bob",
@@ -1486,7 +1558,7 @@ static void* hashmap_thread_test_task(void* arg) {
       }
     }
   );
-  writef(
+  printf(
     "Thread %lu finished hashmap concurrent test.  Total time %.5f ms: Result: (I:%d G:%d R:%d)\n",
     pthread_self(), (double)elapsed_ms, insert_count, get_count, remove_count
   );
@@ -1499,7 +1571,7 @@ void hashmap_thread_test(void) {
     int i;
     HashMap *map = hashmap_create();
     thread_t threads[NUM_THREADS];
-    writef("Running hashmap concurrent test.\n");
+    printf("Running hashmap concurrent test.\n");
     /* Create threads. */
     for (i=0; i<NUM_THREADS; ++i) {
       ALWAYS_ASSERT(pthread_create(&threads[i], NULL, hashmap_thread_test_task, map) == 0);
@@ -1510,7 +1582,7 @@ void hashmap_thread_test(void) {
     }
     hashmap_free(map);
   );
-  writef("Finished hashmap concurrent test.  Total time %.5f ms\n", (double)elapsed_ms);
+  printf("Finished hashmap concurrent test.  Total time %.5f ms\n", (double)elapsed_ms);
 }
 
 #undef OPS_PER_THREAD
