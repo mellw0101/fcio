@@ -428,4 +428,12 @@ void fcio_log(int type, Ulong lineno, const char *const restrict function, const
 void fcio_log_error_fatal(Ulong lineno, const char *const restrict function, const char *const restrict format, ...) _NO_RETURN _PRINTFLIKE(3, 4);
 
 
+/* ---------------------------------------------------------- simple_mutually_exclusive_execution.c ---------------------------------------------------------- */
+
+
+SMUTEX smutex_create(void);
+void   smutex_lock(SMUTEX sm);
+void   smutex_unlock(SMUTEX sm);
+ 
+
 _END_C_LINKAGE

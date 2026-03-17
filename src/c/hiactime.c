@@ -45,6 +45,15 @@ static const struct timespec timespec_2 = {0, INTERVAL_2};
 /* ---------------------------------------------------------- Global function's ---------------------------------------------------------- */
 
 
+// void tnsleep(Llong nanoseconds, int type) {
+//   struct timespec s;
+//   struct timespec e;
+//   clock_gettime(type, &s);
+//   e = s;
+//   while (TIMESPEC_ELAPSED_NS(&s, &e) < nanoseconds) {
+//   }
+// }
+
 /* ----------------------------- Hiactime sleep total duration ----------------------------- */
 
 /* Based on how mush time has elapsed from `s`, sleep until we achive the exact time in nanoseconds.

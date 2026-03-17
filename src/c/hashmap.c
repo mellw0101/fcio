@@ -5,10 +5,10 @@
 
  */
 #include <pthread.h>
+#include <signal.h>
 #define _USE_ALL_BUILTINS
 #include "../include/proto.h"
 #include "../include/statics.h"
-
 
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
 
@@ -29,9 +29,9 @@
 
 #define MUT_ACTION(mutex, ...) \
   DO_WHILE(  \
-    mut_lock((mutex)); \
+    smutex_lock((mutex)); \
     DO_WHILE(__VA_ARGS__);  \
-    mut_unlock((mutex));  \
+    smutex_unlock((mutex));  \
   )
 
 
@@ -209,14 +209,26 @@ typedef struct MUT_T *MUT;
 struct MUT_T {
   volatile HMAP_UINT gate;
   volatile HMAP_UINT prof;
-  volatile pthread_t holder;
+  volatile uint64 spintime;
+  // volatile pthread_t holder;
 } __attribute__((aligned(8)));
 #define MUT_LOCK_WORKING_SPIN_DELAY  (10000000)
 
+/* Segment sleep. */
+#define DO_SLEEP_SEGMENT(elapsed, total, start, now, stage)            \
+  while (((elapsed) + INTERVAL_##stage + JITTER_##stage) < (total)) {  \
+    nanosleep(&timespec_##stage, NULL);                                \
+    clock_gettime(CLOCK_MONOTONIC, (now));                             \
+    (elapsed) = TIMESPEC_ELAPSED_NS((start), (now));                   \
+  }
+
+_UNUSED
 static MUT mut_create(void) {
-  MUT mutex = xmalloc(sizeof(*mutex));
-  mutex->gate = 0;
-  mutex->prof = 0;
+  MUT mutex; /* = xmalloc(sizeof(*mutex)); */
+  posix_memalign((void **)&mutex, 8, sizeof(*mutex));
+  mutex->gate     = 0;
+  mutex->prof     = 0;
+  mutex->spintime = 0;
   // mutex->map  = hnmap_create();
   return mutex;
 }
@@ -229,35 +241,77 @@ static void mut_free(MUT mutex) {
   free(mutex);
 }
 
+_UNUSED
 static void mut_lock(MUT mutex) {
   ASSERT(mutex);
-  pthread_t self = pthread_self();
+  volatile pthread_t self = pthread_self();
 gate:
   while (mutex->gate) {
-    hiactime_nsleep(10000000);
+    hiactime_nsleep(4000000);
+    if (mutex->spintime > 10000000) {
+      if (mutex->spintime < (10000000 + 4000000)) {
+        if (mutex->gate && mutex->gate != self) {
+          if (pthread_kill((pthread_t)mutex->gate, 0) != 0) {
+            // hiactime_nsleep(1000000);
+            // mutex->spintime = 0;
+            mutex->gate = 0;
+            goto bypass;
+            // mutex->prof = mutex->gate;
+            // break;
+          }
+        }
+      }
+      // mutex->spintime = self;
+      // mutex->prof = mutex->spintime;
+      // if (mutex->spintime == self && mutex->prof == self && pthread_kill((pthread_t)mutex->gate, 0) != 0) {
+      //   mutex->spintime = 0;
+      //   mutex->prof     = 0;
+      //   mutex->gate     = 0;
+      //   return;
+      // }
+      // mutex->spintime = 0;
+    }
+    mutex->spintime += 4000000;
+    // if (mutex->spintime > 100000000 && pthread_kill((pthread_t)mutex->gate, 0) != 0) {
+    //   mutex->spintime = 0;
+    //   mutex->prof = 0;
+    //   mutex->gate = 0;
+    //   goto check;
+    // }
   }
   if (!mutex->gate) {
+bypass:
     mutex->gate = self;
     mutex->prof = mutex->gate;
     if (mutex->gate == self && mutex->prof == self) {
+      // hiactime_nsleep(20);
+      // mutex->spintime = 0;
       return;
     }
   }
   goto gate;
 }
 
+_UNUSED
 static void mut_unlock(MUT mutex) {
   ASSERT(mutex);
-  volatile pthread_t self = pthread_self();
-  volatile HMAP_UINT gate;
-  if (mutex->gate) {
-    gate = self;
-    mutex->prof = gate;
-    if (gate == self && mutex->prof == self) {
-      mutex->prof = 0;
-      mutex->gate = 0;
-    }
-  }
+  // volatile pthread_t self = pthread_self();
+  // // volatile HMAP_UINT gate;
+  // if (mutex->gate == self) {
+  //   // mutex->spintime = 0;
+  //   mutex->gate = 0;
+  //   // hiactime_nsleep(self & (1024 - 1));
+  //   // mutex->prof = 0;
+  //   // hiactime_nsleep(10000);
+  //   // gate = self;
+  //   // mutex->prof = gate;
+  //   // if (gate == self && mutex->prof == self) {
+  //   //   mutex->prof = 0;
+  //   //   mutex->gate = 0;
+  //   // }
+  // }
+  mutex->gate = 0;
+  mutex->spintime = 0;
 // redo:
   // if (self == mutex->gate && self && mutex->prof) {
   //   // printf("%lu: unlocked\n", self);
@@ -302,8 +356,7 @@ struct HashMap {
 
   /* This is locked when we resize the hashmap, so that we ensure singular thread resizeing. */
   // mutex_t globmutex;
-  __attribute__((aligned(8)))
-  MUT mutex;
+  SMUTEX mutex;
 };
 
 /* ----------------------------- HashMapNum ----------------------------- */
@@ -865,7 +918,7 @@ HashMap *hashmap_create(void) {
   map->size       = 0;
   map->buckets    = xcalloc(map->cap, sizeof(HashNode *));
   map->free_value = NULL;
-  map->mutex      = mut_create();
+  map->mutex      = smutex_create();
   // mutex_init(&map->globmutex, NULL);
   return map;
 }
@@ -883,7 +936,8 @@ void hashmap_free(HashMap *const map) {
       }
     );
   );
-  mut_free(map->mutex);
+  free(map->mutex);
+  // mut_free(map->mutex);
   // mutex_destroy(&map->globmutex);
   free(map->buckets);
   free(map);
@@ -1507,7 +1561,7 @@ void hashmapnum_append_waction(HashMapNum *const dst, HashMapNum *const src, voi
 
 
 /* The concurency test will be ran by doing 1000 requsts from 100 threads concurently. */
-#define OPS_PER_THREAD  1000
+#define OPS_PER_THREAD  10
 #define NUM_THREADS     256
 
 _UNUSED static const char *strarray[] = {

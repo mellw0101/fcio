@@ -1674,3 +1674,7 @@ typedef struct atomicbool  atomicbool;
 
 // typedef struct Queue  Queue;
 typedef struct QUEUE_T *  QUEUE;
+
+/* ----------------------------- simple_mutually_exclusive_execution.c ----------------------------- */
+
+typedef struct SMUTEX_T *SMUTEX;
