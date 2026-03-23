@@ -17,7 +17,8 @@ static mutex_t stderr_mutex = mutex_init_static;
 /* ----------------------------- Die callback ----------------------------- */
 
 /* The default die callback when the user has not set one. */
-_NO_RETURN static void fcio_default_die_callback(const char *format, ...)  {
+_NO_RETURN _PRINTFLIKE(1, 2)
+static void fcio_default_die_callback(const char *format, ...) {
   va_list ap;
   va_start(ap, format);
   vfprintf(stderr, format, ap);
@@ -27,8 +28,8 @@ _NO_RETURN static void fcio_default_die_callback(const char *format, ...)  {
 void (*die_callback)(const char *format, ...) = fcio_default_die_callback;
 
 /* Set the function that will be called when a fatal error happens. */
-void fcio_set_die_callback(void (*callback)(const char *format, ...) _NO_RETURN) {
-  die_callback = (callback ? callback : fcio_default_die_callback);
+void fcio_set_die_callback(void (*callback)(const char *format, ...) _NO_RETURN _PRINTFLIKE(1, 2)) {
+  die_callback = PASS_IF_VALID(callback, fcio_default_die_callback); /* (callback ? callback : fcio_default_die_callback); */
 }
 
 /* ----------------------------- Thread safe stdout ----------------------------- */

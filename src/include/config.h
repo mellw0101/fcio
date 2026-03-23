@@ -250,6 +250,12 @@
 # define STRLEN(s)  strlen(s)
 #endif
 
+#if _HAS_BUILTIN(strstr)
+# define STRSTR(str, substr)  __builtin_strstr(str, substr)
+#else
+# define STRSTR(str, substr)  strstr(str, substr)
+#endif
+
 #if _HAS_BUILTIN(strcpy)
 # define STRCPY(dst, src)  __builtin_strcpy(dst, src)
 #else
@@ -556,6 +562,9 @@
 # ifdef strlen
 #   undef strlen
 # endif
+# ifdef strstr
+#   undef strstr
+# endif
 # ifdef strcpy
 #   undef strcpy
 # endif
@@ -691,6 +700,7 @@
 
 # define prefetch(...)           PREFETCH(__VA_ARGS__)
 # define strlen(...)             STRLEN(__VA_ARGS__)
+# define strstr(...)             STRSTR(__VA_ARGS__)
 # define strcpy(...)             STRCPY(__VA_ARGS__)
 # define strcat(...)             STRCAT(__VA_ARGS__)
 # define strncpy(...)            STRNCPY(__VA_ARGS__)

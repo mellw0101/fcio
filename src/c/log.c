@@ -84,6 +84,7 @@ static int fcio_log_fd = -1;
 
 /* ----------------------------- Fcio log va ----------------------------- */
 
+_PRINTFLIKE(4, 0)
 static void fcio_log_va(int type, Ulong lineno,
   const char *const restrict function, const char *const restrict format, va_list ap)
 {

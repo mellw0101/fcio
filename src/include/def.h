@@ -54,6 +54,8 @@
 #ifndef __WIN__
 # include <sys/stat.h>
 # include <sys/inotify.h>
+# include <sys/epoll.h>
+# include <sys/eventfd.h>
 #endif
 
 /* ----------------------------- fcio ----------------------------- */
@@ -969,6 +971,7 @@
 #define thread_create  pthread_create
 #define thread_detach  pthread_detach
 #define thread_join    pthread_join
+#define thread_cancel  pthread_cancel
 
 /* Mutex helper shorthand's. */
 #define mutex_init                pthread_mutex_init
@@ -1647,8 +1650,9 @@ typedef struct CVec  CVec;
 
 /* ----------------------------- hashmap.c ----------------------------- */
 
-typedef struct HMAP_T *   HMAP;
-typedef struct HNMAP_T *  HNMAP;
+typedef struct HMAP_PH_T *HMAP_PH;
+typedef struct HMAP_T    *HMAP;
+typedef struct HNMAP_T   *HNMAP;
 
 typedef struct HashNode  HashNode;
 typedef struct HashMap   HashMap;
@@ -1678,3 +1682,8 @@ typedef struct QUEUE_T *  QUEUE;
 /* ----------------------------- simple_mutually_exclusive_execution.c ----------------------------- */
 
 typedef struct SMUTEX_T *SMUTEX;
+
+/* ----------------------------- file_listener.c ----------------------------- */
+
+typedef void (*FILE_LISTENER_CB)(void *data, Uint mask);
+typedef struct FILE_LISTENER_T  *FILE_LISTENER;

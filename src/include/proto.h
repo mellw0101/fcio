@@ -36,9 +36,9 @@ void stdoutwrite(const char *const restrict data, Ulong len) _NONNULL(1);
 void stderrwrite(const char *const restrict data, Ulong len) _NONNULL(1);
 void writef(const char *const restrict format, ...) _NONNULL(1) _PRINTFLIKE(1, 2);
 void writeferr(const char *const restrict format, ...) _NONNULL(1) _PRINTFLIKE(1, 2);
-void vwritef(const char *const restrict format, va_list ap) _NONNULL(1);
-void vwriteferr(const char *const restrict format, va_list ap) _NONNULL(1);
-bool ynanswer(const char *const restrict format, ...);
+void vwritef(const char *const restrict format, va_list ap) _NONNULL(1) _PRINTFLIKE(1, 0);
+void vwriteferr(const char *const restrict format, va_list ap) _NONNULL(1) _PRINTFLIKE(1, 0);
+bool ynanswer(const char *const restrict format, ...) _PRINTFLIKE(1, 2);
 
 
 /* ---------------------------------------------------------- files.c ---------------------------------------------------------- */
@@ -81,7 +81,7 @@ void *xcalloc(Ulong elems, Ulong elemsize) __THROW _NODISCARD _RETURNS_NONNULL;
 
 char *measured_copy(const char *const restrict string, Ulong len) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
 char *copy_of(const char *const restrict string) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
-char *valstr(const char *const restrict format, va_list ap, int *const outlen) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);
+char *valstr(const char *const restrict format, va_list ap, int *const outlen) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1) _PRINTFLIKE(1, 0);
 long  strtonum(const char *const restrict string) __THROW _NODISCARD _NONNULL(1);
 bool  parse_num(const char *const restrict string, long *const result) __THROW _NODISCARD _NONNULL(1, 2);
 char *free_and_assign(char *dest, char *src) __THROW _NODISCARD;
@@ -223,12 +223,23 @@ void  cvec_qsort(CVec *const v, CmpFuncPtr cmp);
 /* ---------------------------------------------------------- hashmap.c ---------------------------------------------------------- */
 
 
+/* ----------------------------- HMAP_PH ----------------------------- */
+
+HMAP_PH hmap_ph_create(void);
+void    hmap_ph_free(HMAP_PH m);
+void    hmap_ph_set_free_func(HMAP_PH m, void (*free_fn)(void *));
+void    hmap_ph_insert(HMAP_PH m, const char *const restrict key, void *value);
+void   *hmap_ph_get(HMAP_PH m, const char *const restrict key);
+bool    hmap_ph_contains(HMAP_PH m, const char *const restrict key);
+void    hmap_ph_remove(HMAP_PH m, const char *const restrict key);
+void    hmap_ph_clear(HMAP_PH m);
+
 /* ----------------------------- HMAP ----------------------------- */
 
 /*
  * Create a string hashmap, where the key is a `char *`.
  */
-HMAP hmap_create(void);
+HMAP  hmap_create(void);
 void  hmap_free(HMAP m);
 void  hmap_set_free_func(HMAP m, void (*free_func)(void *));
 void  hmap_insert(HMAP m, const char *const restrict key, void *value);
@@ -434,6 +445,18 @@ void fcio_log_error_fatal(Ulong lineno, const char *const restrict function, con
 SMUTEX smutex_create(void);
 void   smutex_lock(SMUTEX sm);
 void   smutex_unlock(SMUTEX sm);
- 
+
+
+/* ---------------------------------------------------------- file_listener.c ---------------------------------------------------------- */
+
+
+FILE_LISTENER file_listener_create(void);
+void file_listener_kill(FILE_LISTENER fl);
+void file_listener_add_file(FILE_LISTENER fl,
+  const char *const restrict file, FILE_LISTENER_CB cb, void *data, Uint mask);
+void file_listener_rm_file(FILE_LISTENER fl, const char *const restrict file);
+void file_listener_update_file_callback(FILE_LISTENER fl,
+  const char *const restrict file, FILE_LISTENER_CB cb, void *data, Uint mask);
+
 
 _END_C_LINKAGE

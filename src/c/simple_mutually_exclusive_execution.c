@@ -32,8 +32,8 @@ struct SMUTEX_T {
   struct SMUTEX_SW_VAR_T var;
   /* This acts like the true key, in that only and only a true winner can
    * write to this, meaning that when any given thread is the only winner,
-   * it will get its id returned, meaning it now holds the lock, and can thereform
-   * set this holder before clering `var->gate`. */
+   * it will get it's id returned, meaning it now holds the lock, and can
+   * therefor set this.  This way, we can release the lock cleaner. */
   volatile SMUTEX_UINT_T holder;
 };
 
@@ -99,8 +99,8 @@ void smutex_lock(SMUTEX sm) {
 
 void smutex_unlock(SMUTEX sm) {
   ASSERT(sm);
-  /* Because the only way to reach this is to truly hold the lock, as
-   * in all other cases, the lock would by definition not be mutual,
+  /* Because the only way to reach this point, is to truly hold the lock,
+   * as in all other cases, the lock would by definition not be mutual,
    * we should never ever need to verify that the holder is the caller,
    * as the only way that can happen is incorrect use, or the lock not working.
    * and if the lock does not work, then it does not matter anyway.  Instead,

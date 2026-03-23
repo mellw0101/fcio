@@ -144,7 +144,6 @@
 /* ----------------------------- HMAP_PH ----------------------------- */
 
 typedef struct HMAP_PH_NODE_T *HMAP_PH_NODE;
-typedef struct HMAP_PH_T      *HMAP_PH;
 
 /* ----------------------------- HMAP ----------------------------- */
 
@@ -203,132 +202,6 @@ struct HNMAP_T {
   HMAP_UINT size;
   void (*free_func)(void *);
 };
-
-
-typedef struct MUT_T *MUT;
-struct MUT_T {
-  volatile HMAP_UINT gate;
-  volatile HMAP_UINT prof;
-  volatile uint64 spintime;
-  // volatile pthread_t holder;
-} __attribute__((aligned(8)));
-#define MUT_LOCK_WORKING_SPIN_DELAY  (10000000)
-
-/* Segment sleep. */
-#define DO_SLEEP_SEGMENT(elapsed, total, start, now, stage)            \
-  while (((elapsed) + INTERVAL_##stage + JITTER_##stage) < (total)) {  \
-    nanosleep(&timespec_##stage, NULL);                                \
-    clock_gettime(CLOCK_MONOTONIC, (now));                             \
-    (elapsed) = TIMESPEC_ELAPSED_NS((start), (now));                   \
-  }
-
-_UNUSED
-static MUT mut_create(void) {
-  MUT mutex; /* = xmalloc(sizeof(*mutex)); */
-  posix_memalign((void **)&mutex, 8, sizeof(*mutex));
-  mutex->gate     = 0;
-  mutex->prof     = 0;
-  mutex->spintime = 0;
-  // mutex->map  = hnmap_create();
-  return mutex;
-}
-
-_UNUSED
-static void mut_free(MUT mutex) {
-  if (!mutex) {
-    return;
-  }
-  free(mutex);
-}
-
-_UNUSED
-static void mut_lock(MUT mutex) {
-  ASSERT(mutex);
-  volatile pthread_t self = pthread_self();
-gate:
-  while (mutex->gate) {
-    hiactime_nsleep(4000000);
-    if (mutex->spintime > 10000000) {
-      if (mutex->spintime < (10000000 + 4000000)) {
-        if (mutex->gate && mutex->gate != self) {
-          if (pthread_kill((pthread_t)mutex->gate, 0) != 0) {
-            // hiactime_nsleep(1000000);
-            // mutex->spintime = 0;
-            mutex->gate = 0;
-            goto bypass;
-            // mutex->prof = mutex->gate;
-            // break;
-          }
-        }
-      }
-      // mutex->spintime = self;
-      // mutex->prof = mutex->spintime;
-      // if (mutex->spintime == self && mutex->prof == self && pthread_kill((pthread_t)mutex->gate, 0) != 0) {
-      //   mutex->spintime = 0;
-      //   mutex->prof     = 0;
-      //   mutex->gate     = 0;
-      //   return;
-      // }
-      // mutex->spintime = 0;
-    }
-    mutex->spintime += 4000000;
-    // if (mutex->spintime > 100000000 && pthread_kill((pthread_t)mutex->gate, 0) != 0) {
-    //   mutex->spintime = 0;
-    //   mutex->prof = 0;
-    //   mutex->gate = 0;
-    //   goto check;
-    // }
-  }
-  if (!mutex->gate) {
-bypass:
-    mutex->gate = self;
-    mutex->prof = mutex->gate;
-    if (mutex->gate == self && mutex->prof == self) {
-      // hiactime_nsleep(20);
-      // mutex->spintime = 0;
-      return;
-    }
-  }
-  goto gate;
-}
-
-_UNUSED
-static void mut_unlock(MUT mutex) {
-  ASSERT(mutex);
-  // volatile pthread_t self = pthread_self();
-  // // volatile HMAP_UINT gate;
-  // if (mutex->gate == self) {
-  //   // mutex->spintime = 0;
-  //   mutex->gate = 0;
-  //   // hiactime_nsleep(self & (1024 - 1));
-  //   // mutex->prof = 0;
-  //   // hiactime_nsleep(10000);
-  //   // gate = self;
-  //   // mutex->prof = gate;
-  //   // if (gate == self && mutex->prof == self) {
-  //   //   mutex->prof = 0;
-  //   //   mutex->gate = 0;
-  //   // }
-  // }
-  mutex->gate = 0;
-  mutex->spintime = 0;
-// redo:
-  // if (self == mutex->gate && self && mutex->prof) {
-  //   // printf("%lu: unlocked\n", self);
-  //   mutex->prof = 0;
-  //   mutex->gate = 0;
-  // }
-  // hiactime_nsleep(self % 100000);
-  // goto redo;
-  // while (mutex->gate) {
-  //   if (mutex->gate == pthread_self() && mutex->prof == pthread_self()) {
-  //     return;
-  //   }
-  //   else {
-  //     hiactime_msleep(100);
-  //   }
-  // }
-}
 
 #if !__WIN__
 
@@ -392,7 +265,6 @@ static __always_inline HMAP_UINT djb2_hash(const char *restrict str) {
   return hash;
 }
 
-_UNUSED
 static __always_inline HMAP_UINT fnv1a_hash(const char *restrict str) {
   HMAP_UINT hash = FNV1A_BASE;
   uint8 c;
@@ -438,7 +310,7 @@ static __always_inline void hnmap_free_node(HNMAP nm, HNMAP_NODE node) {
   ASSERT_HNMAP(nm);
   ASSERT_HNMAP_NODE(node);
   CALL_IF_VALID(nm->free_func, node->value);
-  FREE(node);
+  free(node);
 }
 
 static void hnmap_resize(HNMAP nm) {
@@ -456,7 +328,7 @@ static void hnmap_resize(HNMAP nm) {
     );
     new_cvec_free(bucket);
   );
-  FREE(nm->buckets);
+  free(nm->buckets);
   nm->buckets = new_buckets;
   nm->cap     = new_cap; 
 }
@@ -503,8 +375,7 @@ static void hmap_ph_resize(HMAP_PH m) {
 
 /* ----------------------------- HMAP_PH ----------------------------- */
 
-_UNUSED
-static HMAP_PH hmap_ph_create(void) {
+HMAP_PH hmap_ph_create(void) {
   HMAP_PH m = xmalloc(sizeof(*m));
   m->cap     = INITIAL_CAP;
   m->size    = 0;
@@ -512,8 +383,7 @@ static HMAP_PH hmap_ph_create(void) {
   return m;
 }
 
-_UNUSED
-static void hmap_ph_free(HMAP_PH m) {
+void hmap_ph_free(HMAP_PH m) {
   /* Make this act as free, and just become nop on passed `NULL`. */
   if (!m) {
     return;
@@ -534,14 +404,12 @@ static void hmap_ph_free(HMAP_PH m) {
   free(m);
 }
 
-_UNUSED
-static void hmap_ph_set_free_func(HMAP_PH m, void (*free_fn)(void *)) {
+void hmap_ph_set_free_func(HMAP_PH m, void (*free_fn)(void *)) {
   ASSERT_HMAP(m);
   m->free_fn = free_fn;
 }
 
-_UNUSED
-static void hmap_ph_insert(HMAP_PH m, const char *const restrict key, void *value) {
+void hmap_ph_insert(HMAP_PH m, const char *const restrict key, void *value) {
   ASSERT_HMAP(m);
   ASSERT(key);
   HMAP_PH_NODE node;
@@ -572,8 +440,7 @@ static void hmap_ph_insert(HMAP_PH m, const char *const restrict key, void *valu
   ++m->size;
 }
 
-_UNUSED
-static void *hmap_ph_get(HMAP_PH m, const char *const restrict key) {
+void *hmap_ph_get(HMAP_PH m, const char *const restrict key) {
   ASSERT_HMAP(m);
   ASSERT(key);
   HMAP_PH_NODE node;
@@ -584,8 +451,7 @@ static void *hmap_ph_get(HMAP_PH m, const char *const restrict key) {
   return NULL;
 }
 
-_UNUSED
-static bool hmap_ph_contains(HMAP_PH m, const char *const restrict key) {
+bool hmap_ph_contains(HMAP_PH m, const char *const restrict key) {
   ASSERT_HMAP(m);
   ASSERT(key);
   HMAP_UINT index = (djb2_hash(key) & (m->cap - 1));
@@ -595,8 +461,7 @@ static bool hmap_ph_contains(HMAP_PH m, const char *const restrict key) {
   return FALSE;
 }
 
-_UNUSED
-static void hmap_ph_remove(HMAP_PH m, const char *const restrict key) {
+void hmap_ph_remove(HMAP_PH m, const char *const restrict key) {
   ASSERT_HMAP(m);
   ASSERT(key);
   HMAP_PH_NODE node;
@@ -612,8 +477,7 @@ static void hmap_ph_remove(HMAP_PH m, const char *const restrict key) {
   }
 }
 
-_UNUSED
-static void hmap_ph_clear(HMAP_PH m) {
+void hmap_ph_clear(HMAP_PH m) {
   ASSERT_HMAP(m);
   HMAP_PH_ITER(m, i, nm,
     HMAP_ITER(nm, ni, bucket,
