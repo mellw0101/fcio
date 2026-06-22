@@ -8,8 +8,11 @@
 #include "../include/proto.h"
 
 
-#if !__WIN__
-
+/* TODO:
+ * 
+ * This needs to be cleaned up, and more streamlined, other then that
+ * it's basically done, we now have a dual thread, single fd file listener.
+ */
 
 #define EVENT_SIZE    			(sizeof(struct inotify_event))
 #define EVENT_BUF_LEN 			(1024 * (EVENT_SIZE + 16))
@@ -31,8 +34,8 @@ typedef struct FILE_LISTENER_EPOLL_T  *FILE_LISTENER_EPOLL;
 
 
 struct FILE_LISTENER_EVENT_T {
-  void *data;
-  Uint mask;
+  void            *data;
+  Uint             mask;
   FILE_LISTENER_CB callback;
 };
 
@@ -52,6 +55,7 @@ struct FILE_LISTENER_T {
   cond_t   cond;
   bool     running_cb;
   bool     running_epoll;
+  /* The inotify file-descriptor. */
   int      ifd;
   /* The epoll file-descriptior. */
   int      efd;
@@ -120,8 +124,8 @@ static void file_listener_add_update_node(FILE_LISTENER fl, FILE_LISTENER_NODE n
   FILE_LISTENER_NODE unode = xmalloc(sizeof(*unode));
   unode->fd = eventfd(0, 0);
   /* Set the sentinal. */
-  unode->wd = SENTINAL_UPDATE;
-  unode->data     = node;
+  unode->wd   = SENTINAL_UPDATE;
+  unode->data = node;
   /* Store the update data in the callback. */
   unode->callback = (FILE_LISTENER_CB)data;
   epoll_add_fd(fl->efd, unode->fd, unode);
@@ -148,13 +152,13 @@ static void file_listener_shutdown_epoll(FILE_LISTENER fl) {
   ASSERT(fl);
   Ulong val = 1;
   write(fl->kfd, &val, sizeof(val));
-  pthread_join(fl->thread_epoll, NULL);
+  thread_join(fl->thread_epoll, NULL);
 }
 
 static void file_listener_shutdown_cb(FILE_LISTENER fl) {
   ASSERT(fl);
   file_listener_enqueue_callback(fl, (FILE_LISTENER_CB)file_listener_cb_kill_sentinal, fl, 0);
-  pthread_join(fl->thread_cb, NULL);
+  thread_join(fl->thread_cb, NULL);
 }
 
 /* ----------------------------- Thread-Loop's ----------------------------- */
@@ -165,7 +169,7 @@ static void *file_listener_thread_loop_cb(FILE_LISTENER fl) {
   FILE_LISTENER_EVENT ev;
   while (fl->running_cb) {
     mutex_lock(&fl->mutex);
-    /* TODO: We should not need these running checks, as the only way its set to false is via a callback... */
+    /* TODO: We should not need these running checks, as the only way it's set to false is via a callback... */
     while (!queue_size(fl->queue) && fl->running_cb) {
       cond_wait(&fl->cond, &fl->mutex);
     }
@@ -173,8 +177,7 @@ static void *file_listener_thread_loop_cb(FILE_LISTENER fl) {
       mutex_unlock(&fl->mutex);
       break;
     }
-    ev = queue_front(fl->queue);
-    queue_pop(fl->queue);
+    ev = queue_pop_front(fl->queue);
     mutex_unlock(&fl->mutex);
     /* Process the event. */
     ev->callback(ev->data, ev->mask);
@@ -186,6 +189,7 @@ static void *file_listener_thread_loop_cb(FILE_LISTENER fl) {
 /* The epoll-thread's work loop, here all events only enqueue its given callback for the main loop to process. */
 static void *file_listener_thread_loop_epoll(FILE_LISTENER fl) {
   struct epoll_event events[64];
+  int i;
   int n;
   FILE_LISTENER_EVENT update_data;
   FILE_LISTENER_NODE node;
@@ -194,8 +198,7 @@ static void *file_listener_thread_loop_epoll(FILE_LISTENER fl) {
   long len;
   struct inotify_event *ev;
   while (fl->running_epoll) {
-    n = epoll_wait(fl->efd, events, 64, -1);
-    for (int i=0; i<n; ++i) {
+    for (n=epoll_wait(fl->efd, events, 64, -1),i=0; i<n; ++i) {
       node = events[i].data.ptr;
       /* NULL-Sentinel, used for termination. */
       if (!node) {
@@ -210,6 +213,7 @@ static void *file_listener_thread_loop_epoll(FILE_LISTENER fl) {
         hmap_ph_remove(fl->nodes, ((FILE_LISTENER_NODE)node->data)->file);
         free(node);
       }
+      /* Data/Callback update sentinal. */
       else if (node->wd == SENTINAL_UPDATE) {
         epoll_ctl(fl->efd, EPOLL_CTL_DEL, node->fd, NULL);
         close(node->fd);
@@ -228,12 +232,11 @@ static void *file_listener_thread_loop_epoll(FILE_LISTENER fl) {
       }
       /* Event sentinal. */
       else if (node->wd == SENTINAL_EV) {
-        len = read(fl->ifd, buf, EVENT_BUF_LEN);
-        if (len < 0) {
+        if ((len = read(fl->ifd, buf, EVENT_BUF_LEN)) < 0) {
           die_callback("Failed to read inotify fd.\n");
         }
         for (long ei=0; ei<len;) {
-          ev = (struct inotify_event *)&buf[ei];
+          ev = (void *)&buf[ei];
           if ((wnode = hnmap_get(fl->wfds, ev->wd))) {
             file_listener_enqueue_callback(fl, wnode->callback, wnode->data, ev->mask);
           }
@@ -251,11 +254,11 @@ static void file_listener_run(FILE_LISTENER fl) {
   ASSERT(fl);
   fl->running_cb    = TRUE;
   fl->running_epoll = TRUE;
-  if (thread_create(&fl->thread_cb, NULL, (void *(*)(void *))file_listener_thread_loop_cb, fl) != 0) {
+  if (thread_create(&fl->thread_cb, NULL, (SIGTYPE_PTH_TASK)file_listener_thread_loop_cb, fl) != 0) {
     /* TODO: Here we should have a single function to call to cleanup. */
     die_callback("Failed to create FILE_LISTENER callback thread.\n");
   }
-  if (thread_create(&fl->thread_epoll, NULL, (void *(*)(void *))file_listener_thread_loop_epoll, fl) != 0) {
+  if (thread_create(&fl->thread_epoll, NULL, (SIGTYPE_PTH_TASK)file_listener_thread_loop_epoll, fl) != 0) {
     /* TODO: ~ */
     thread_cancel(fl->thread_cb);
     die_callback("Failed to create FILE_LISTENER epoll thread.\n");
@@ -365,5 +368,3 @@ void file_listener_update_file_callback(FILE_LISTENER fl,
     file_listener_add_update_node(fl, node, ev);
   }
 }
-
-#endif

@@ -7,7 +7,6 @@
 #define _USE_ALL_BUILTINS
 #include "../include/proto.h"
 
-#if !__WIN__
 
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
 
@@ -163,7 +162,7 @@ void fcio_log_set_file(const char *const restrict path) {
     }
     /* If this is a good path, then open the file-descriptor. */
     else {
-      mutex_action(&fcio_log_mutex,
+      MUTEX_ACTION(&fcio_log_mutex,
         if ((fcio_log_fd = open(path, O_WRONLY)) == -1) {
           die_callback("Failed to open '%s': %s\n", path, strerror(errno));
         }
@@ -192,5 +191,3 @@ void fcio_log_error_fatal(Ulong lineno, const char *const restrict function, con
   va_end(ap);
   die_callback("\nTERMINATING: The last log was a fatal error.\n");
 }
-
-#endif

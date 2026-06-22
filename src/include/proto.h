@@ -388,11 +388,14 @@ void atomicbool_set_false(atomicbool *ab);
 
 QUEUE queue_create(void);
 void  queue_free(QUEUE q);
-void  queue_set_free_func(QUEUE q, void (*free_func)(void *));
+void  queue_set_free_func(QUEUE q, SIGTYPE_FREE free_func);
 Ulong queue_size(QUEUE q);
 void  queue_pop(QUEUE q);
 void  queue_push(QUEUE q, void *data);
 void *queue_front(QUEUE q);
+
+/* Returns the front and pops it in the queue.  Note that this should only be used when no `free_func` is set. */
+void *queue_pop_front(QUEUE q);
 
 // Queue *queue_create(void);
 // void queue_free(Queue *q);

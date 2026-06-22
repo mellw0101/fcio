@@ -4,6 +4,7 @@
   @date    3-3-2025.
 
  */
+#define _USE_ALL_BUILTINS
 #include "../include/proto.h"
 
 
@@ -23,8 +24,8 @@
 
 
 struct CVEC_T {
-  size_t size;
-  size_t cap;
+  Ulong  size;
+  Ulong  cap;
   void **data;
   void (*free_func)(void *);
 };
@@ -38,7 +39,7 @@ static void new_cvec_free_data(CVEC cv) {
   if (!cv->free_func) {
     return;
   }
-  for (size_t i=0; i<cv->size; ++i) {
+  for (Ulong i=0; i<cv->size; ++i) {
     cv->free_func(cv->data[i]);
   }
 }
@@ -61,8 +62,8 @@ void new_cvec_free(CVEC cv) {
     return;
   }
   new_cvec_free_data(cv);
-  FREE(cv->data);
-  FREE(cv);
+  free(cv->data);
+  free(cv);
 }
 
 void new_cvec_set_free_func(CVEC cv, void (*free_func)(void *)) {
@@ -70,7 +71,7 @@ void new_cvec_set_free_func(CVEC cv, void (*free_func)(void *)) {
   cv->free_func = free_func; 
 }
 
-size_t new_cvec_size(CVEC cv) {
+Ulong new_cvec_size(CVEC cv) {
   ASSERT_CV(cv);
   return cv->size;
 }
@@ -82,13 +83,13 @@ void new_cvec_push_back(CVEC cv, void *p) {
   cv->data[cv->size++] = p;
 }
 
-void *new_cvec_get(CVEC cv, size_t idx) {
+void *new_cvec_get(CVEC cv, Ulong idx) {
   ASSERT_CV(cv);
   ALWAYS_ASSERT(idx < cv->size);
   return cv->data[idx];
 }
 
-void new_cvec_erase_swap_back(CVEC cv, size_t idx) {
+void new_cvec_erase_swap_back(CVEC cv, Ulong idx) {
   ASSERT_CV(cv);
   ALWAYS_ASSERT(idx < cv->size);
   CALL_IF_VALID(cv->free_func, cv->data[idx]);
@@ -101,11 +102,11 @@ void new_cvec_erase_swap_back(CVEC cv, size_t idx) {
   }
 }
 
-void new_cvec_erase_shift(CVEC cv, size_t idx) {
+void new_cvec_erase_shift(CVEC cv, Ulong idx) {
   ASSERT_CV(cv);
   ALWAYS_ASSERT(idx < cv->size);
   CALL_IF_VALID(cv->free_func, cv->data[idx]);
-  MEMMOVE((cv->data + idx), (cv->data + idx + 1), (_PTRSIZE * ((cv->size - idx) - 1)));
+  memmove((cv->data + idx), (cv->data + idx + 1), (_PTRSIZE * ((cv->size - idx) - 1)));
   --cv->size;
 }
 
@@ -149,7 +150,7 @@ struct CVec {
   int len;           /* Current number of elements in the vector. */
   int cap;           /* Allocated size in number of elements of vector. */
   void **data;       /* Generic ptr to hold any type of ptr's. */
-  FreeFuncPtr free;  /* Ptr to funtion used for deallocation this way we can enforse thread-safety. */
+  FreeFuncPtr free_func;  /* Ptr to funtion used for deallocation this way we can enforse thread-safety. */
   mutex_t mutex;     /* Mutex for fully threaded operations. */
 };
 
@@ -174,7 +175,7 @@ CVec *cvec_create(void) {
   v->len  = 0;
   v->cap  = CVEC_INITIAL_CAP;
   v->data = xmalloc(v->cap * sizeof(void *));
-  v->free = NULL;
+  v->free_func = NULL;
   mutex_init(&v->mutex, NULL);
   return v;
 }
@@ -190,10 +191,10 @@ CVec *cvec_create_setfree(FreeFuncPtr free) {
 void cvec_free(CVec *const v) {
   CVEC_MUTEX_ACTION(
     /* Only iterate when the free function is valid. */
-    if (v->free) {
+    if (v->free_func) {
       /* Free all elements using the chosen free function. */
       for (int i=0; i<v->len; ++i) {
-        v->free(v->data[i]);
+        v->free_func(v->data[i]);
       }
     }
     free(v->data);
@@ -208,10 +209,10 @@ void cvec_free_void_ptr(void *arg) {
   CVec *v = arg;
   CVEC_MUTEX_ACTION(
     /* Only iterate when the free function is valid. */
-    if (v->free) {
+    if (v->free_func) {
       /* Free all elements using the chosen free function. */
       for (int i=0; i<v->len; ++i) {
-        v->free(v->data[i]);
+        v->free_func(v->data[i]);
       }
     }
     free(v->data);
@@ -224,7 +225,7 @@ void cvec_free_void_ptr(void *arg) {
 /* Set the element free function.  Note that free() is the default one and vill be used if none is chosen, pass NULL to not free elements. */
 void cvec_setfree(CVec *const v, FreeFuncPtr free) {
   CVEC_MUTEX_ACTION(
-    v->free = free;
+    v->free_func = free;
   );
 }
 
@@ -294,9 +295,9 @@ int cvec_cap(CVec *const v) {
 /* Clear the vector.  Note that this uses the provided free function to free all elements, if it has been provided. */
 void cvec_clear(CVec *const v) {
   CVEC_MUTEX_ACTION(
-    if (v->free) {
+    if (v->free_func) {
       for (int i=0; i<v->len; ++i) {
-        v->free(v->data[i]);
+        v->free_func(v->data[i]);
       }
     } 
     v->len = 0;

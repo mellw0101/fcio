@@ -23,11 +23,11 @@
 
 
 struct QUEUE_T {
-  Ulong start;
-  Ulong size;
-  Ulong cap;
-  void **data;
-  void (*free_func)(void *);
+  Ulong        start;
+  Ulong        size;
+  Ulong        cap;
+  void       **data;
+  SIGTYPE_FREE free_func;
 };
 
 
@@ -58,8 +58,8 @@ QUEUE queue_create(void) {
   return q;
 }
 
+/* As a non fully internaly controlled container, make this a no-op on NULL. */
 void queue_free(QUEUE q) {
-  /* As a non fully internaly controlled container, make this a no-op on NULL. */
   if (!q) {
     return;
   }
@@ -68,8 +68,8 @@ void queue_free(QUEUE q) {
   free(q);
 }
 
-void queue_set_free_func(QUEUE q, void (*free_func)(void *)) {
-  ASSERT(q);
+void queue_set_free_func(QUEUE q, SIGTYPE_FREE free_func) {
+  ASSERT_QUEUE(q);
   q->free_func = free_func;
 }
 
@@ -115,4 +115,12 @@ void *queue_front(QUEUE q) {
   ASSERT(q);
   ALWAYS_ASSERT(q->size > 0);
   return q->data[q->start];
+}
+
+/* Returns the front and pops it in the queue.  Note that this should only be used when no `free_func` is set. */
+void *queue_pop_front(QUEUE q) {
+  ASSERT_QUEUE(q);
+  void *ret = queue_front(q);
+  queue_pop(q);
+  return ret;
 }

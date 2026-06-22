@@ -1618,6 +1618,11 @@
 typedef void (*FreeFuncPtr)(void *);
 typedef int (*CmpFuncPtr)(const void *, const void *);
 
+typedef void (*SIGTYPE_FREE)(void *);
+typedef void *(*SIGTYPE_PTH_TASK)(void *);
+
+#define SIGTYPE_PASS(type, x)  ((SIGTYPE_##type)(x))
+
 
 /* ---------------------------------------------------------- Struct's ---------------------------------------------------------- */
 
@@ -1634,14 +1639,12 @@ typedef struct {
   Ulong namelen;      /* The length of the entry name. */
 } directory_entry_t;
 
-#if !__WIN__
 typedef struct {
   directory_entry_t **entries;
-  Ulong   cap;
-  Ulong   len;
-  mutex_t mutex;
+  Ulong               cap;
+  Ulong               len;
+  mutex_t             mutex;
 } directory_t;
-#endif
 
 /* ----------------------------- cvec.c ----------------------------- */
 

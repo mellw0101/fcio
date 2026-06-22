@@ -7,8 +7,10 @@ OBJDIR := $(BUILD_DIR)/obj
 # Compiler and flags.
 CC := clang
 CFLAGS := -Wall -Wextra -O2 -flto=auto -fno-fat-lto-objects -std=gnu99\
- -Wextra -pedantic -Wno-unused-parameter -Wstrict-prototypes -Wshadow -Wconversion -Wvla -Wdouble-promotion -Wmissing-noreturn -Wmissing-format-attribute\
- -Wmissing-prototypes -fsigned-char -fstack-protector-strong -Wno-conversion -fno-common -Wno-unused-result -Wimplicit-fallthrough -fdiagnostics-color=always\
+ -Wpedantic -Wno-unused-parameter -Wstrict-prototypes -Wshadow\
+ -Wconversion -Wvla -Wdouble-promotion -Wmissing-noreturn -Wmissing-format-attribute\
+ -Wmissing-prototypes -fsigned-char -fstack-protector-strong -Wno-conversion -fno-common\
+ -Wno-unused-result -Wimplicit-fallthrough -fdiagnostics-color=always\
  -march=native -Rpass=loop-vectorize -mavx -Wno-vla
 
 # Get all c source files.

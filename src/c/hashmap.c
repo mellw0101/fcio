@@ -141,17 +141,9 @@
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */
 
 
-/* ----------------------------- HMAP_PH ----------------------------- */
-
 typedef struct HMAP_PH_NODE_T *HMAP_PH_NODE;
-
-/* ----------------------------- HMAP ----------------------------- */
-
-typedef struct HMAP_NODE_T *  HMAP_NODE;
-
-/* ----------------------------- HNMAP ----------------------------- */
-
-typedef struct HNMAP_NODE_T *  HNMAP_NODE;
+typedef struct HMAP_NODE_T    *HMAP_NODE;
+typedef struct HNMAP_NODE_T   *HNMAP_NODE;
 
 
 /* ---------------------------------------------------------- Struct's ---------------------------------------------------------- */
@@ -280,8 +272,8 @@ static __always_inline void hmap_free_node(HMAP m, HMAP_NODE node) {
   ASSERT_HMAP(m);
   ASSERT_HMAP_NODE(node);
   CALL_IF_VALID(m->free_func, node->value);
-  FREE(node->key);
-  FREE(node);
+  free(node->key);
+  free(node);
 }
 
 static void hmap_resize(HMAP m) {
@@ -299,7 +291,7 @@ static void hmap_resize(HMAP m) {
     );
     new_cvec_free(bucket);
   );
-  FREE(m->buckets);
+  free(m->buckets);
   m->buckets = new_buckets;
   m->cap     = new_cap;
 }
@@ -808,14 +800,14 @@ void hashmap_free(HashMap *const map) {
 }
 
 /* Create a new allocated `HashMap` structure that uses `freefunc` to free the values of nodes when the map is freed. */
-HashMap *hashmap_create_wfreefunc(FreeFuncPtr freefunc) {
+HashMap *hashmap_create_wfreefunc(SIGTYPE_FREE freefunc) {
   HashMap *map = hashmap_create();
   hashmap_set_free_value_callback(map, freefunc);
   return map;
 }
 
 /* Set the function that should be used to free HashNode's value.  Signature should ba `void foo(void *)`. */
-void hashmap_set_free_value_callback(HashMap *const map, FreeFuncPtr callback) {
+void hashmap_set_free_value_callback(HashMap *const map, SIGTYPE_FREE callback) {
   HASHMAP_MUTEX_ACTION(
     map->free_value = callback;
   );
@@ -828,10 +820,11 @@ static void hashmap_resize(HashMap *const map) {
   /* And that the map is in a valid state. */
   ASSERT(map->cap);
   ASSERT(map->buckets);
-  int newcap;
+  int   newcap;
   Ulong index;
-  HashNode **newbuckets, *next;
-  newcap = (map->cap * 2);
+  HashNode **newbuckets;
+  HashNode  *next;
+  newcap     = (map->cap * 2);
   newbuckets = xcalloc(newcap, sizeof(HashNode *));
   /* Recalculate all entries. */
   HASHMAP_ITER(map, i, node,
