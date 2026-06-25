@@ -341,18 +341,22 @@ static void hmap_ph_resize(HMAP_PH m) {
   HMAP_UINT new_cap = (m->cap * 2);
   HMAP_UINT index;
   HNMAP *new_buckets = xcalloc(new_cap, _PTRSIZE);
-  HMAP_PH_ITER(m, i, ph_bucket,
-    HMAP_ITER(ph_bucket, ni, bucket,
+  HMAP_PH_ITER(m, i, nmap,
+    HMAP_ITER(nmap, ni, bucket,
       HNMAP_BUCKET_ITER(bucket, b, node,
         ph_node = node->value;
+        hnmap_free_node(nmap, node);
         index = (ph_node->hash & (new_cap - 1));
         if (!new_buckets[index]) {
           new_buckets[index] = hnmap_create();
         }
         hnmap_insert(new_buckets[index], ph_node->collision_hash, ph_node);
       );
+      new_cvec_free(bucket);
     );
-    hnmap_free(ph_bucket);
+    free(nmap->buckets);
+    free(nmap);
+    // hnmap_free(ph_bucket);
   );
   free(m->buckets);
   m->buckets = new_buckets;
