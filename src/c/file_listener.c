@@ -352,8 +352,8 @@ void file_listener_rm_file(FILE_LISTENER fl, const char *const restrict file) {
   }
 }
 
-void file_listener_update_file_callback(FILE_LISTENER fl,
-  const char *const restrict file, FILE_LISTENER_CB cb, void *data, Uint mask)
+void file_listener_update_file_callback(
+  FILE_LISTENER fl, const char *const restrict file, FILE_LISTENER_CB cb, void *data, Uint mask)
 {
   ASSERT(fl);
   ASSERT(file);

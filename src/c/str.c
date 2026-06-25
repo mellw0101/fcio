@@ -449,7 +449,7 @@ char *xnstrninj(char *restrict dst, Ulong dstlen, const char *const restrict src
   /* Reallocate dst to fit src and a NULL-TERMINATOR. */
   dst = xrealloc(dst, (dstlen + srclen + 1));
   /* First move the data at idx by srclen. */
-  MEMMOVE((dst + idx + srclen), (dst + idx), (dstlen - idx));
+  memmove((dst + idx + srclen), (dst + idx), (dstlen - idx));
   /* Then copy src into dst at idx. */
   memcpy((dst + idx), src, srclen);
   /* Explicitly set the `null-terminator`, this way it does not matter if `dstlen` is the full length of `dst`. */

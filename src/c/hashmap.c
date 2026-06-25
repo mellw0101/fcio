@@ -175,7 +175,7 @@ struct HMAP_NODE_T {
 };
 
 struct HMAP_T {
-  CVEC *buckets;
+  CVEC     *buckets;
   HMAP_UINT cap;
   HMAP_UINT size;
   void (*free_func)(void *);
@@ -283,7 +283,7 @@ static void hmap_resize(HMAP m) {
   CVEC *new_buckets = xcalloc(new_cap, _PTRSIZE);
   HMAP_ITER(m, i, bucket,
     HMAP_BUCKET_ITER(bucket, b, node,
-      index = (node->hash % (new_cap - 1));
+      index = (node->hash & (new_cap - 1));
       if (!new_buckets[index]) {
         new_buckets[index] = new_cvec_create();
       }
@@ -341,8 +341,8 @@ static void hmap_ph_resize(HMAP_PH m) {
   HMAP_UINT new_cap = (m->cap * 2);
   HMAP_UINT index;
   HNMAP *new_buckets = xcalloc(new_cap, _PTRSIZE);
-  HMAP_PH_ITER(m, i, nm,
-    HMAP_ITER(nm, ni, bucket,
+  HMAP_PH_ITER(m, i, ph_bucket,
+    HMAP_ITER(ph_bucket, ni, bucket,
       HNMAP_BUCKET_ITER(bucket, b, node,
         ph_node = node->value;
         index = (ph_node->hash & (new_cap - 1));
@@ -350,11 +350,9 @@ static void hmap_ph_resize(HMAP_PH m) {
           new_buckets[index] = hnmap_create();
         }
         hnmap_insert(new_buckets[index], ph_node->collision_hash, ph_node);
-        hnmap_free_node(nm, node);
       );
-      new_cvec_free(bucket);
     );
-    hnmap_free(nm);
+    hnmap_free(ph_bucket);
   );
   free(m->buckets);
   m->buckets = new_buckets;
@@ -535,7 +533,7 @@ void hmap_insert(HMAP m, const char *const restrict key, void *value) {
       }
     );
   }
-  new_node = xmalloc(sizeof *new_node);
+  new_node        = xmalloc(sizeof(*new_node));
   new_node->hash  = hash;
   new_node->key   = copy_of(key);
   new_node->value = value;
@@ -629,8 +627,8 @@ void hnmap_free(HNMAP nm) {
     );
     new_cvec_free(bucket);
   );
-  FREE(nm->buckets);
-  FREE(nm);
+  free(nm->buckets);
+  free(nm);
 }
 
 void hnmap_set_free_func(HNMAP nm, void (*free_func)(void *)) {

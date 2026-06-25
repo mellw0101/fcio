@@ -49,7 +49,7 @@ static void queue_free_data(QUEUE q) {
 
 
 QUEUE queue_create(void) {
-  QUEUE q = xmalloc(sizeof *q);
+  QUEUE q = xmalloc(sizeof(*q));
   q->start     = 0;
   q->size      = 0;
   q->cap       = QUEUE_DEFAULT_CAP;

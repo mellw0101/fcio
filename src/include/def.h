@@ -1093,6 +1093,8 @@
 /* Perform `action` while under the protection of a file-descriptor lock. */
 #define fdlock_action(fd, type, ...)  DO_WHILE(fdlock((fd), (type)); DO_WHILE(__VA_ARGS__); fdunlock((fd));)
 
+#define FDLOCK_ACTION(fd, type, ...)  DO_WHILE(fdlock((fd), (type)); DO_WHILE(__VA_ARGS__); fdunlock((fd));)
+
 #define fd_full_wr(fd, tot, wrlen, data, datalen, term_on_error)                                       \
   DO_WHILE(                                                                                            \
     (tot) = 0;                                                                                         \
@@ -1102,6 +1104,15 @@
     if ((term_on_error)) {                                                                             \
       ALWAYS_ASSERT((tot) == (datalen));                                                               \
     }                                                                                                  \
+  )
+
+#define FDLOCK_FULL_WR(fd, data, len, term_on_error)  \
+  DO_WHILE( \
+    long tot; \
+    long nbytes;  \
+    fdlock_action(fd, F_WRLCK, \
+      fd_full_wr(fd, tot, nbytes, data, len, term_on_error);  \
+    );  \
   )
 
 #define mutex_fdlock_action(mutex, fd, type, ...)                  \
@@ -1620,6 +1631,7 @@ typedef int (*CmpFuncPtr)(const void *, const void *);
 
 typedef void (*SIGTYPE_FREE)(void *);
 typedef void *(*SIGTYPE_PTH_TASK)(void *);
+typedef int (*SIGTYPE_QSORT_CMP)(const void *, const void *);
 
 #define SIGTYPE_PASS(type, x)  ((SIGTYPE_##type)(x))
 
