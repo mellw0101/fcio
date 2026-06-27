@@ -234,6 +234,11 @@ bool    hmap_ph_contains(HMAP_PH m, const char *const restrict key);
 void    hmap_ph_remove(HMAP_PH m, const char *const restrict key);
 void    hmap_ph_clear(HMAP_PH m);
 
+void hmap_ph_append_waction(
+  HMAP_PH dst, HMAP_PH src, void (*existing_action)(void *src_value, void *dst_value));
+
+HMAP_UINT hmap_ph_size(HMAP_PH m);
+
 /* ----------------------------- HMAP ----------------------------- */
 
 /*
@@ -248,6 +253,11 @@ bool  hmap_contains(HMAP m, const char *const restrict key);
 void  hmap_remove(HMAP m, const char *const restrict key);
 void  hmap_clear(HMAP m);
 void  hmap_forall_wdata(HMAP m, void (*action)(const char *key, void *value, void *data), void *data);
+
+void hmap_append_waction(
+  HMAP dst, HMAP src, void (*existing_action)(void *src_value, void *dst_value));
+
+HMAP_UINT hmap_size(HMAP m);
 
 /* ----------------------------- HNMAP ----------------------------- */
 
@@ -303,14 +313,23 @@ void hashmap_thread_test(void);
 /* ---------------------------------------------------------- fd.c ---------------------------------------------------------- */
 
 
-#if !__WIN__
+/* Lock a file descriptor. */
 void fdlock(int fd, short type);
+
+/* Unlock a file desctiptor. */
 void fdunlock(int fd);
+
+/* Disable canonical mode and echo for `fd`. */
 void disable_canonecho(int fd, struct termios *const oldt);
+
+/* Restore `fd` to `t`. */
 void restore_termios(int fd, struct termios *const t);
+
+/* Set `flags` of `fd` and assign the original state to `*oldf`. */
 void setfdflags(int fd, int *oldf, int flags);
+
+/* Restore `fd` to state `*f`. */
 void restfdflags(int fd, int *f);
-#endif
 
 
 /* ---------------------------------------------------------- term.c ---------------------------------------------------------- */
@@ -433,6 +452,13 @@ void hiactime_msleep(double milliseconds);
 
 /* ---------------------------------------------------------- log.c ---------------------------------------------------------- */
 
+
+void fcio_log_enqueue_msg(int lvl, int line, const char *fn, size_t fn_len, const char *fmt, ...) _PRINTFLIKE(5, 6);
+void fcio_log_add_callback(FCIO_LOG_CALLBACK cb);
+const char *fcio_log_lvl_str(int lvl);
+int fcio_log_lvl_str_max_width(void);
+int fcio_log_line_max_width(void);
+void fcio_log_init(void);
 
 /* ----------------------------- Fcio log set file ----------------------------- */
 void fcio_log_set_file(const char *const restrict path) _NONNULL(1);

@@ -7,8 +7,6 @@
 #include "../include/proto.h"
 
 
-#if !__WIN__
-
 /* Lock a file descriptor. */
 void fdlock(int fd, short type) {
   struct flock lock = {0};
@@ -67,5 +65,3 @@ void restfdflags(int fd, int *f) {
   ASSERT(f);
   ALWAYS_ASSERT(fcntl(fd, F_SETFL, *f) != -1);
 }
-
-#endif

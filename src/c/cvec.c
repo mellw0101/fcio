@@ -116,8 +116,6 @@ void new_cvec_clear(CVEC cv) {
   cv->size = 0;
 }
 
-#if !__WIN__
-
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
 
 
@@ -310,5 +308,3 @@ void cvec_qsort(CVec *const v, CmpFuncPtr cmp) {
     qsort(v->data, v->len, _PTRSIZE, cmp);
   );
 }
-
-#endif

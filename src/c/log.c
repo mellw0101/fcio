@@ -47,6 +47,20 @@ typedef enum {
 } FcioLogType;
 
 
+/* ---------------------------------------------------------- Struct's ---------------------------------------------------------- */
+
+
+// typedef struct FCIO_LOG_MSG_T *FCIO_LOG_MSG;
+// typedef void (*FCIO_LOG_CALLBACK)(FCIO_LOG_MSG msg);
+// struct FCIO_LOG_MSG_T {
+//   int   lvl;
+//   int   line;
+//   char *timestamp;
+//   char *func;
+//   char *msg;
+// };
+
+
 /* ---------------------------------------------------------- Variable's ---------------------------------------------------------- */
 
 
@@ -78,7 +92,147 @@ static mutex_t fcio_log_mutex = mutex_init_static;
 static int fcio_log_fd = -1;
 
 
+static bool fcio_log_did_init = FALSE;
+
+static thread_t thread;
+
+static mutex_t  msg_mutex  = mutex_init_static;
+static cond_t   msg_cond   = cond_init_static;
+static QUEUE    msg_queue  = NULL;
+
+static mutex_t  cb_mutex = mutex_init_static;
+static CVEC     cb_vec   = NULL;
+
+static int fn_max_width = 40;
+
+static const char *fcio_log_lvl_str_array[] = {
+  "INFO",
+  "WARN",
+  "ERR"
+};
+
+
 /* ---------------------------------------------------------- Static function's ---------------------------------------------------------- */
+
+
+static FCIO_LOG_MSG fcio_log_msg_create(int lvl, int line, char *timestamp, char *func, char *msg) {
+  FCIO_LOG_MSG ret = xmalloc(sizeof(*ret));
+  ret->lvl       = lvl;
+  ret->line      = line;
+  ret->timestamp = timestamp;
+  ret->func      = func;
+  ret->msg       = msg;
+  return ret;
+}
+
+static void fcio_log_msg_free(FCIO_LOG_MSG msg) {
+  ASSERT(msg);
+  free(msg->timestamp);
+  free(msg->func);
+  free(msg);
+}
+
+static void fcio_log_run_callbacks(FCIO_LOG_MSG msg) {
+  ASSERT(msg);
+  FCIO_LOG_CALLBACK cb;
+  size_t i = 0;
+  while (TRUE) {
+    mutex_lock(&cb_mutex);
+    if (i >= new_cvec_size(cb_vec)) {
+      mutex_unlock(&cb_mutex);
+      break;
+    }
+    cb = (FCIO_LOG_CALLBACK)new_cvec_get(cb_vec, i++);
+    mutex_unlock(&cb_mutex);
+    cb(msg);
+  }
+}
+
+_NO_RETURN
+static void *fcio_log_thread_work(void *_UNUSED arg) {
+  FCIO_LOG_MSG msg;
+  while (TRUE) {
+    mutex_lock(&msg_mutex);
+    while (!queue_size(msg_queue)) {
+      cond_wait(&msg_cond, &msg_mutex);
+    }
+    msg = queue_pop_front(msg_queue);
+    mutex_unlock(&msg_mutex);
+    fcio_log_run_callbacks(msg);
+    fcio_log_msg_free(msg);
+  }
+}
+
+static char *fcio_log_fn_str(const char *fn, size_t len, size_t max) {
+  ASSERT(fn);
+  if (len <= max) {
+    return fmtstr("%*s", (int)max, fn);
+  }
+  else if (max > 3) {
+    return fmtstr("...%s", (fn + ((len - max) + SLTLEN("..."))));
+  }
+  else {
+    return fmtstr("%.*s", (int)max, "...");
+  }
+}
+
+void fcio_log_enqueue_msg(int lvl, int line, const char *fn, size_t fn_len, const char *fmt, ...) {
+  ASSERT(fn);
+  ASSERT(fmt);
+  FCIO_LOG_MSG log_msg;
+  char *msg;
+  va_list ap;
+  /* We should probebly die here, as we have no other real way to inform the user they must init. */
+  if (!fcio_log_did_init) {
+    return;
+  }
+  va_start(ap, fmt);
+  msg = valstr(fmt, ap, NULL);
+  va_end(ap);
+  log_msg = fcio_log_msg_create(lvl, line, COPY_OF(""), fcio_log_fn_str(fn, fn_len, fn_max_width), msg);
+  MUTEX_ACTION(&msg_mutex,
+    queue_push(msg_queue, log_msg);
+  );
+  cond_signal(&msg_cond);
+}
+
+void fcio_log_add_callback(FCIO_LOG_CALLBACK cb) {
+  ASSERT(cb);
+  /* We should probebly die here, as we have no other real way to inform the user they must init. */
+  if (!fcio_log_did_init) {
+    return;
+  }
+  MUTEX_ACTION(&cb_mutex,
+    new_cvec_push_back(cb_vec, (void *)cb);
+  );
+}
+
+const char *fcio_log_lvl_str(int lvl) {
+  if (lvl >= 0 && LT(lvl, ARRAY_SIZE(fcio_log_lvl_str_array))) {
+    return fcio_log_lvl_str_array[lvl];
+  }
+  else {
+    return "";
+  }
+}
+
+int fcio_log_lvl_str_max_width(void) {
+  return 5;
+}
+
+int fcio_log_line_max_width(void) {
+  return 5;
+}
+
+void fcio_log_init(void) {
+  ASSERT(!msg_queue);
+  ASSERT(!cb_vec);
+  msg_queue = queue_create();
+  cb_vec    = new_cvec_create();
+  thread_create(&thread, NULL, fcio_log_thread_work, NULL);
+  thread_detach(thread);
+  fcio_log_did_init = TRUE;
+}
 
 
 /* ----------------------------- Fcio log va ----------------------------- */

@@ -125,7 +125,7 @@ bool parse_num(const char *const restrict string, long *const result) {
 
 /* Free the string at `dest` and return the string at `src`. */
 char *free_and_assign(char *dest, char *src) {
-  FREE(dest);
+  free(dest);
   return src;
 }
 #if __WIN__
@@ -184,8 +184,7 @@ char **split_string(const char *const restrict string, const char delim) {
 /* ----------------------------- chararray ----------------------------- */
 
 /* Free the memory of the given array, which should contain len elements. */
-void
-chararray_free(char **const restrict array, Ulong len) {
+void chararray_free(char **const restrict array, Ulong len) {
   /* Make this function a 'no-op' function. */
   if (!array) {
     return;

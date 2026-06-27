@@ -983,10 +983,11 @@
 #define mutex_init_static         PTHREAD_MUTEX_INITIALIZER
 
 /* Condition helper shorthand's. */
-#define cond_init     pthread_cond_init
-#define cond_signal   pthread_cond_signal
-#define cond_destroy  pthread_cond_destroy
-#define cond_wait     pthread_cond_wait
+#define cond_init         pthread_cond_init
+#define cond_signal       pthread_cond_signal
+#define cond_destroy      pthread_cond_destroy
+#define cond_wait         pthread_cond_wait
+#define cond_init_static  PTHREAD_COND_INITIALIZER
 
 /* Read-Write lock helper shorthand's. */
 #define RWLOCK_INIT     pthread_rwlock_init
@@ -1618,6 +1619,22 @@
   fcio_log_error_fatal(__LINE__, __func__, __VA_ARGS__)
 
 
+#define FCIO_LOG_LVL_INFO  0
+#define FCIO_LOG_LVL_WARN  1
+#define FCIO_LOG_LVL_ERR   2
+
+#define FCIO_LOG_FMT          "[%s]:%*s| %s @ %*d | %s\n"
+#define FCIO_LOG_FMT_ARGS(x)  \
+  (x)->timestamp, \
+  fcio_log_lvl_str_max_width(), fcio_log_lvl_str((x)->lvl), \
+  (x)->func, \
+  fcio_log_line_max_width(), (x)->line, \
+  (x)->msg
+
+#define FCIO_LOG(lvl, ...)  \
+  fcio_log_enqueue_msg(FCIO_LOG_LVL_##lvl, __LINE__, S__LEN(__func__), __VA_ARGS__)
+
+
 /* ----------------------------- hashmap.c ----------------------------- */
 
 #define HMAP_UINT  PP_CAT(uint, __WORDSIZE)  /* PP_CAT(PP_CAT(uint, __WORDSIZE), _t) */
@@ -1670,7 +1687,7 @@ typedef struct HMAP_T    *HMAP;
 typedef struct HNMAP_T   *HNMAP;
 
 typedef struct HashNode  HashNode;
-typedef struct HashMap   HashMap;
+typedef struct HashMap   HashMap, *HASHMAP;
 
 typedef struct HashNodeNum  HashNodeNum;
 typedef struct HashMapNum   HashMapNum;
@@ -1702,3 +1719,15 @@ typedef struct SMUTEX_T *SMUTEX;
 
 typedef void (*FILE_LISTENER_CB)(void *data, Uint mask);
 typedef struct FILE_LISTENER_T  *FILE_LISTENER;
+
+/* ----------------------------- log.c ----------------------------- */
+
+typedef struct FCIO_LOG_MSG_T *FCIO_LOG_MSG;
+typedef void (*FCIO_LOG_CALLBACK)(FCIO_LOG_MSG msg);
+struct FCIO_LOG_MSG_T {
+  int   lvl;
+  int   line;
+  char *timestamp;
+  char *func;
+  char *msg;
+};

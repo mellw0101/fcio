@@ -195,8 +195,6 @@ struct HNMAP_T {
   void (*free_func)(void *);
 };
 
-#if !__WIN__
-
 /* ----------------------------- HashMap ----------------------------- */
 
 struct HashNode {
@@ -220,7 +218,7 @@ struct HashMap {
   FreeFuncPtr free_value;
 
   /* This is locked when we resize the hashmap, so that we ensure singular thread resizeing. */
-  // mutex_t globmutex;
+  // mutex_t mutex;
   SMUTEX mutex;
 };
 
@@ -242,8 +240,6 @@ struct HashMapNum {
   mutex_t mutex;
 };
 
-#endif
-
 
 /* ---------------------------------------------------------- Static function's ---------------------------------------------------------- */
 
@@ -256,6 +252,21 @@ static __always_inline HMAP_UINT djb2_hash(const char *restrict str) {
   }
   return hash;
 }
+
+/* TODO:
+ *
+ * We should get way way fewer actual collisions if we always use the fnv1a_hash as the seed for this hash,
+ * in HMAP_PH, this is because actual collisions of fnv1a_hash would NEVER then get the same bucket,
+ *
+ */
+// _UNUSED
+// static __always_inline HMAP_UINT djb2_hash_seed(const char *restrict str, HMAP_UINT seed) {
+//   uint8 c;
+//   while ((c = *str++)) {
+//     seed = (((seed << 5) + seed) + c);
+//   }
+//   return seed;
+// }
 
 static __always_inline HMAP_UINT fnv1a_hash(const char *restrict str) {
   HMAP_UINT hash = FNV1A_BASE;
@@ -294,6 +305,18 @@ static void hmap_resize(HMAP m) {
   free(m->buckets);
   m->buckets = new_buckets;
   m->cap     = new_cap;
+}
+
+static HMAP_NODE hmap_get_node(HMAP m, const char *const restrict key) {
+  HMAP_UINT index = (djb2_hash(key) & (m->cap - 1));
+  if (m->buckets[index]) {
+    HMAP_BUCKET_ITER(m->buckets[index], b, node,
+      if (strcmp(node->key, key) == 0) {
+        return node->value;
+      }
+    );
+  }
+  return NULL;
 }
 
 /* ----------------------------- HNMAP ----------------------------- */
@@ -338,14 +361,15 @@ static __always_inline void hmap_ph_free_node(HMAP_PH m, HMAP_PH_NODE node) {
 static void hmap_ph_resize(HMAP_PH m) {
   ASSERT_HMAP(m);
   HMAP_PH_NODE ph_node;
-  HMAP_UINT new_cap = (m->cap * 2);
-  HMAP_UINT index;
-  HNMAP *new_buckets = xcalloc(new_cap, _PTRSIZE);
-  HMAP_PH_ITER(m, i, nmap,
-    HMAP_ITER(nmap, ni, bucket,
+  HMAP_UINT    index;
+  HMAP_UINT    new_cap = (m->cap * 2);
+  HNMAP       *new_buckets = xcalloc(new_cap, _PTRSIZE);
+  HMAP_PH_ITER(m, i, nm,
+    HMAP_ITER(nm, ni, bucket,
       HNMAP_BUCKET_ITER(bucket, b, node,
+        /* Extract our actual node, which we store in HNMAP_NODE->value. */
         ph_node = node->value;
-        hnmap_free_node(nmap, node);
+        free(node);
         index = (ph_node->hash & (new_cap - 1));
         if (!new_buckets[index]) {
           new_buckets[index] = hnmap_create();
@@ -354,15 +378,21 @@ static void hmap_ph_resize(HMAP_PH m) {
       );
       new_cvec_free(bucket);
     );
-    free(nmap->buckets);
-    free(nmap);
-    // hnmap_free(ph_bucket);
+    free(nm->buckets);
+    free(nm);
   );
   free(m->buckets);
   m->buckets = new_buckets;
   m->cap     = new_cap;
 }
 
+static HMAP_PH_NODE hmap_ph_get_node(HMAP_PH m, HMAP_UINT hash, HMAP_UINT collision_hash) {
+  HMAP_UINT index = (hash & (m->cap - 1));
+  if (m->buckets[index]) {
+    return hnmap_get(m->buckets[index], collision_hash);
+  }
+  return NULL;
+}
 
 /* ---------------------------------------------------------- Global function's ---------------------------------------------------------- */
 
@@ -374,6 +404,7 @@ HMAP_PH hmap_ph_create(void) {
   m->cap     = INITIAL_CAP;
   m->size    = 0;
   m->buckets = xcalloc(m->cap, _PTRSIZE);
+  m->free_fn = NULL;
   return m;
 }
 
@@ -387,7 +418,7 @@ void hmap_ph_free(HMAP_PH m) {
     HMAP_ITER(nm, ni, bucket,
       HNMAP_BUCKET_ITER(bucket, b, node,
         hmap_ph_free_node(m, node->value);
-        hnmap_free_node(nm, node);
+        free(node);
       );
       new_cvec_free(bucket);
     );
@@ -407,7 +438,6 @@ void hmap_ph_insert(HMAP_PH m, const char *const restrict key, void *value) {
   ASSERT_HMAP(m);
   ASSERT(key);
   HMAP_PH_NODE node;
-  HMAP_PH_NODE new_node;
   HMAP_UINT index;
   HMAP_UINT hash           = djb2_hash(key);
   HMAP_UINT collision_hash = fnv1a_hash(key);
@@ -425,12 +455,12 @@ void hmap_ph_insert(HMAP_PH m, const char *const restrict key, void *value) {
     node->value = value;
     return;
   }
-  new_node = xmalloc(sizeof(*new_node));
-  new_node->hash           = hash;
-  new_node->collision_hash = collision_hash;
-  new_node->key            = copy_of(key);
-  new_node->value          = value;
-  hnmap_insert(m->buckets[index], collision_hash, new_node);
+  node = xmalloc(sizeof(*node));
+  node->hash           = hash;
+  node->collision_hash = collision_hash;
+  node->key            = copy_of(key);
+  node->value          = value;
+  hnmap_insert(m->buckets[index], collision_hash, node);
   ++m->size;
 }
 
@@ -486,13 +516,43 @@ void hmap_ph_clear(HMAP_PH m) {
   m->size = 0;
 }
 
+void hmap_ph_append_waction(
+  HMAP_PH dst, HMAP_PH src, void (*existing_action)(void *src_value, void *dst_value))
+{
+  ASSERT(dst);
+  ASSERT(src);
+  HMAP_PH_NODE ph_node;
+  HMAP_PH_NODE dst_node;
+  /* Iterate over all src entries. */
+  HMAP_PH_ITER(src, i, nm,
+    HMAP_ITER(nm, ni, bucket,
+      HNMAP_BUCKET_ITER(bucket, b, node,
+        ph_node = node->value;
+        if (!(dst_node = hmap_ph_get_node(dst, ph_node->hash, ph_node->collision_hash))) {
+          hmap_ph_insert(dst, ph_node->key, ph_node->value);
+        }
+        else {
+          existing_action(dst_node->value, ph_node->value);
+        }
+      );
+    );
+  );
+  src->free_fn = NULL;
+}
+
+HMAP_UINT hmap_ph_size(HMAP_PH m) {
+  ASSERT_HMAP(m);
+  return m->size;
+}
+
 /* ----------------------------- HMAP ----------------------------- */
 
 HMAP hmap_create(void) {
   HMAP m = xmalloc(sizeof(*m));
-  m->cap = INITIAL_CAP;
-  m->size = 0;
-  m->buckets = xcalloc(m->cap, _PTRSIZE);
+  m->cap       = INITIAL_CAP;
+  m->size      = 0;
+  m->buckets   = xcalloc(m->cap, _PTRSIZE);
+  m->free_func = NULL;
   return m;
 }
 
@@ -608,6 +668,31 @@ void hmap_forall_wdata(HMAP m, void (*action)(const char *key, void *value, void
       action(node->key, node->value, data);
     );
   );
+}
+
+void hmap_append_waction(
+  HMAP dst, HMAP src, void (*existing_action)(void *src_value, void *dst_value))
+{
+  ASSERT(dst);
+  ASSERT(src);
+  HMAP_NODE dst_node;
+  /* Iterate over all src entries. */
+  HMAP_ITER(src, ni, bucket,
+    HMAP_BUCKET_ITER(bucket, b, node,
+      if (!(dst_node = hmap_get_node(dst, node->key))) {
+        hmap_insert(dst, node->key, node->value);
+      }
+      else {
+        existing_action(dst_node->value, node->value);
+      }
+    );
+  );
+  src->free_func = NULL;
+}
+
+HMAP_UINT hmap_size(HMAP m) {
+  ASSERT_HMAP(m);
+  return m->size;
 }
 
 /* ----------------------------- HNMAP ----------------------------- */
@@ -727,7 +812,6 @@ void hnmap_forall_wdata(HNMAP nm, void (*action)(HMAP_UINT key, void *value, voi
   );
 }
 
-#if !__WIN__
 
 /* ---------------------------------------------------------- Function's ---------------------------------------------------------- */
 
@@ -1195,9 +1279,9 @@ static void *hashmapnum_get_unlocked(HashMapNum *const map, Ulong key) {
 /* Create a `numeric hashmap`. */
 HashMapNum *hashmapnum_create(void) {
   HashMapNum *map = xmalloc(sizeof(*map));
-  map->cap = INITIAL_CAP;
-  map->size = 0;
-  map->buckets = xcalloc(map->cap, _PTRSIZE);
+  map->cap        = INITIAL_CAP;
+  map->size       = 0;
+  map->buckets    = xcalloc(map->cap, _PTRSIZE);
   map->free_value = NULL;
   mutex_init(&map->mutex, NULL);
   return map;
@@ -1420,7 +1504,7 @@ void hashmapnum_append_waction(HashMapNum *const dst, HashMapNum *const src, voi
 
 
 /* The concurency test will be ran by doing 1000 requsts from 100 threads concurently. */
-#define OPS_PER_THREAD  10
+#define OPS_PER_THREAD  100
 #define NUM_THREADS     256
 
 _UNUSED static const char *strarray[] = {
@@ -1441,17 +1525,24 @@ _UNUSED static const char *strarray[] = {
 
 /* The task for a single thread when running hashmap thread test. */
 static void* hashmap_thread_test_task(void* arg) {
-  HashMap* map = arg;
+  HashMap *map = arg;
   ASSERT(map);
   ASSERT(map->cap);
-  const char *key, *value;
-  int op, i, insert_count=0, get_count=0, remove_count=0;
+  size_t thread_unique = (pthread_self() % NUM_THREADS);
+  // printf("thread_unique: %zu\n", thread_unique);
+  const char *key;
+  const char *value;
+  int op;
+  int i;
+  int _UNUSED insert_count  = 0;
+  int _UNUSED get_count     = 0;
+  int _UNUSED remove_count  = 0;
   timer_action(elapsed_ms,
     for(i=0; i<OPS_PER_THREAD; ++i) {
       /* Generate random operation: 0=put, 1=get, 2=remove. */
-      op    = (rand() % 3);
-      key   = strarray[rand() % ARRAY_SIZE(strarray)];
-      value = strarray[rand() % ARRAY_SIZE(strarray)];
+      op    = (thread_unique++ % 3);
+      key   = strarray[thread_unique++ % ARRAY_SIZE(strarray)];
+      value = strarray[thread_unique-- % ARRAY_SIZE(strarray)];
       switch(op) {
         case 0: {
           ++insert_count;
@@ -1471,10 +1562,10 @@ static void* hashmap_thread_test_task(void* arg) {
       }
     }
   );
-  printf(
-    "Thread %lu finished hashmap concurrent test.  Total time %.5f ms: Result: (I:%d G:%d R:%d)\n",
-    pthread_self(), (double)elapsed_ms, insert_count, get_count, remove_count
-  );
+  // printf(
+  //   "Thread %lu finished hashmap concurrent test.  Total time %.5f ms: Result: (I:%d G:%d R:%d)\n",
+  //   pthread_self(), (double)elapsed_ms, insert_count, get_count, remove_count
+  // );
   return NULL;
 }
 
@@ -1500,5 +1591,3 @@ void hashmap_thread_test(void) {
 
 #undef OPS_PER_THREAD
 #undef NUM_THREADS
-
-#endif
