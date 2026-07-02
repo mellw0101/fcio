@@ -28,6 +28,7 @@
 /* ----------------------------- stdlib ----------------------------- */
 
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1623,6 +1624,7 @@
 #define FCIO_LOG_LVL_WARN  1
 #define FCIO_LOG_LVL_ERR   2
 
+#define FCIO_LOG_FMT_COLOR    "[\033[34m%s\033[0m]:%*s| \033[33m%s\033[0m @ \033[34m%*d\033[0m | %s\n"
 #define FCIO_LOG_FMT          "[%s]:%*s| %s @ %*d | %s\n"
 #define FCIO_LOG_FMT_ARGS(x)  \
   (x)->timestamp, \
@@ -1631,13 +1633,25 @@
   fcio_log_line_max_width(), (x)->line, \
   (x)->msg
 
+#define FCIO_LOG_MSG_FMT_ARGS(msg)  \
+  FCIO_LOG_FMT, FCIO_LOG_FMT_ARGS(msg)
+#define FCIO_LOG_MSG_FMT_ARGS_COLOR(msg)  \
+  FCIO_LOG_FMT_COLOR, FCIO_LOG_FMT_ARGS(msg)
+
 #define FCIO_LOG(lvl, ...)  \
   fcio_log_enqueue_msg(FCIO_LOG_LVL_##lvl, __LINE__, S__LEN(__func__), __VA_ARGS__)
+
+#define FCIO_LOG_INFO(...)  FCIO_LOG(INFO, __VA_ARGS__)
+#define FCIO_LOG_WARN(...)  FCIO_LOG(WARN, __VA_ARGS__)
+#define FCIO_LOG_ERR(...)   FCIO_LOG(ERR,  __VA_ARGS__)
 
 
 /* ----------------------------- hashmap.c ----------------------------- */
 
 #define HMAP_UINT  PP_CAT(uint, __WORDSIZE)  /* PP_CAT(PP_CAT(uint, __WORDSIZE), _t) */
+
+
+#define ESC_CODE_MOUSE_MOVEMENT_EVENTS(enable)  (enable ? "\033[?1003h\n" : "\033[?1003l\n")
 
 
 /* ---------------------------------------------------------- Typedef's ---------------------------------------------------------- */

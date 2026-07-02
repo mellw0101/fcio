@@ -135,6 +135,15 @@ wchar_t *wfree_and_assign(wchar_t *dest, wchar_t *src) {
 }
 #endif
 
+ptrdiff_t strcasecmp_array(const char *const restrict string, const char **matches) {
+  for (const char **m=matches; *m; ++m) {
+    if (strcasecmp(string, *m) == 0) {
+      return (m - matches);
+    }
+  }
+  return -1;
+}
+
 /* ----------------------------- split_string ----------------------------- */
 
 /* Split a string by demiliter. */

@@ -86,6 +86,9 @@ long  strtonum(const char *const restrict string) __THROW _NODISCARD _NONNULL(1)
 bool  parse_num(const char *const restrict string, long *const result) __THROW _NODISCARD _NONNULL(1, 2);
 char *free_and_assign(char *dest, char *src) __THROW _NODISCARD;
 
+ptrdiff_t strcasecmp_array(const char *const restrict string, const char **matches);
+#define STRCASECMP_ARRAY(string, ...)  strcasecmp_array(string, (const char *[]){ __VA_ARGS__, NULL })
+
 /* ----------------------------- split_string ----------------------------- */
 
 char **split_string_len(const char *const restrict string, const char delim, Ulong *const argc) __THROW _NODISCARD _RETURNS_NONNULL _NONNULL(1);

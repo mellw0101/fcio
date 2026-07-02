@@ -316,6 +316,12 @@
 # define VSNPRINTF(buf, maxlen, format, va)  vsnprintf(buf, maxlen, format, va)
 #endif
 
+#if _HAS_BUILTIN(strpbrk)
+# define STRPBRK(s, accept)  __builtin_strpbrk(s, accept)
+#else
+# define STRPBRK(s, accept)  strpbrk(s, accept)
+#endif
+
 /* Memory builtin shorthands */
 
 #if _HAS_BUILTIN(memset)
@@ -595,6 +601,9 @@
 # ifdef vsnprintf
 #   undef vsnprintf
 # endif
+#ifdef strpbrk
+# undef strpbrk
+#endif
 # ifdef memset
 #   undef memset
 # endif
@@ -711,6 +720,7 @@
 # define strcasecmp(...)         STRCASECMP(__VA_ARGS__)
 # define printf(...)             PRINTF(__VA_ARGS__)
 # define vsnprintf(...)          VSNPRINTF(__VA_ARGS__)
+# define strpbrk(...)            STRPBRK(__VA_ARGS__)
 # define memset(...)             MEMSET(__VA_ARGS__)
 # define memcpy(...)             MEMCPY(__VA_ARGS__)
 # define memmove(...)            MEMMOVE(__VA_ARGS__)

@@ -176,6 +176,23 @@ static char *fcio_log_fn_str(const char *fn, size_t len, size_t max) {
   }
 }
 
+static char *fcio_log_timestamp(void) {
+  struct timespec ts;
+  struct tm       tm;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  gmtime_r(&ts.tv_sec, &tm);
+  return fmtstr(
+    "%04u-%02u-%02u %02u:%02u:%02u.%03u",
+    (tm.tm_year + 1900),
+    (tm.tm_mon + 1),
+    tm.tm_mday,
+    tm.tm_hour,
+    tm.tm_min,
+    tm.tm_sec,
+    (Uint)NANO_TO_MILLI(ts.tv_nsec)
+  );
+}
+
 void fcio_log_enqueue_msg(int lvl, int line, const char *fn, size_t fn_len, const char *fmt, ...) {
   ASSERT(fn);
   ASSERT(fmt);
@@ -189,7 +206,7 @@ void fcio_log_enqueue_msg(int lvl, int line, const char *fn, size_t fn_len, cons
   va_start(ap, fmt);
   msg = valstr(fmt, ap, NULL);
   va_end(ap);
-  log_msg = fcio_log_msg_create(lvl, line, COPY_OF(""), fcio_log_fn_str(fn, fn_len, fn_max_width), msg);
+  log_msg = fcio_log_msg_create(lvl, line, fcio_log_timestamp(), fcio_log_fn_str(fn, fn_len, fn_max_width), msg);
   MUTEX_ACTION(&msg_mutex,
     queue_push(msg_queue, log_msg);
   );
@@ -233,7 +250,6 @@ void fcio_log_init(void) {
   thread_detach(thread);
   fcio_log_did_init = TRUE;
 }
-
 
 /* ----------------------------- Fcio log va ----------------------------- */
 

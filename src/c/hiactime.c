@@ -8,8 +8,6 @@
  */
 #include "../include/proto.h"
 
-#if !__WIN__
-
 
 /* ---------------------------------------------------------- Define's ---------------------------------------------------------- */
 
@@ -57,8 +55,8 @@ static const struct timespec timespec_2 = {0, INTERVAL_2};
 /* ----------------------------- Hiactime sleep total duration ----------------------------- */
 
 /* Based on how mush time has elapsed from `s`, sleep until we achive the exact time in nanoseconds.
- * `e` does not need to gathered by the caller, rather can be used to measure
- * the full sleep time after the call.  Note that for milli-second accuracy this is basicly perfect. */
+ * `e` does not need to gathered by the caller, rather can be used to measure the full
+ * sleep time after the call.  Note that for milli-second accuracy this is basically perfect. */
 void hiactime_sleep_total_duration(const struct timespec *const s, struct timespec *const e, Llong nanoseconds) {
   long elapsed;
   /* Get the current time. */
@@ -90,5 +88,3 @@ void hiactime_nsleep(Llong nanoseconds) {
 void hiactime_msleep(double milliseconds) {
   hiactime_nsleep(MILLI_TO_NANO(milliseconds));
 }
-
-#endif
