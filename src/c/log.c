@@ -94,18 +94,20 @@ static int fcio_log_fd = -1;
 
 static bool fcio_log_did_init = FALSE;
 
+/* TODO: We must fully handle signals, as that is what is causeing issues i think. */
+
 static thread_t thread;
 
-static mutex_t  msg_mutex  = mutex_init_static;
-static cond_t   msg_cond   = cond_init_static;
+static mutex_t *msg_mutex  = NULL;
+static cond_t  *msg_cond   = NULL;
 static QUEUE    msg_queue  = NULL;
 
-static mutex_t  cb_mutex = mutex_init_static;
+static mutex_t *cb_mutex = NULL;
 static CVEC     cb_vec   = NULL;
 
 static int fn_max_width = 40;
 
-static const char *fcio_log_lvl_str_array[] = {
+static const char *const fcio_log_lvl_str_array[] = {
   "INFO",
   "WARN",
   "ERR"
@@ -129,6 +131,7 @@ static void fcio_log_msg_free(FCIO_LOG_MSG msg) {
   ASSERT(msg);
   free(msg->timestamp);
   free(msg->func);
+  free(msg->msg);
   free(msg);
 }
 
@@ -137,13 +140,13 @@ static void fcio_log_run_callbacks(FCIO_LOG_MSG msg) {
   FCIO_LOG_CALLBACK cb;
   size_t i = 0;
   while (TRUE) {
-    mutex_lock(&cb_mutex);
+    mutex_lock(cb_mutex);
     if (i >= new_cvec_size(cb_vec)) {
-      mutex_unlock(&cb_mutex);
+      mutex_unlock(cb_mutex);
       break;
     }
     cb = (FCIO_LOG_CALLBACK)new_cvec_get(cb_vec, i++);
-    mutex_unlock(&cb_mutex);
+    mutex_unlock(cb_mutex);
     cb(msg);
   }
 }
@@ -151,13 +154,14 @@ static void fcio_log_run_callbacks(FCIO_LOG_MSG msg) {
 _NO_RETURN
 static void *fcio_log_thread_work(void *_UNUSED arg) {
   FCIO_LOG_MSG msg;
+  fcio_log_did_init = TRUE;
   while (TRUE) {
-    mutex_lock(&msg_mutex);
+    mutex_lock(msg_mutex);
     while (!queue_size(msg_queue)) {
-      cond_wait(&msg_cond, &msg_mutex);
+      cond_wait(msg_cond, msg_mutex);
     }
     msg = queue_pop_front(msg_queue);
-    mutex_unlock(&msg_mutex);
+    mutex_unlock(msg_mutex);
     fcio_log_run_callbacks(msg);
     fcio_log_msg_free(msg);
   }
@@ -207,10 +211,10 @@ void fcio_log_enqueue_msg(int lvl, int line, const char *fn, size_t fn_len, cons
   msg = valstr(fmt, ap, NULL);
   va_end(ap);
   log_msg = fcio_log_msg_create(lvl, line, fcio_log_timestamp(), fcio_log_fn_str(fn, fn_len, fn_max_width), msg);
-  MUTEX_ACTION(&msg_mutex,
+  MUTEX_ACTION(msg_mutex,
     queue_push(msg_queue, log_msg);
   );
-  cond_signal(&msg_cond);
+  cond_signal(msg_cond);
 }
 
 void fcio_log_add_callback(FCIO_LOG_CALLBACK cb) {
@@ -219,7 +223,7 @@ void fcio_log_add_callback(FCIO_LOG_CALLBACK cb) {
   if (!fcio_log_did_init) {
     return;
   }
-  MUTEX_ACTION(&cb_mutex,
+  MUTEX_ACTION(cb_mutex,
     new_cvec_push_back(cb_vec, (void *)cb);
   );
 }
@@ -245,10 +249,15 @@ void fcio_log_init(void) {
   ASSERT(!msg_queue);
   ASSERT(!cb_vec);
   msg_queue = queue_create();
+  msg_mutex = xmalloc(sizeof(*msg_mutex));
+  msg_cond  = xmalloc(sizeof(*msg_cond));
   cb_vec    = new_cvec_create();
+  cb_mutex  = xmalloc(sizeof(*cb_mutex));
+  mutex_init(msg_mutex, NULL);
+  cond_init(msg_cond, NULL);
+  mutex_init(cb_mutex, NULL);
   thread_create(&thread, NULL, fcio_log_thread_work, NULL);
   thread_detach(thread);
-  fcio_log_did_init = TRUE;
 }
 
 /* ----------------------------- Fcio log va ----------------------------- */

@@ -30,7 +30,7 @@ _BEGIN_C_LINKAGE
  * use `fcio_set_die_callback()` to set this.  Note that by default this prints the error to stderr and calls `exit(1)`. */
 extern _NO_RETURN _PRINTFLIKE(1, 2) void (*die_callback)(const char *format, ...);
 
-void fcio_set_die_callback(void (*callback)(const char *format, ...));
+void fcio_set_die_callback(void (*callback)(const char *format, ...) _NO_RETURN _PRINTFLIKE(1, 2));
 
 void stdoutwrite(const char *const restrict data, Ulong len) _NONNULL(1);
 void stderrwrite(const char *const restrict data, Ulong len) _NONNULL(1);
@@ -383,16 +383,30 @@ char *randstr(Ulong length);
 
 float fclamp(float x, float min, float max) __THROW _CONST _NODISCARD;
 long  lclamp(long x, long min, long max) __THROW _CONST _NODISCARD;
-float absf(float x) __THROW _CONST _NODISCARD;
 
+int clamp(int x, int min, int max) __THROW _CONST _NODISCARD;
+int clamp_min(int x, int min) __THROW _CONST _NODISCARD;
+int clamp_max(int x, int max) __THROW _CONST _NODISCARD;
+
+Ulong luclamp(Ulong x, Ulong min, Ulong max) __THROW _CONST _NODISCARD;
+Ulong luclamp_min(Ulong x, Ulong min) __THROW _CONST _NODISCARD;
+Ulong luclamp_max(Ulong x, Ulong max) __THROW _CONST _NODISCARD;
+
+/* ----------------------------- zuclamp ----------------------------- */
+
+size_t zuclamp(size_t x, size_t min, size_t max) __THROW _CONST _NODISCARD;
+size_t zuclamp_min(size_t x, size_t min) __THROW _CONST _NODISCARD;
+size_t zuclamp_max(size_t x, size_t max) __THROW _CONST _NODISCARD;
+
+float absf(float x) __THROW _CONST _NODISCARD;
 
 
 /* ---------------------------------------------------------- atomic_bool_sync.c ---------------------------------------------------------- */
 
+
 int  atomic_bool_sync_get(atomic_bool_sync *const b);
 void atomic_bool_sync_set_true(atomic_bool_sync *const b);
 void atomic_bool_sync_set_false(atomic_bool_sync *const b);
-
 
 
 /* ---------------------------------------------------------- atomicbool.c ---------------------------------------------------------- */

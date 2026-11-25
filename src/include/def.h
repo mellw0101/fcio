@@ -344,13 +344,14 @@
   15, 14, 13, 12, 11, 10,  9,  8,  7,  6,  5,  4,  3,  2,  1,  0
 
 #define PP_ARG_N(  \
-   _1,  _2,  _3,  _4,  _5,  _6,  _7,  _8,  _9, _10, _11, _12, _13, _14, _15, _16,  \
-  _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32,  \
-  _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48,  \
+  _0, _1,  _2,  _3,  _4,  _5,  _6,  _7,  _8,  _9, _10, _11, _12, _13, _14, _15, _16,  \
+  _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32,     \
+  _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48,     \
   _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, N, ...)  N
 
 #define PP_NARG_(...) PP_ARG_N(__VA_ARGS__)
-#define PP_NARG(...)  PP_NARG_(__VA_ARGS__, PP_RSEQ_N())
+// #define PP_NARG(...)  PP_NARG_(__VA_ARGS__, PP_RSEQ_N())
+#define PP_NARG(...)  PP_NARG_(, ##__VA_ARGS__, PP_RSEQ_N())
 
 #define PP_CAT_I(a, b)  a##b
 #define PP_CAT(a, b)    PP_CAT_I(a, b)
@@ -662,7 +663,7 @@
   )
 
 /* Ensure `x` cannot be more then `max`. */
-#define CLAMP_MAX(x, max)  (((x) > (__TYPE_SAME(x, max))(max)) ? ((x) = (__TYPE_SAME(x, max))(max)) : ((int)0))
+#define CLAMP_MAX(x, max)  (((x) > (__TYPE(x))(max)) ? ((x) = (max)) : ((int)0))
 
 /* Ensure `x` cannot be less then `min`. */
 #define CLAMP_MIN(x, min)  (((x) < (__TYPE(x))(min)) ? ((x) = (min)) : ((int)0))
@@ -872,6 +873,8 @@
 
 #define MILLI_TO_NANO(x)  ((Llong)(((double)(x) * 1e6) + 0.5))
 #define NANO_TO_MILLI(x)  ((double)(x) / 1e6)
+
+#define MS_TO_NS_LONG(x)  ((Llong)(x) * 1000000LL)
 
 #define FRAME_SWAP_RATE_TIME_MS(x)  (1e3 / (x))
 #define FRAME_SWAP_RATE_TIME_NS(x)  (1e9 / (x))
@@ -1139,8 +1142,8 @@
 #ifdef BEL
 # undef BEL
 #endif
-#ifdef BS
-# undef BS
+#ifdef ASCII_BS
+# undef ASCII_BS
 #endif
 #ifdef TAB
 # undef TAB
@@ -1166,8 +1169,8 @@
 #ifdef SUB
 # undef SUB
 #endif
-#ifdef SP
-# undef SP
+#ifdef ASCII_SP
+# undef ASCII_SP
 #endif
 
 #ifdef ASCII_ISDIGIT
@@ -1214,7 +1217,7 @@
   /* The hex char value of a bell code.  \
    * (0x07 == '\007' == 7). */           \
   0x07
-#define BS                               \
+#define ASCII_BS                         \
   /* The hex char value of a backspace.  \
    * (0x08 == '\010' == '\b' == 8). */   \
   0x08
@@ -1250,7 +1253,7 @@
   /* The hex value for a suspend (^Z).  \
    * (0x1A == '\032' == ^z == 26). */   \
   ASCII_CTRL('z')
-#define SP                              \
+#define ASCII_SP                        \
   /* The hex char value for a space.    \
    * (0x20 == '\040' == ' ' == 32). */  \
   0x20
@@ -1262,7 +1265,7 @@
 #define ASCII_ISLOWER(c)  ((Uint)(c) >= 'a' && (Uint)(c) <= 'z')
 #define ASCII_ISALPHA(c)  (ASCII_ISUPPER(c) || ASCII_ISLOWER(c))
 #define ASCII_ISALNUM(c)  (ASCII_ISALPHA(c) || ASCII_ISDIGIT(c))
-#define ASCII_ISWHITE(c)  ((c) == SP || (c) == TAB)
+#define ASCII_ISWHITE(c)  ((c) == ASCII_SP || (c) == TAB)
 #define ASCII_CTRL(c)     ((c)&037)
 
 /* ----------------------------- 'dirs.c' Define's ----------------------------- */
@@ -1646,6 +1649,9 @@
 #define FCIO_LOG_ERR(...)   FCIO_LOG(ERR,  __VA_ARGS__)
 
 
+#define BOOL_STR(x)  ((x) ? "TRUE" : "FALSE")
+
+
 /* ----------------------------- hashmap.c ----------------------------- */
 
 #define HMAP_UINT  PP_CAT(uint, __WORDSIZE)  /* PP_CAT(PP_CAT(uint, __WORDSIZE), _t) */
@@ -1701,7 +1707,8 @@ typedef struct HMAP_T    *HMAP;
 typedef struct HNMAP_T   *HNMAP;
 
 typedef struct HashNode  HashNode;
-typedef struct HashMap   HashMap, *HASHMAP;
+typedef struct HashMap   HashMap;
+typedef struct HashMap  *HASHMAP;
 
 typedef struct HashNodeNum  HashNodeNum;
 typedef struct HashMapNum   HashMapNum;

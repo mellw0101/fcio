@@ -25,6 +25,7 @@ static void fcio_default_die_callback(const char *format, ...) {
   va_end(ap);
   exit(1);
 }
+_NO_RETURN _PRINTFLIKE(1, 2)
 void (*die_callback)(const char *format, ...) = fcio_default_die_callback;
 
 /* Set the function that will be called when a fatal error happens. */
